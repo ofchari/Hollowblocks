@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:vetri_hollowblock/view/screens/employee.dart';
 import 'package:vetri_hollowblock/view/screens/file_upload.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
@@ -30,7 +29,7 @@ class _ProjectDetailsState extends State<ProjectDetails> {
       builder: (BuildContext context, BoxConstraints constraints) {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
-        if (width <= 450) {
+        if (width <= 1000) {
           return _smallBuildLayout();
         } else {
           return Text("Please make sure your device is in portrait view");
@@ -38,6 +37,8 @@ class _ProjectDetailsState extends State<ProjectDetails> {
       },
     );
   }
+
+
   Widget _smallBuildLayout(){
     return Scaffold(
       backgroundColor: const Color(0xfff1f2f4),

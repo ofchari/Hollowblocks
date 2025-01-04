@@ -61,7 +61,7 @@ class _LoginState extends State<Login> {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
 
-        if (width <= 450) {
+        if (width <= 1000) {
           return _smallBuildLayout();
         } else {
           return Text("Please make sure your device is in portrait view");
@@ -81,7 +81,15 @@ class _LoginState extends State<Login> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Image.asset("assets/logo.jpeg"),
+              SizedBox(height: 30.h,),
+              Container(
+                height: height/6.h,
+                width: width/1.w,
+                decoration: BoxDecoration(
+                  image: DecorationImage(image: AssetImage("assets/KBSCo.jpg"),fit: BoxFit.fill)
+                ),
+                
+              ),
               SizedBox(height: 30.h),
               Align(
                 alignment: Alignment.topLeft,

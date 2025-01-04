@@ -114,7 +114,7 @@ class _EmployeeAddState extends State<EmployeeAdd> {
       builder: (BuildContext context, BoxConstraints constraints) {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
-        if (width <= 450) {
+        if (width <= 1000) {
           return _smallBuildLayout();
         } else {
           return const Text("Please make sure your device is in portrait view");

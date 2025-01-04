@@ -3,6 +3,8 @@ import 'dart:convert'; // For base64 encoding
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart'; // Import image_picker package
+import 'package:permission_handler/permission_handler.dart'; // Import permission_handler
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:photo_view/photo_view.dart';
@@ -23,6 +25,7 @@ class _FileUploadState extends State<FileUpload> {
   late double width;
   List<String> filePaths = [];
   bool isUploading = false;
+  final ImagePicker _picker = ImagePicker(); // Create an instance of ImagePicker
 
   // Method to pick multiple files (images)
   Future<void> _pickFiles() async {
@@ -40,9 +43,29 @@ class _FileUploadState extends State<FileUpload> {
     }
   }
 
+  // Method to take a picture using the camera
+  Future<void> _takePicture() async {
+    // Request camera permission
+    PermissionStatus status = await Permission.camera.request();
+
+    if (status.isGranted) {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera); // Open camera to take a picture
+
+      if (image != null) {
+        setState(() {
+          filePaths.add(image.path); // Add the image file path to filePaths
+        });
+      } else {
+        print("No image was selected from the camera");
+      }
+    } else {
+      print("Camera permission denied");
+      // Optionally show a dialog to ask user to grant permission
+    }
+  }
+
   // Upload files to the server
   Future<void> _uploadFiles() async {
-    // final String url = "https://vetri.regenterp.com/api/resource/Documents%20Upload";
     final String url = "https://vetri.regenterp.com/api/method/upload_file";
     const String token = "f1178cbff3f9a07:f1d2a24b5a005b7";
 
@@ -100,11 +123,12 @@ class _FileUploadState extends State<FileUpload> {
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
-        if (width <= 450) {
+        if (width <= 1000) {
           return _smallBuildLayout();
         } else {
           return const Text("Please make sure your device is in portrait view");
@@ -125,6 +149,12 @@ class _FileUploadState extends State<FileUpload> {
           color: Colors.black,
           weight: FontWeight.w500,
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.camera_alt_outlined),
+            onPressed: _takePicture, // Open the camera when the icon is clicked
+          ),
+        ],
       ),
       body: SizedBox(
         width: width.w,

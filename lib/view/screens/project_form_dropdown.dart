@@ -12,7 +12,7 @@ class DropdownField extends StatefulWidget {
   final String? selectedValue;
   final IconData? prefixIcon;
   final bool isEnabled;
-  final Function onAddNewRoute; // Add new callback for route handling
+  final Function onAddNewRoute;
 
   const DropdownField({
     super.key,
@@ -23,7 +23,7 @@ class DropdownField extends StatefulWidget {
     required this.hintStyle,
     this.prefixIcon,
     this.isEnabled = true,
-    required this.onAddNewRoute, // Initialize the callback
+    required this.onAddNewRoute,
   });
 
   @override
@@ -35,11 +35,13 @@ class _DropdownFieldState extends State<DropdownField> {
   late double width;
   List<String> options = [];
   bool isLoading = true;
+  String? selectedValue;
 
   @override
   void initState() {
     super.initState();
     fetchData();
+    selectedValue = widget.selectedValue; // Initialize with the provided selected value
   }
 
   Future<void> fetchData() async {
@@ -54,9 +56,17 @@ class _DropdownFieldState extends State<DropdownField> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+
         setState(() {
-          options = List<String>.from(data['data'].map((item) => item['name'].toString()));
+          options = List<String>.from(
+            data['data'].map((item) => item['name'].toString()),
+          ).toSet().toList(); // Ensure unique options
           isLoading = false;
+
+          // Validate selectedValue against fetched options
+          if (selectedValue != null && !options.contains(selectedValue)) {
+            selectedValue = null;
+          }
         });
       } else {
         print("Failed to fetch data for ${widget.hintText}: ${response.statusCode}");
@@ -93,7 +103,7 @@ class _DropdownFieldState extends State<DropdownField> {
           SizedBox(width: 10.w),
           Expanded(
             child: DropdownButtonFormField<String>(
-              value: widget.selectedValue,
+              value: selectedValue,
               items: [
                 ...options.map((String option) {
                   return DropdownMenuItem<String>(
@@ -109,7 +119,7 @@ class _DropdownFieldState extends State<DropdownField> {
                   );
                 }).toList(),
                 DropdownMenuItem(
-                  value: "add_new", // Special value to trigger Add New route
+                  value: "add_new",
                   child: Row(
                     children: [
                       Icon(Icons.add, color: Colors.blue),
@@ -126,6 +136,9 @@ class _DropdownFieldState extends State<DropdownField> {
                 if (value == "add_new") {
                   widget.onAddNewRoute(); // Call the route callback
                 } else {
+                  setState(() {
+                    selectedValue = value; // Update selected value
+                  });
                   widget.onChanged(value); // Call the original onChanged
                 }
               },
@@ -143,4 +156,5 @@ class _DropdownFieldState extends State<DropdownField> {
     );
   }
 }
+
 

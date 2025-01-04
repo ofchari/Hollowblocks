@@ -25,7 +25,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
 
-        if (width <= 450) {
+        if (width <= 1000) {
           return _smallBuildLayout();
         } else {
           return Text("Please make sure your device is in portrait view");

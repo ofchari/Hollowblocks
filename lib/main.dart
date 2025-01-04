@@ -42,22 +42,22 @@ class MyApp extends StatelessWidget {
               GetPage(name: '/block', page: () => BlockScreen()),
               GetPage(name: '/village', page: () => VillageScreen()),
               GetPage(name: '/status', page: () => StatusScreen(
-
               )),
             ],
-            title: 'Vetri',
+            title: 'KBS Construction ',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
           ),
-          home: Dashboard()
-          // AnimatedSplashScreen(
-          //   backgroundColor: Colors.black,
-          //     splash: Image.asset("assets/logov.png"),
-          //     splashIconSize: 200,
-          //     duration: 2000,
-          //     nextScreen: const Login())
+          home:
+          // ProjectDetails()
+          AnimatedSplashScreen(
+            backgroundColor: Colors.white,
+              splash: Image.asset("assets/KBSCo.jpg"),
+              splashIconSize: 500,
+              duration: 2000,
+              nextScreen: const Login())
         );
       },
     );
