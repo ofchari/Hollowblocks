@@ -3,7 +3,10 @@ import 'dart:convert'; // For base64 encoding
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:photo_view/photo_view.dart';
+import 'package:vetri_hollowblock/view/screens/project_details.dart';
 import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
 import '../widgets/subhead.dart';
@@ -39,8 +42,9 @@ class _FileUploadState extends State<FileUpload> {
 
   // Upload files to the server
   Future<void> _uploadFiles() async {
-    final String url = "https://vetri.regenterp.com/api/resource/Documents%20Upload"; // Frappe API endpoint
-    const String token = "f1178cbff3f9a07:f1d2a24b5a005b7"; // Your token
+    // final String url = "https://vetri.regenterp.com/api/resource/Documents%20Upload";
+    final String url = "https://vetri.regenterp.com/api/method/upload_file";
+    const String token = "f1178cbff3f9a07:f1d2a24b5a005b7";
 
     setState(() {
       isUploading = true; // Show loading indicator
@@ -49,22 +53,18 @@ class _FileUploadState extends State<FileUpload> {
     try {
       for (String filePath in filePaths) {
         File file = File(filePath);
-
-        // Prepare the request for multipart/form-data
         var request = http.MultipartRequest('POST', Uri.parse(url));
-        request.headers['Authorization'] = 'Bearer $token';
 
-        // Add the file as a multipart file
+        String basicAuth = 'Basic ${base64Encode(utf8.encode(token))}';
+        request.headers['Authorization'] = basicAuth;
+
         var fileName = file.uri.pathSegments.last;
-        var multipartFile = await http.MultipartFile.fromPath('documents_upload', filePath, filename: fileName);
-        request.files.add(multipartFile);
+        request.files.add(await http.MultipartFile.fromPath('file', filePath, filename: fileName));
 
-        // Additional fields for Frappe (customize these based on your need)
-        request.fields['doctype'] = 'Documents Upload'; // Doctype you are uploading to
-        // request.fields['name'] = 'DOC-2425-001'; // The name of the document (customize)
-        request.fields['folder'] = 'Home'; // Folder to upload the file into (customize)
+        // Add required fields
+        request.fields['doctype'] = 'Documents Upload';
+        request.fields['folder'] = 'Home';
 
-        // Send the request
         var response = await request.send();
         var responseBody = await response.stream.bytesToString();
 
@@ -73,6 +73,9 @@ class _FileUploadState extends State<FileUpload> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Files uploaded successfully")),
           );
+
+          // Navigate to another screen
+          Get.to(ProjectDetails());
         } else {
           print("Failed to upload file. Status: ${response.statusCode}, Body: $responseBody");
           ScaffoldMessenger.of(context).showSnackBar(
@@ -141,15 +144,43 @@ class _FileUploadState extends State<FileUpload> {
                   ? ListView.builder(
                 itemCount: filePaths.length,
                 itemBuilder: (context, index) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 5.h),
-                    child: Container(
-                      height: 200.h,
-                      width: 200.w,
-                      child: Image.file(
-                        File(filePaths[index]),
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                  return GestureDetector(
+                    onTap: () {
+                      // Show zoomable image using a dialog
+                      showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          child: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            child: PhotoView(
+                              imageProvider: FileImage(File(filePaths[index])),
+                              backgroundDecoration: const BoxDecoration(
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 5.h),
+                      child: Container(
+                        height: 200.h,
+                        width: width * 0.8, // Perfect size adjustment
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.r),
+                          child: Image.file(
+                            File(filePaths[index]),
+                            width: width * 0.8,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ),
                   );

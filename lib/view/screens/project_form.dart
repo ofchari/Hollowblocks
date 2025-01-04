@@ -79,7 +79,7 @@ class _ProjectFormState extends State<ProjectForm> {
           pw.Container(
             alignment: pw.Alignment.center,
             margin: pw.EdgeInsets.symmetric(vertical: 20),
-            child: pw.Text('Company Details',
+            child: pw.Text('Vetri Company Details',
                 style: pw.TextStyle(fontSize: 20)),
           ),
 
@@ -88,20 +88,21 @@ class _ProjectFormState extends State<ProjectForm> {
             headers: ['Field', 'Value'],
             data: [
               ['Name of Work', Nameoftheworkr.text],
-              ['Financial Year', Financial.text],
-              ['Current Stage', cuurentstage.text],
-              ['Initial Amount', initalamount.text],
-              ['Last Visited Date', _lastVisitedDateController.text],
-              ['As Date', _asDateController.text],
-              ['Vs Date', _vsDateController.text],
               ['Work Type', selectedWorkType ?? ''],
               ['Scheme Name', selectedSchema ?? ''],
-              ['Scheme Group', selectedSchemaGroupName ?? ''],
-              ['Work Group', selectedWorkGroupName ?? ''],
+              ['Scheme Group Name', selectedSchemaGroupName ?? ''],
+              ['Work Group Name', selectedWorkGroupName ?? ''],
               ['Agency Name', selectedAgencyName ?? ''],
+              ['Financial Year', Financial.text],
               ['District', selectedDistrictName ?? ''],
               ['Block', selectedBlockName ?? ''],
               ['Village', selectedVillageName ?? ''],
+              ['Current Stage', selectedStatus ?? ''],
+              ['Initial Amount', initalamount.text],
+              ['Last Visited Date', _lastVisitedDateController.text],
+              ['As Date', _asDateController.text],
+              ['Ts Date', _vsDateController.text],
+
             ],
             border: pw.TableBorder.all(),
             cellAlignment: pw.Alignment.centerLeft,
@@ -455,37 +456,49 @@ class _ProjectFormState extends State<ProjectForm> {
               ),
               SizedBox(height: 30.h),
               _buildTextField(
-                hintText: "   Vs Date",
+                hintText: "   Ts Date",
                 icon: Icons.date_range,
                 controller: _vsDateController,
                 isDateField: true,
               ),
               SizedBox(height: 10.h),
-              // GestureDetector(
-              //   onTap: () async {
-              //     final pdfFile = await generateProfessionalPdf();
-              //     // Navigate to the PDF preview screen
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(
-              //         builder: (context) => PdfPreviewScreen(pdfFile: pdfFile),
-              //       ),
-              //     );
-              //   },
-              //   child: Buttons(
-              //     height: height / 20.h,
-              //     width: width / 2.5.w,
-              //     radius: BorderRadius.circular(10.r),
-              //     color: Colors.blue,
-              //     text: "Submit",
-              //   ),
-              // ),
-
+              // Button for generating and previewing PDF
               GestureDetector(
                 onTap: () async {
-                  // final pdfFile = await generateProfessionalPdf();
-                  // Navigator.pop(context, Nameoftheworkr.text); // Return project name
-                  MobileDocument(context);
+                  if (Nameoftheworkr.text.isEmpty) {
+                    // Show error if the mandatory field is empty
+                    Get.snackbar(
+                      "Validation Error",
+                      "Name of Work is required.",
+                      colorText: Colors.white,
+                      backgroundColor: Colors.red,
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                    return;
+                  }
+
+                  final pdfFile = await generateProfessionalPdf(); // Generate the PDF
+
+                  // Navigate to a new page to show the PDF preview and confirmation
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PdfPreviewScreen(
+                        pdfFile: pdfFile,
+                        projectName: Nameoftheworkr.text,  // Pass the project name
+                        onConfirm: () {
+                          MobileDocument(context); // Post the form on confirmation
+                          Navigator.pop(context); // Close the PDF preview screen
+                        },
+                      ),
+                    ),
+                  ).then((projectName) {
+                    // Handle the returned project name if needed (for example, update the dashboard)
+                    if (projectName != null) {
+                      // Optionally, you can update the dashboard or perform other actions here
+                      Navigator.of(context).pop(projectName); // Return project name to the dashboard
+                    }
+                  });
                 },
                 child: Buttons(
                   height: height / 20.h,
@@ -504,6 +517,14 @@ class _ProjectFormState extends State<ProjectForm> {
       ),
     );
   }
+
+  // Form Validation Function
+  bool validateMandatoryFields() {
+    if (Nameoftheworkr.text.isEmpty) return false;
+    return true;
+
+  }
+
 
   /// Dropdown field //
   Widget _buildDropdownField({
