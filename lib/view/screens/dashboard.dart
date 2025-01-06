@@ -3,14 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vetri_hollowblock/view/screens/project_form.dart';
+import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
 import 'package:vetri_hollowblock/view/screens/update_project_form.dart';
 import 'package:vetri_hollowblock/view/widgets/subhead.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
-
 import '../universal_key_api/api_url.dart';
 import 'login.dart';
 
@@ -25,50 +26,50 @@ class _DashboardState extends State<Dashboard> {
   late double height;
   late double width;
   List<String> projectList = [];
+  Map<String, dynamic> selectedFilters = {};
+  Map<String, List<String>> dropdownData = {};
 
   @override
   void initState() {
     super.initState();
     _loadProjectsFromApi(); // Fetch projects from the API
+    _fetchFilterFields(); // Fetch filter fields
+    _loadProjectsFromApi();
   }
 
-  // Fetch project list from the API
-// Fetch project list from the API
-  Future<void> _loadProjectsFromApi() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$apiUrl/Project Form'), // Replace with your actual API URL to get projects
-        headers: {
-          'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}', // Use proper authorization headers if necessary
-        },
-      );
-
-      if (response.statusCode == 200) {
-        // Decode the response body
-        final Map<String, dynamic> data = json.decode(response.body);
-        print(response.body);
-
-        // Check if the "data" field exists and is a list
-        if (data.containsKey('data') && data['data'] is List) {
-          final List<dynamic> projectListData = data['data'];
-
-          setState(() {
-            // Extract the project names from the list of project objects
-            projectList = projectListData.map((project) => project['name'] as String).toList();
-          });
-        } else {
-          print('Error: No projects found in the response');
-        }
-      } else {
-        // Handle error when response status is not 200
-        print('Error: Failed to load projects');
-      }
-    } catch (e) {
-      // Handle any error that occurs during the API request
-      print('Error: $e');
-    }
-  }
-
+  // Future<void> _loadProjectsFromApi({Map<String, dynamic>? filters}) async {
+  //   try {
+  //     String filterQuery = '';
+  //     if (filters != null && filters.isNotEmpty) {
+  //       filterQuery = "?filters=${jsonEncode(filters)}";
+  //     }
+  //
+  //     final response = await http.get(
+  //       Uri.parse('$apiUrl/Project Form$filterQuery'),
+  //       headers: {
+  //         'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+  //       },
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+  //
+  //       if (data.containsKey('data') && data['data'] is List) {
+  //         final List<dynamic> projectListData = data['data'];
+  //
+  //         setState(() {
+  //           projectList = projectListData.map((project) => project['name'] as String).toList();
+  //         });
+  //       } else {
+  //         print('Error: No projects found in the response');
+  //       }
+  //     } else {
+  //       print('Error: Failed to load projects');
+  //     }
+  //   } catch (e) {
+  //     print('Error: $e');
+  //   }
+  // }
 
   Future<void> _navigateToProjectForm() async {
     final projectName = await Navigator.of(context).push(
@@ -186,6 +187,113 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
+  Future<void> _fetchFilterFields() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiUrl/Project Form?fields=["work","work_type","scheme_name","scheme_group","work_group","agency_name"]'),
+        headers: {
+          'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        if (data.containsKey('data') && data['data'] is List) {
+          final List<dynamic> filterData = data['data'];
+
+          // Collect unique field values for dropdowns
+          Map<String, Set<String>> tempDropdownData = {
+            'work': {},
+            'work_type': {},
+            // 'scheme_name': {},
+            // 'scheme_group': {},
+            // 'work_group': {},
+            // 'agency_name': {},
+          };
+
+          for (var item in filterData) {
+            tempDropdownData.forEach((key, value) {
+              if (item[key] != null) value.add(item[key]);
+            });
+          }
+
+          setState(() {
+            dropdownData = tempDropdownData.map((key, value) => MapEntry(key, value.toList()));
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching filter fields: $e');
+    }
+  }
+
+  Future<void> _loadProjectsFromApi({Map<String, dynamic>? filters}) async {
+    try {
+      String filterQuery = '';
+      if (filters != null && filters.isNotEmpty) {
+        filterQuery = "?filters=${jsonEncode(filters)}";
+      }
+
+      final response = await http.get(
+        Uri.parse('$apiUrl/Project Form$filterQuery'),
+        headers: {
+          'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        if (data.containsKey('data') && data['data'] is List) {
+          final List<dynamic> projectListData = data['data'];
+
+          setState(() {
+            projectList = projectListData.map((project) => project['name'] as String).toList();
+          });
+        }
+      } else {
+        print('Error: Failed to load projects');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Widget _buildFilterDropdown(String fieldName) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0), // Add spacing between dropdowns
+      child: SizedBox(
+        width: double.infinity, // Ensure the dropdown stretches across the parent width
+        child: DropdownButtonFormField<String>( // Use DropdownButtonFormField for better layout control
+          decoration: InputDecoration(
+            border: OutlineInputBorder(), // Add a border for better UI
+            labelText: fieldName.length > 20 ? 'Select $fieldName' : 'Select $fieldName', // Adjust based on label length
+            labelStyle: TextStyle(
+              overflow: TextOverflow.ellipsis, // Prevent overflow of label
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0), // Adjust padding
+          ),
+          value: selectedFilters[fieldName],
+          items: dropdownData[fieldName]?.map((value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Flexible(
+                child: Text(value, overflow: TextOverflow.ellipsis, // Ensures overflow text is truncated
+                    maxLines: 1),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              selectedFilters[fieldName] = value;
+            });
+            _loadProjectsFromApi(filters: selectedFilters); // Apply selected filters
+          },
+        ),
+      ),
+    );
+  }
 
 
   @override
@@ -226,13 +334,55 @@ class _DashboardState extends State<Dashboard> {
           IconButton(
             icon: Row(
               children: [
-                const Icon(Icons.add, color: Colors.blue), // Icon// Space between icon and text
-                MyText(text: "  Add Project", color: Colors.blue, weight: FontWeight.w500)
+                const Icon(Icons.filter_list, color: Colors.orange),
+                MyText(text: "  Filter", color: Colors.orange, weight: FontWeight.w500),
+              ],
+            ),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Apply Filters'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: dropdownData.keys.map((field) {
+                        return _buildFilterDropdown(field);
+                      }).toList(),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _loadProjectsFromApi(filters: selectedFilters); // Apply filters on close
+                        },
+                        child: const Text('Apply'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedFilters.clear(); // Clear filters
+                          });
+                          Navigator.of(context).pop();
+                          _loadProjectsFromApi(); // Reload all projects
+                        },
+                        child: const Text('Clear'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+          IconButton(
+            icon: Row(
+              children: [
+                const Icon(Icons.add, color: Colors.blue),
+                MyText(text: "  Add Project", color: Colors.blue, weight: FontWeight.w500),
               ],
             ),
             onPressed: _navigateToProjectForm,
-          )
-
+          ),
         ],
       ),
       body: SizedBox(
@@ -265,7 +415,7 @@ class _DashboardState extends State<Dashboard> {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () async {
-                      Get.to(() => UpdateProjectForm(projectName: projectList[index]));
+                      Get.to(() => TabsPages(projectName: projectList[index]));
                     },
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
@@ -277,14 +427,17 @@ class _DashboardState extends State<Dashboard> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          MyText(
-                            text: projectList[index],
-                            color: Colors.white,
-                            weight: FontWeight.w500,
+                          // Wrapping the text in Flexible to handle overflow issues
+                          Flexible(
+                            child: Text(
+                             projectList[index],style: GoogleFonts.figtree(textStyle: TextStyle(fontSize: 16.sp,fontWeight: FontWeight.w500,color: Colors.white)),
+                              overflow: TextOverflow.ellipsis, // Ensures overflow text is truncated
+                              maxLines: 1, // Limits the text to 1 line
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: (){
+                            onPressed: () {
                               MobileDocument(context, projectList[index]);
                             },
                           ),
@@ -294,6 +447,7 @@ class _DashboardState extends State<Dashboard> {
                   );
                 },
               ),
+
             ],
           ),
         ),

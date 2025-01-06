@@ -45,7 +45,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
 
   // Text controllers for date fields
   final TextEditingController Nameoftheworkr = TextEditingController();
-  final TextEditingController Financial = TextEditingController();
+  TextEditingController financialYearController = TextEditingController();
   final TextEditingController cuurentstage = TextEditingController();
   final TextEditingController initalamount = TextEditingController();
   final TextEditingController _lastVisitedDateController = TextEditingController();
@@ -73,7 +73,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
         selectedSchema = projectInfo['scheme_name'] ?? '';
         selectedSchemaGroupName = projectInfo['scheme_group'] ?? '';
         selectedWorkGroupName = projectInfo['work_group'] ?? '';
-        Financial.text = projectInfo['financial_year'] ?? '';
+        financialYearController.text = projectInfo['financial_year'] ?? '';
         selectedAgencyName = projectInfo['agency_name'] ?? '';
         selectedBlockName = projectInfo['block'] ?? '';
         selectedVillageName = projectInfo['village'] ?? '';
@@ -170,7 +170,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
               ['Scheme Group Name', selectedSchemaGroupName ?? ''],
               ['Work Group Name', selectedWorkGroupName ?? ''],
               ['Agency Name', selectedAgencyName ?? ''],
-              ['Financial Year', Financial.text],
+              ['Financial Year', financialYearController.text],
               ['District', selectedDistrictName ?? ''],
               ['Block', selectedBlockName ?? ''],
               ['Village', selectedVillageName ?? ''],
@@ -234,7 +234,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
       'scheme_group': selectedSchemaGroupName,
       'work_group': selectedWorkGroupName,
       'agency_name': selectedAgencyName,
-      'financial_year': Financial.text,
+      'financial_year': financialYearController.text,
       'district': selectedDistrictName,
       'block': selectedBlockName,
       'village': selectedVillageName,
@@ -309,7 +309,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
     _fetchProjectData();
     fetchProjectDetails;
     print(Nameoftheworkr.text);
-    print(Financial.text);
+    print(financialYearController.text);
     print(cuurentstage.text);
     print(initalamount.text);
   }
@@ -451,11 +451,8 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
                 },
               ),
               SizedBox(height: 30.h),
-              _buildTextField(
-                hintText: "   Financial year",
-                icon: Icons.date_range,
-                controller: Financial,
-                isDateField: true,
+              _buildFinancialYearDropdown(
+                  controller: financialYearController
               ),
               SizedBox(height: 30.h),
               _buildDropdownField(
@@ -574,7 +571,124 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
     return true;
 
   }
+  /// Finanaical dropdown //
+  Widget _buildFinancialYearDropdown({
+    required TextEditingController controller,
+  }) {
+    List<String> financialYears = [
+      "23-24",
+      "24-25",
+      "25-26",
+      "26-27",
+      "27-28",
+      "28-29",
+      "29-30"
+    ];
 
+    FocusNode _focusNode = FocusNode();
+
+    return Focus(
+      onFocusChange: (hasFocus) {
+        if (hasFocus) {
+          // Show the dropdown when the field gets focus
+          _showFinancialYearDropdown(financialYears);
+        }
+      },
+      child: GestureDetector(
+        onTap: () {
+          // Trigger the dropdown when user taps on the field
+          _showFinancialYearDropdown(financialYears);
+        },
+        child: Container(
+          height: height / 15.2.h, // Adjusted for better height
+          width: width / 1.09.w, // Adjusted for better width
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(6.r),
+            border: Border.all(
+              color: Colors.grey.shade500,
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.w), // Adjust padding for a neat look
+            child: Align(
+              alignment: Alignment.center, // Center the text vertically and horizontally
+              child: TextFormField(
+                controller: controller,
+                focusNode: _focusNode,
+                style: GoogleFonts.dmSans(
+                  textStyle: TextStyle(
+                    fontSize: 16.sp, // Adjust font size for better readability
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.zero, // No left padding for better alignment
+                  hintText: "   Financial Year", // Placeholder text
+                  hintStyle: GoogleFonts.sora(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black.withOpacity(0.6),
+                  ),
+                  border: InputBorder.none, // Remove borders for cleaner look
+                  isDense: true, // Make the field compact
+                ),
+                readOnly: true, // Makes the field read-only, so users can only select the dropdown
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+// Function to show the financial year dropdown
+  void _showFinancialYearDropdown(List<String> financialYears) async {
+    String? selectedYear = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Select Financial Year", style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Container(
+            width: 300, // Set a fixed width for the dropdown
+            height: 250, // Set a fixed height for the dropdown container
+            child: DropdownButton<String>(
+              value: financialYearController.text.isEmpty ? null : financialYearController.text,
+              isExpanded: true, // Makes the dropdown take up all available width
+              onChanged: (String? newValue) {
+                // Update the controller when a value is selected
+                financialYearController.text = newValue!;
+                Navigator.pop(context, newValue); // Close the dialog and return the selected value
+              },
+              items: financialYears.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+
+    // If a financial year was selected, update the field value
+    if (selectedYear != null) {
+      setState(() {
+        financialYearController.text = selectedYear; // Set the selected financial year to the controller
+      });
+    }
+  }
 
   /// Dropdown field //
   Widget _buildDropdownField({

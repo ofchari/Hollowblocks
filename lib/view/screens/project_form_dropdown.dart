@@ -109,6 +109,7 @@ class _DropdownFieldState extends State<DropdownField> {
                   return DropdownMenuItem<String>(
                     value: option,
                     child: Text(
+                      overflow: TextOverflow.ellipsis,
                       option,
                       style: GoogleFonts.dmSans(
                         fontSize: 15.sp,
@@ -117,7 +118,7 @@ class _DropdownFieldState extends State<DropdownField> {
                       ),
                     ),
                   );
-                }).toList(),
+                }),
                 DropdownMenuItem(
                   value: "add_new",
                   child: Row(

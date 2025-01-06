@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -8,7 +7,6 @@ import 'package:http/io_client.dart';
 import 'package:vetri_hollowblock/view/screens/employee_add.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
 import 'dart:convert'; // For JSON decoding
-
 import '../universal_key_api/api_url.dart';
 import '../widgets/subhead.dart';
 import '../widgets/text.dart';
@@ -28,6 +26,14 @@ class _EmployeeState extends State<Employee> {
   String? selectedEmployee; // Currently selected employee
   String attendanceStatus = "Mark Attendance"; // State to hold attendance status
   bool isLoading = false; // Loading indicator for dropdown
+  String? selectedShift; // Initially no shift selected (null)
+
+      /// Textediting Controller ///
+  final inTimeController = TextEditingController();
+  final outTimeController = TextEditingController();
+
+  // List of shifts
+  final List<String> shifts = ["1 Shift", "1/2 Shift"];
 
   @override
   void initState() {
@@ -72,6 +78,66 @@ class _EmployeeState extends State<Employee> {
       });
     }
   }
+            /// Dropdown logic for shifts ///
+  void _showShiftDropdown(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0), // Rounded corners for the dialog
+          ),
+          title: Text(
+            'Select Shift',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.black,
+            ),
+          ),
+          content: Container(
+            padding: EdgeInsets.all(12), // Padding for the dropdown container
+            child: DropdownButtonFormField<String>(
+              value: selectedShift, // Show the currently selected shift
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Shift Options',
+                contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+              ),
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedShift = newValue; // Update the selected shift
+                });
+                Navigator.pop(context); // Close the dialog
+              },
+              items: shifts.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog without selection
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.red, // Red color for the cancel button
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
                  /// Post method for Employee //
   Future<void> MobileDocument(BuildContext context) async {
     HttpClient client = HttpClient();
@@ -87,6 +153,9 @@ class _EmployeeState extends State<Employee> {
       'doctype': 'Employee Attendance',
       'employee': selectedEmployee,
       'attendance': attendanceStatus,
+      'shift': selectedShift,
+      'in_time': inTimeController.text,
+      'out_time': outTimeController.text,
     };
 
     final url = '$apiUrl/Employee Attendance'; // Replace with your actual API URL
@@ -323,6 +392,104 @@ class _EmployeeState extends State<Employee> {
                   ),
                 ),
               ),
+            ),
+            SizedBox(height: 20.h,),
+            GestureDetector(
+              onTap: (){
+                _showShiftDropdown(context);
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                height: height / 10.h,
+                width: width / 1.2.w,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(7.r),
+                ),
+                child: Center(
+                  child: MyText(
+                    text: selectedShift ?? "Shift basics", // Show the selected shift or default text // Show the current attendance status
+                    color: Colors.black,
+                    weight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20.h,),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    // Show the time picker
+                    TimeOfDay? pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (pickedTime != null) {
+                      // If a time is selected, set it to the controller and update the UI
+                      setState(() {
+                        inTimeController.text = pickedTime.format(context); // Update the controller
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    height: height / 15.h,
+                    width: width / 2.9.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(7.r),
+                    ),
+                    child: Center(
+                      child: MyText(
+                        text: inTimeController.text.isEmpty
+                            ? "In Time" // Default text when no time is selected
+                            : inTimeController.text, // Display selected time
+                        color: Colors.black,
+                        weight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+
+                GestureDetector(
+                  onTap: () async {
+                    // Show the time picker
+                    // Show the time picker
+                    TimeOfDay? pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (pickedTime != null) {
+                      // If a time is selected, set it to the controller and update the UI
+                      setState(() {
+                        outTimeController.text = pickedTime.format(context); // Update the controller
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    height: height / 15.h,
+                    width: width / 2.9.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(7.r),
+                    ),
+                    child: Center(
+                      child: MyText(
+                        text: outTimeController.text.isEmpty
+                            ? "Out Time" // Default text when no time is selected
+                            : outTimeController.text, // Display selected time // Show the selected shift or default text //
+                        color: Colors.black,
+                        weight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 20.h,),
             GestureDetector(
