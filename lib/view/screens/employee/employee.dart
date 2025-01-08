@@ -4,12 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
-import 'package:vetri_hollowblock/view/screens/employee_add.dart';
+import 'package:intl/intl.dart';
+import 'package:vetri_hollowblock/view/screens/employee/employee_add.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
 import 'dart:convert'; // For JSON decoding
-import '../universal_key_api/api_url.dart';
-import '../widgets/subhead.dart';
-import '../widgets/text.dart';
+import '../../universal_key_api/api_url.dart';
+import '../../widgets/subhead.dart';
+import '../../widgets/text.dart';
 
 class Employee extends StatefulWidget {
   const Employee({super.key});
@@ -27,6 +28,7 @@ class _EmployeeState extends State<Employee> {
   String attendanceStatus = "Mark Attendance"; // State to hold attendance status
   bool isLoading = false; // Loading indicator for dropdown
   String? selectedShift; // Initially no shift selected (null)
+  String selectedDate = "Date"; // Default text before any date is selected,
 
       /// Textediting Controller ///
   final inTimeController = TextEditingController();
@@ -136,8 +138,6 @@ class _EmployeeState extends State<Employee> {
       },
     );
   }
-
-
                  /// Post method for Employee //
   Future<void> MobileDocument(BuildContext context) async {
     HttpClient client = HttpClient();
@@ -153,6 +153,7 @@ class _EmployeeState extends State<Employee> {
       'doctype': 'Employee Attendance',
       'employee': selectedEmployee,
       'attendance': attendanceStatus,
+      'date': selectedDate,
       'shift': selectedShift,
       'in_time': inTimeController.text,
       'out_time': outTimeController.text,
@@ -208,7 +209,7 @@ class _EmployeeState extends State<Employee> {
 
   @override
   Widget build(BuildContext context) {
-    /// Define Sizes //
+         /// Define Sizes //
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
@@ -393,6 +394,42 @@ class _EmployeeState extends State<Employee> {
                 ),
               ),
             ),
+            SizedBox(height: 20.h,),
+        GestureDetector(
+          onTap: () async {
+            // Show the date picker
+            DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+            );
+
+            // Update the container's text with the selected date if a date is picked
+            if (pickedDate != null) {
+              setState(() {
+                selectedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+              });
+            }
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w),
+            height: height / 10.h,
+            width: width / 1.2.w,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(7.r),
+            ),
+            child: Center(
+              child: MyText(
+                text: selectedDate, // Display the selected date dynamically
+                color: Colors.black,
+                weight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
             SizedBox(height: 20.h,),
             GestureDetector(
               onTap: (){

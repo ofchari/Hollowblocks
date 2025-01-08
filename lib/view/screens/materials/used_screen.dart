@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../widgets/subhead.dart';
+import '../../widgets/subhead.dart';
 
-class MaterialScreen extends StatefulWidget {
-  const MaterialScreen({super.key});
+class UsedScreen extends StatefulWidget {
+  const UsedScreen({super.key});
 
   @override
-  State<MaterialScreen> createState() => _MaterialScreenState();
+  State<UsedScreen> createState() => _UsedScreenState();
 }
 
-class _MaterialScreenState extends State<MaterialScreen> {
+class _UsedScreenState extends State<UsedScreen> {
   late double height;
   late double width;
   @override
   Widget build(BuildContext context) {
-    /// Define Sizes //
+       /// Define Sizes ///
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
-
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         height = constraints.maxHeight;
@@ -41,20 +40,11 @@ class _MaterialScreenState extends State<MaterialScreen> {
         toolbarHeight: 80.h,
         centerTitle: true,
         title: Subhead(
-          text: "Material",
+          text: "Material Used",
           color: Colors.black,
           weight: FontWeight.w500,
         ),
       ),
-      body: SizedBox(
-        width: width.w,
-        child: Column(
-          children: [
-
-          ],
-        ),
-      ),
-
     );
   }
 }

@@ -7,32 +7,29 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
-import 'package:vetri_hollowblock/view/screens/employee.dart';
+import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
 import 'package:vetri_hollowblock/view/screens/pdf_view.dart';
 import 'package:vetri_hollowblock/view/screens/project_details.dart';
 import 'package:http/http.dart'as http;
-import 'package:vetri_hollowblock/view/screens/project_form_dropdown.dart';
+import 'package:vetri_hollowblock/view/screens/project_forms/project_form_dropdown.dart';
 import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../widgets/buttons.dart';
-import '../widgets/subhead.dart';
-import 'dashboard.dart';
+import '../../widgets/buttons.dart';
+import '../../widgets/subhead.dart';
+import '../dashboard.dart';
 import 'package:path_provider/path_provider.dart';
 
-class UpdateProjectForm extends StatefulWidget {
-  const UpdateProjectForm({super.key,    required this.projectName,});
-  final String projectName;
-
+class ProjectForm extends StatefulWidget {
+  const ProjectForm({super.key});
 
   @override
-  State<UpdateProjectForm> createState() => _UpdateProjectFormState();
+  State<ProjectForm> createState() => _ProjectFormState();
 }
 
-class _UpdateProjectFormState extends State<UpdateProjectForm> {
+class _ProjectFormState extends State<ProjectForm> {
   late double height;
   late double width;
-  bool isLoading = true;
-  Map<String, dynamic> projectDetails = {};
+
   String? selectedWorkType;
   String? selectedSchema;
   String? selectedSchemaGroupName;
@@ -44,90 +41,16 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
   String? selectedStatus;
 
   // Text controllers for date fields
-  final TextEditingController Nameoftheworkr = TextEditingController();
+ final TextEditingController Nameoftheworkr = TextEditingController();
   TextEditingController financialYearController = TextEditingController();
-  final TextEditingController cuurentstage = TextEditingController();
-  final TextEditingController initalamount = TextEditingController();
+ final TextEditingController cuurentstage = TextEditingController();
+ final TextEditingController initalamount = TextEditingController();
   final TextEditingController _lastVisitedDateController = TextEditingController();
   final TextEditingController _asDateController = TextEditingController();
   final TextEditingController _vsDateController = TextEditingController();
 
 
-
-
- /// Fetch project details from the API
-  Future<void> _fetchProjectData() async {
-    try {
-      print('Fetching project data for: ${widget.projectName}'); // Debug: Log project name
-      final projectData = await fetchProjectDetails(widget.projectName);
-
-      // Extract the 'data' field from the API response
-      final projectInfo = projectData['data']; // Add this line to extract 'data'
-
-      print('Project data fetched: $projectInfo'); // Debug: Log fetched data
-
-      setState(() {
-        projectDetails = projectInfo; // Update state with project data
-        Nameoftheworkr.text = projectInfo['name'] ?? '';
-        selectedWorkType = projectInfo['work_type'] ?? '';
-        selectedSchema = projectInfo['scheme_name'] ?? '';
-        selectedSchemaGroupName = projectInfo['scheme_group'] ?? '';
-        selectedWorkGroupName = projectInfo['work_group'] ?? '';
-        financialYearController.text = projectInfo['financial_year'] ?? '';
-        selectedAgencyName = projectInfo['agency_name'] ?? '';
-        selectedBlockName = projectInfo['block'] ?? '';
-        selectedVillageName = projectInfo['village'] ?? '';
-        selectedDistrictName = projectInfo['district'] ?? '';
-        selectedStatus = projectInfo['current_stage'] ?? '';
-        initalamount.text = projectInfo['initial_amount']?.toString() ?? ''; // Convert to string if needed
-        _lastVisitedDateController.text = projectInfo['last_visited_date'] ?? '';
-        _asDateController.text = projectInfo['as_date'] ?? '';
-        _vsDateController.text = projectInfo['vs_date'] ?? '';
-        isLoading = false;
-      });
-      print('State updated successfully.'); // Debug: Log state update
-    } catch (error) {
-      print('Error in _fetchProjectData: $error'); // Debug: Log error
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching project details')),
-      );
-    }
-  }
-
-  // Function to call API to fetch the project details
-  Future<Map<String, dynamic>> fetchProjectDetails(String projectName) async {
-    try {
-      final encodedProjectName = Uri.encodeComponent(projectName);
-      print('Encoded project name: $encodedProjectName'); // Debug: Log encoded name
-      print('API URL: $apiUrl/Project Form/$encodedProjectName'); // Debug: Log URL
-
-      final response = await http.get(
-        Uri.parse('$apiUrl/Project Form/$encodedProjectName'),
-        headers: {
-          'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
-        },
-      );
-
-      print('Response status code: ${response.statusCode}'); // Debug: Log status code
-      print('Response body: ${response.body}'); // Debug: Log response body
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to load project details: ${response.reasonPhrase}');
-      }
-    } catch (e) {
-      print('Error in fetchProjectDetails: $e'); // Debug: Log errors
-      throw Exception('Error fetching project details: $e');
-    }
-  }
-
-
-
-  /// PDF Generate logic //
+              /// PDF Generate logic //
   Future<File> generateProfessionalPdf() async {
     final pdf = pw.Document();
 
@@ -215,7 +138,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
     await file.writeAsBytes(await pdf.save());
     return file;
   }
-  /// Post method for Project Form //
+              /// Post method for Project Form //
   Future<void> MobileDocument(BuildContext context) async {
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
@@ -246,13 +169,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
 
     };
 
-    final url = '$apiUrl/Project Form/${widget.projectName}'; // Replace with your actual API URL
+    final url = '$apiUrl/Project Form'; // Replace with your actual API URL
     final body = jsonEncode(data);
     print(data);
 
     try {
       // Use Uri.parse() to convert the string URL into a Uri object
-      final response = await ioClient.put(Uri.parse(url), headers: headers, body: body);
+      final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
 
       if (response.statusCode == 200) {
         Get.snackbar(
@@ -262,7 +185,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
         );
-        Get.to(ProjectDetails()); // Return project name to Dashboard
+        Navigator.of(context).pop(Nameoftheworkr.text); // Return project name to Dashboard
       }
       else {
         String message = 'Request failed with status: ${response.statusCode}';
@@ -306,12 +229,11 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _fetchProjectData();
-    fetchProjectDetails;
     print(Nameoftheworkr.text);
     print(financialYearController.text);
     print(cuurentstage.text);
     print(initalamount.text);
+
   }
 
   @override
@@ -324,11 +246,6 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
     // Define Sizes //
     var size = MediaQuery.of(context).size;
     height = size.height.h;
@@ -356,7 +273,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
         toolbarHeight: 80.h,
         centerTitle: true,
         title: Subhead(
-          text: "Update Project Form",
+          text: "Add Project Form",
           color: Colors.black,
           weight: FontWeight.w500,
         ),
@@ -400,7 +317,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
                     selectedSchema = value;
                     print(selectedSchema);
                   });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black,overflow: TextOverflow.ellipsis,)),
                 onAddNewRoute: () {
                   Get.toNamed('/scheme'); // Use GetX to navigate to the "Add Work Type" page
                 },
@@ -545,7 +462,40 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
               // Button for generating and previewing PDF
               GestureDetector(
                 onTap: () async {
-                  MobileDocument(context);
+                  if (Nameoftheworkr.text.isEmpty) {
+                    // Show error if the mandatory field is empty
+                    Get.snackbar(
+                      "Validation Error",
+                      "Name of Work is required.",
+                      colorText: Colors.white,
+                      backgroundColor: Colors.red,
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                    return;
+                  }
+
+                  final pdfFile = await generateProfessionalPdf(); // Generate the PDF
+
+                  // Navigate to a new page to show the PDF preview and confirmation
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PdfPreviewScreen(
+                        pdfFile: pdfFile,
+                        projectName: Nameoftheworkr.text,  // Pass the project name
+                        onConfirm: () {
+                          MobileDocument(context); // Post the form on confirmation
+                          Navigator.pop(context); // Close the PDF preview screen
+                        },
+                      ),
+                    ),
+                  ).then((projectName) {
+                    // Handle the returned project name if needed (for example, update the dashboard)
+                    if (projectName != null) {
+                      // Optionally, you can update the dashboard or perform other actions here
+                      Navigator.of(context).pop(projectName); // Return project name to the dashboard
+                    }
+                  });
                 },
                 child: Buttons(
                   height: height / 20.h,
@@ -571,7 +521,28 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
     return true;
 
   }
-  /// Finanaical dropdown //
+
+
+  /// Dropdown field //
+  Widget _buildDropdownField({
+    required String apiUrl,
+    required String hintText,
+    required TextStyle hintStyle,
+    required String? selectedValue,
+    required Function(String?) onChanged,
+    required Function onAddNewRoute, // Pass the onAddNewRoute callback
+  }) {
+    return DropdownField(
+      apiUrl: apiUrl,
+      hintText: hintText,
+      hintStyle: hintStyle,
+      onChanged: onChanged,
+      selectedValue: selectedValue,
+      onAddNewRoute: onAddNewRoute, // Pass it to DropdownField
+    );
+  }
+
+/// Finanaical dropdown //
   Widget _buildFinancialYearDropdown({
     required TextEditingController controller,
   }) {
@@ -690,26 +661,6 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
     }
   }
 
-  /// Dropdown field //
-  Widget _buildDropdownField({
-    required String apiUrl,
-    required String hintText,
-    required TextStyle hintStyle,
-    required String? selectedValue,
-    required Function(String?) onChanged,
-    required Function onAddNewRoute, // Pass the onAddNewRoute callback
-  }) {
-    return DropdownField(
-      apiUrl: apiUrl,
-      hintText: hintText,
-      hintStyle: hintStyle,
-      onChanged: onChanged,
-      selectedValue: selectedValue,
-      onAddNewRoute: onAddNewRoute, // Pass it to DropdownField
-    );
-  }
-
-
 
   // Updated _buildTextField method
   Widget _buildTextField({
@@ -742,7 +693,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
           decoration: InputDecoration(
             contentPadding: EdgeInsets.only(left: 20.0),
             prefixIconConstraints: BoxConstraints(
-                minWidth: 24,minHeight: 24
+              minWidth: 24,minHeight: 24
             ),
             prefixIcon: Icon(icon, size: 16), // Icon size adjusted to 16
             hintText: hintText,
@@ -771,4 +722,3 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
     );
   }
 }
-

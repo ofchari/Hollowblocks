@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:vetri_hollowblock/view/screens/employee.dart';
+import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
 import 'package:vetri_hollowblock/view/screens/file_upload.dart';
-import 'package:vetri_hollowblock/view/screens/material.dart';
+import 'package:vetri_hollowblock/view/screens/materials/material_details.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
-import 'package:vetri_hollowblock/view/screens/update_project_form.dart';
+import 'package:vetri_hollowblock/view/screens/project_forms/update_project_form.dart';
 import '../widgets/subhead.dart';
 import 'reports/all_reports.dart'; // Custom widget to style your text
 

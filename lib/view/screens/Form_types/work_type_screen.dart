@@ -8,7 +8,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart'as http;
 import 'package:http/io_client.dart';
-import 'package:vetri_hollowblock/view/screens/project_form.dart';
+import 'package:vetri_hollowblock/view/screens/project_forms/project_form.dart';
 
 import '../../universal_key_api/api_url.dart';
 import '../../widgets/buttons.dart';

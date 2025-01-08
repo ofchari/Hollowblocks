@@ -12,8 +12,12 @@ import 'package:vetri_hollowblock/view/screens/Form_types/village_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/work_group_screen.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/login.dart';
+import 'package:vetri_hollowblock/view/screens/materials/material_details.dart';
+import 'package:vetri_hollowblock/view/screens/materials/materials_add.dart';
+import 'package:vetri_hollowblock/view/screens/materials/received_screen/create_party.dart';
+import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
 import 'package:vetri_hollowblock/view/screens/project_details.dart';
-import 'package:vetri_hollowblock/view/screens/project_form.dart';
+import 'package:vetri_hollowblock/view/screens/project_forms/project_form.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/work_type_screen.dart';
 void main() {
   runApp(const MyApp());
@@ -51,13 +55,13 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           home:
-          // Dashboard()
-          AnimatedSplashScreen(
-            backgroundColor: Colors.white,
-              splash: Image.asset("assets/KBSCo.jpg"),
-              splashIconSize: 500,
-              duration: 2000,
-              nextScreen: const Login())
+          ReceivedScreen()
+          // AnimatedSplashScreen(
+          //   backgroundColor: Colors.white,
+          //     splash: Image.asset("assets/KBSCo.jpg"),
+          //     splashIconSize: 500,
+          //     duration: 2000,
+          //     nextScreen: const Login())
         );
       },
     );

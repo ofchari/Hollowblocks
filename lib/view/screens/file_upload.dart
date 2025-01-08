@@ -98,7 +98,7 @@ class _FileUploadState extends State<FileUpload> {
           );
 
           // Navigate to another screen
-          Get.to(ProjectDetails());
+         Navigator.pop(context);
         } else {
           print("Failed to upload file. Status: ${response.statusCode}, Body: $responseBody");
           ScaffoldMessenger.of(context).showSnackBar(

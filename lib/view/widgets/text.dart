@@ -15,6 +15,6 @@ class MyText extends StatefulWidget {
 class _MyTextState extends State<MyText> {
   @override
   Widget build(BuildContext context) {
-    return Text(widget.text,style: GoogleFonts.figtree(textStyle: TextStyle(fontSize: 16.sp,fontWeight: widget.weight,color: widget.color)),);
+    return Text(widget.text,style: GoogleFonts.figtree(textStyle: TextStyle(fontSize: 15.sp,fontWeight: widget.weight,color: widget.color)),);
   }
 }

@@ -1,32 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../widgets/subhead.dart';
 
-class AllReports extends StatefulWidget {
-  const AllReports({super.key});
+class PurchasedScreen extends StatefulWidget {
+  const PurchasedScreen({super.key});
 
   @override
-  State<AllReports> createState() => _AllReportsState();
+  State<PurchasedScreen> createState() => _PurchasedScreenState();
 }
 
-class _AllReportsState extends State<AllReports> {
+class _PurchasedScreenState extends State<PurchasedScreen> {
   late double height;
   late double width;
   @override
   Widget build(BuildContext context) {
-    /// Define Sizes //
+    /// Define Sizes ///
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
-
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
+
         if (width <= 1000) {
           return _smallBuildLayout();
         } else {
-          return const Text("Please make sure your device is in portrait view");
+          return Text("Please make sure your device is in portrait view");
         }
       },
     );
@@ -39,23 +40,11 @@ class _AllReportsState extends State<AllReports> {
         toolbarHeight: 80.h,
         centerTitle: true,
         title: Subhead(
-          text: "All Reports",
+          text: "Add Purchased Material",
           color: Colors.black,
           weight: FontWeight.w500,
         ),
       ),
-      body: SizedBox(
-        width: width.w,
-        child: Column(
-          children: [
-
-
-
-
-          ],
-        ),
-      ),
     );
   }
-
 }

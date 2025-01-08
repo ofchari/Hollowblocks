@@ -1,17 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart'as http;
 import 'package:http/io_client.dart';
-import 'package:vetri_hollowblock/view/screens/employee.dart';
-import '../universal_key_api/api_url.dart';
-import '../widgets/buttons.dart';
-import '../widgets/subhead.dart';
+import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
+import '../../universal_key_api/api_url.dart';
+import '../../widgets/buttons.dart';
+import '../../widgets/subhead.dart';
 
 class EmployeeAdd extends StatefulWidget {
   const EmployeeAdd({super.key});
@@ -99,10 +97,6 @@ class _EmployeeAddState extends State<EmployeeAdd> {
       );
     }
   }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
