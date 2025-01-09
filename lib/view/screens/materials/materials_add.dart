@@ -6,13 +6,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
+import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
+import 'package:vetri_hollowblock/view/screens/materials/used_screen.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
 import 'package:http/http.dart' as http;
 import '../../universal_key_api/api_url.dart';
 import '../../widgets/subhead.dart';
 
 class MaterialsAdd extends StatefulWidget {
-  const MaterialsAdd({super.key});
+  const MaterialsAdd({super.key, required this.routeType});
+  final String routeType;
 
   @override
   State<MaterialsAdd> createState() => _MaterialsAddState();
@@ -300,57 +303,75 @@ class _MaterialsAddState extends State<MaterialsAdd> {
         itemCount: materials.length,
         itemBuilder: (context, index) {
           final material = materials[index];
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: height / 10.h,
-              width: width / 1.1.w,
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        MyText(
-                          text: material['material_name'],
-                          color: Colors.white,
-                          weight: FontWeight.w500,
-                        ),
-                        MyText(
-                          text: " CostCode: ${material['cost_code']}",
-                          color: Colors.white,
-                          weight: FontWeight.w500,
-                        ),
-                      ],
+          return GestureDetector(
+            onTap: () {
+              // Get the route type from arguments or a provider
+                if (widget.routeType == 'used') {
+                  Get.to(() => UsedScreen(material: material));
+                } else {
+                  Get.to(() => ReceivedScreen(material: material));
+                }
+
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      blurRadius: 5,
+                      offset: Offset(0, 2),
                     ),
+                  ],
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          MyText(
+                            text: material['material_name'] ?? "No Name",
+                            color: Colors.black,
+                            weight: FontWeight.bold,
+                          ),
+                          MyText(
+                            text: "Cost Code: ${material['cost_code'] ?? '--'}",
+                            color: Colors.grey.shade600,
+                            weight: FontWeight.w500,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          MyText(
+                            text: "Unit: ${material['unit'] ?? '--'}",
+                            color: Colors.grey.shade600,
+                            weight: FontWeight.w500,
+                          ),
+                          MyText(
+                            text: "GST: ${material['gst_per'] ?? '--'}%",
+                            color: Colors.blue,
+                            weight: FontWeight.w500,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        MyText(
-                          text: "  Unit: ${material['unit']}",
-                          color: Colors.white,
-                          weight: FontWeight.w500,
-                        ),
-                        MyText(
-                          text: "  GST: ${material['gst_per']}",
-                          color: Colors.white,
-                          weight: FontWeight.w500,
-                        ),
-                      ],
-                    ),
-                  )
-                ],
+                ),
               ),
             ),
           );
         },
-      ),
+      )
+
 
     );
   }

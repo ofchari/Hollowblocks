@@ -169,7 +169,7 @@ class _EmployeeState extends State<Employee> {
 
       if (response.statusCode == 200) {
         Get.snackbar("Employee", " Document Posted Successfully",colorText: Colors.white,backgroundColor: Colors.green,snackPosition: SnackPosition.BOTTOM);
-        Navigator.pop(context);
+        // Navigator.pop(context);
       } else {
         String message = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
