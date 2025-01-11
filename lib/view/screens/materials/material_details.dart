@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -7,14 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vetri_hollowblock/view/screens/materials/purchased_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/used_screen.dart';
-
 import '../../widgets/subhead.dart';
 import '../../widgets/text.dart';
 
 class MaterialScreen extends StatefulWidget {
   const MaterialScreen({super.key});
-
-
 
   @override
   State<MaterialScreen> createState() => _MaterialScreenState();
@@ -25,56 +21,114 @@ class _MaterialScreenState extends State<MaterialScreen> {
   late double width;
 
   int _selectedIndex = -1; // Track the selected container index (-1 means none)
-  Map<String, dynamic>? receivedMaterialData; // To store received material data
-  Map<String, dynamic>? usedMaterialData; // To store received material data
-
+  List<Map<String, dynamic>> receivedMaterialData = []; // Store list of received materials
+  List<Map<String, dynamic>> usedMaterialData = []; // Store list of used materials
 
   @override
   void initState() {
     super.initState();
-    // _loadStoredData();
-    // Check if arguments are passed and assign them correctly
+    _loadStoredData();
+    print("Received Data: $receivedMaterialData");
+    print("Used Data: $usedMaterialData");
     if (Get.arguments != null) {
       final args = Get.arguments as Map<String, dynamic>;
       if (args.containsKey('used')) {
-        usedMaterialData = args['used'];
-        _selectedIndex = 2; // Automatically select "Used" tab
-        // _saveData('usedMaterialData', usedMaterialData!);
+        setState(() {
+          usedMaterialData.add(args['used']);
+          _saveData('usedMaterialData', usedMaterialData);
+          _selectedIndex = 2;
+        });
       } else if (args.containsKey('received')) {
-        receivedMaterialData = args['received'];
-        _selectedIndex = 1; // Automatically select "Received" tab
-        // _saveData('receivedMaterialData', receivedMaterialData!);
+        setState(() {
+          receivedMaterialData.add(args['received']);
+          _saveData('receivedMaterialData', receivedMaterialData);
+          _selectedIndex = 1;
+        });
       }
     }
   }
 
-  // Future<void> _saveData(String key, Map<String, dynamic> data) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.setString(key, jsonEncode(data));
-  // }
 
-  // Future<void> _loadStoredData() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   setState(() {
-  //     receivedMaterialData = prefs.getString('receivedMaterialData') != null
-  //         ? jsonDecode(prefs.getString('receivedMaterialData')!)
-  //         : null;
-  //     usedMaterialData = prefs.getString('usedMaterialData') != null
-  //         ? jsonDecode(prefs.getString('usedMaterialData')!)
-  //         : null;
-  //   });
-  // }
+  Future<void> _loadStoredData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final receivedData = prefs.getString('receivedMaterialData');
+    final usedData = prefs.getString('usedMaterialData');
 
-  //
-  // Future<void> _deleteData(String key) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.remove(key);
-  //   setState(() {
-  //     if (key == 'receivedMaterialData') receivedMaterialData = null;
-  //     if (key == 'usedMaterialData') usedMaterialData = null;
-  //   });
-  // }
+    print("Raw Received Data from SharedPreferences: $receivedData");
+    print("Raw Used Data from SharedPreferences: $usedData");
 
+    if (receivedData != null) {
+      try {
+        receivedMaterialData = List<Map<String, dynamic>>.from(json.decode(receivedData));
+        print("Parsed Received Data: $receivedMaterialData");
+      } catch (e) {
+        print("Error Parsing Received Data: $e");
+      }
+    }
+
+    if (usedData != null) {
+      try {
+        usedMaterialData = List<Map<String, dynamic>>.from(json.decode(usedData));
+        print("Parsed Used Data: $usedMaterialData");
+      } catch (e) {
+        print("Error Parsing Used Data: $e");
+      }
+    }
+
+    setState(() {}); // Trigger UI rebuild
+  }
+
+
+
+  Future<void> _saveData(String key, List<Map<String, dynamic>> newData) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Load the existing data
+    final existingDataString = prefs.getString(key);
+    List<Map<String, dynamic>> existingData = [];
+    if (existingDataString != null) {
+      try {
+        existingData = List<Map<String, dynamic>>.from(json.decode(existingDataString));
+      } catch (e) {
+        print("Error decoding existing $key: $e");
+      }
+    }
+
+    // Append new data
+    existingData.addAll(newData);
+
+    // Save updated data back to SharedPreferences
+    await prefs.setString(key, json.encode(existingData));
+    print("Saved $key to SharedPreferences: ${json.encode(existingData)}");
+
+    // Update local state
+    if (key == 'receivedMaterialData') {
+      receivedMaterialData = existingData;
+    } else if (key == 'usedMaterialData') {
+      usedMaterialData = existingData;
+    }
+
+    setState(() {}); // Trigger UI rebuild
+  }
+
+
+  Future<void> _clearAllData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    print("All SharedPreferences Data Cleared.");
+  }
+
+
+  Future<void> _deleteData(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(key);
+    if (key == 'receivedMaterialData') {
+      receivedMaterialData.clear();
+    } else if (key == 'usedMaterialData') {
+      usedMaterialData.clear();
+    }
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,34 +168,36 @@ class _MaterialScreenState extends State<MaterialScreen> {
           weight: FontWeight.w500,
         ),
       ),
-      body: Column(
-        children: [
-          // Horizontal menu
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildContainer(0, "Inventory"),
-                  SizedBox(width: 5.w),
-                  _buildContainer(1, "Received"),
-                  SizedBox(width: 5.w),
-                  _buildContainer(2, "Used"),
-                ],
+      body: SizedBox(
+        width : width.w,
+        child: Column(
+          children: [
+            // Horizontal menu
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildContainer(0, "Inventory"),
+                    SizedBox(width: 5.w),
+                    _buildContainer(1, "Received"),
+                    SizedBox(width: 5.w),
+                    _buildContainer(2, "Used"),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 10.h),
-          // Display received data if selected
-          if (_selectedIndex == 1 && receivedMaterialData != null)
-            _buildReceivedDataContainer(),
-          if (_selectedIndex == 2 && usedMaterialData != null)
-            _buildUsedDataContainer(),
-          const Spacer(),
-          _buildBottomActionBar(),
-        ],
+            SizedBox(height: 10.h),
+            if (_selectedIndex == 1 && receivedMaterialData.isNotEmpty)
+              Expanded(child: _buildReceivedDataContainer()),
+            if (_selectedIndex == 2 && usedMaterialData.isNotEmpty)
+              Expanded(child: _buildUsedDataContainer()),
+            const Spacer(),
+            _buildBottomActionBar(),
+          ],
+        ),
       ),
     );
   }
@@ -149,10 +205,8 @@ class _MaterialScreenState extends State<MaterialScreen> {
   Widget _buildContainer(int index, String text) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          // Toggle between selected and unselected states
-          _selectedIndex = _selectedIndex == index ? -1 : index;
-        });
+        _selectedIndex = _selectedIndex == index ? -1 : index;
+        setState(() {});
       },
       child: Container(
         height: height / 17.h,
@@ -176,224 +230,154 @@ class _MaterialScreenState extends State<MaterialScreen> {
   }
 
   Widget _buildReceivedDataContainer() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 1,
-              blurRadius: 4,
-            ),
-          ],
+    if (receivedMaterialData.isEmpty) {
+      return Center(
+        child: Text(
+          "No Received Materials",
+          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                MyText(text: "Received Details", color: Colors.grey, weight: FontWeight.w500),
-                // IconButton(
-                //   icon: Icon(Icons.delete, color: Colors.red),
-                //   onPressed: () => _deleteData('receivedMaterialData'),
-                // ),
-              ],
+      );
+    }
+
+    return Flexible(
+      child: ListView.builder(
+        itemCount: receivedMaterialData.length,
+        itemBuilder: (context, index) {
+          final data = receivedMaterialData[index];
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      MyText(text: "Received Details", color: Colors.grey, weight: FontWeight.w500),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            receivedMaterialData.removeAt(index);
+                            _saveData('receivedMaterialData', receivedMaterialData);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  Divider(color: Colors.grey.shade300, thickness: 1),
+                  _buildDetailsRow("Material", data['material_name']),
+                  _buildDetailsRow("Quantity", data['quantity']?.toString()),
+                  _buildDetailsRow("Party", data['party_name']),
+                  _buildDetailsRow("Date", data['date']),
+                ],
+              ),
             ),
-            Divider(color: Colors.grey.shade300, thickness: 1),
-            SizedBox(height: 8.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Material:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.5.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  receivedMaterialData!['material_name'] ?? "",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Quantity:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.5.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  receivedMaterialData!['quantity']?.toString() ?? "",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Party:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.5.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  receivedMaterialData!['party_name'] ?? "",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Date:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.5.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  receivedMaterialData!['date'] ?? "",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
+
 
   Widget _buildUsedDataContainer() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 1,
-              blurRadius: 4,
-            ),
-          ],
+    if (usedMaterialData.isEmpty) {
+      return Center(
+        child: Text(
+          "No Used Materials",
+          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
-                // IconButton(
-                //   icon: Icon(Icons.delete, color: Colors.red),
-                //   onPressed: () => _deleteData('usedMaterialData'),
-                // ),
-              ],
+      );
+    }
+
+    return Flexible(
+      child: ListView.builder(
+        itemCount: usedMaterialData.length,
+        itemBuilder: (context, index) {
+          final data = usedMaterialData[index];
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            usedMaterialData.removeAt(index);
+                            _saveData('usedMaterialData', usedMaterialData);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  Divider(color: Colors.grey.shade300, thickness: 1),
+                  _buildDetailsRow("Material", data['material']),
+                  _buildDetailsRow("Quantity", data['quantity']?.toString()),
+                  _buildDetailsRow("Date", data['date']),
+                ],
+              ),
             ),
-            Divider(color: Colors.grey.shade300, thickness: 1),
-            SizedBox(height: 8.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Material:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.5.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  usedMaterialData?['material']?.toString() ?? "",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Quantity:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.5.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  usedMaterialData?['quantity']?.toString() ?? "",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Date:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.5.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  usedMaterialData?['date']?.toString() ?? "",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
+
+  Widget _buildDetailsRow(String label, String? value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "$label:",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13.5.sp,
+            color: Colors.black87,
+          ),
+        ),
+        Text(
+          value ?? "",
+          style: TextStyle(
+            fontSize: 13.sp,
+            color: Colors.black54,
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildBottomActionBar() {
     return Padding(
@@ -402,10 +386,15 @@ class _MaterialScreenState extends State<MaterialScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => Get.to(ReceivedScreen(material: {})),
+            onTap: () async {
+              final result = await Get.to(() => ReceivedScreen(material: {}));
+              if (result != null && result is Map<String, dynamic>) {
+                receivedMaterialData.add(result);
+                _saveData('receivedMaterialData', receivedMaterialData);
+              }
+            },
             child: _buildActionButton("Received", Colors.deepPurple.shade500),
           ),
-
           GestureDetector(
             onTap: () => _showMaterialBottomSheet(context),
             child: Container(
@@ -419,15 +408,73 @@ class _MaterialScreenState extends State<MaterialScreen> {
             ),
           ),
           GestureDetector(
-            onTap: () => Get.to(UsedScreen()),
+            onTap: () async {
+              final result = await Get.to(() => UsedScreen());
+              if (result != null && result is Map<String, dynamic>) {
+                usedMaterialData.add(result);
+                _saveData('usedMaterialData', usedMaterialData);
+              }
+            },
             child: _buildActionButton("Used", Colors.brown),
           ),
-
         ],
       ),
     );
   }
 
+  void _showMaterialBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.all(16.0.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: MyText(
+                  text: "Material",
+                  color: Colors.black,
+                  weight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              SizedBox(height: 12.h),
+              _buildBottomSheetButton(context, "Received", Colors.blue, () async {
+                // Navigate to the ReceivedScreen and wait for the result
+                final result = await Get.to(() => ReceivedScreen(material: {}));
+                if (result != null) {
+                  // Update the receivedMaterialData if new data is returned
+                  setState(() {
+                    receivedMaterialData = result;
+                  });
+                  // Save the updated data to SharedPreferences
+                  await _saveData('receivedMaterialData', receivedMaterialData!);
+                }
+              }),
+              SizedBox(height: 12.h),
+              _buildBottomSheetButton(context, "Used", Colors.green, () async {
+                // Navigate to the UsedScreen
+                final result = await Get.to(() => UsedScreen());
+                if (result != null) {
+                  // Update usedMaterialData if new data is returned
+                  setState(() {
+                    usedMaterialData = result;
+                  });
+                  // Save the updated data to SharedPreferences
+                  await _saveData('usedMaterialData', usedMaterialData!);
+                }
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
   Widget _buildActionButton(String text, Color color) {
     return Container(
       height: height / 17.h,
@@ -443,52 +490,11 @@ class _MaterialScreenState extends State<MaterialScreen> {
     );
   }
 }
-
-void _showMaterialBottomSheet(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-    ),
-    backgroundColor: Colors.white,
-    builder: (BuildContext context) {
-      return Padding(
-        padding: EdgeInsets.all(16.0.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: MyText(
-                text: "Material",
-                color: Colors.black,
-                weight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 16.h),
-            // _buildBottomSheetButton(context, "Inventory", Colors.brown, () {
-            //   Get.to(InventoryScreen());
-            // }),
-            SizedBox(height: 12.h),
-            _buildBottomSheetButton(context, "Received", Colors.blue, () {
-              Get.to(ReceivedScreen(material: {}));
-            }),
-            SizedBox(height: 12.h),
-            _buildBottomSheetButton(context, "Used", Colors.green, () {
-              Get.to(UsedScreen());
-            }),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-Widget _buildBottomSheetButton(
-    BuildContext context, String text, Color color, VoidCallback onTap) {
+Widget _buildBottomSheetButton(BuildContext context, String text, Color color, VoidCallback onTap) {
   return GestureDetector(
     onTap: () {
       Navigator.pop(context); // Close the BottomSheet
-      onTap();
+      onTap(); // Perform the action
     },
     child: Container(
       height: 50.h,

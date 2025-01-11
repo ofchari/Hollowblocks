@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vetri_hollowblock/view/screens/employee/employee_add.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
 import 'dart:convert'; // For JSON decoding
@@ -30,7 +31,10 @@ class _EmployeeState extends State<Employee> {
   String? selectedShift; // Initially no shift selected (null)
   String selectedDate = "Date"; // Default text before any date is selected,
 
-      /// Textediting Controller ///
+  int presentCount = 0; // Count of present employees
+  int absentCount = 0; // Count of absent employees
+
+  /// Textediting Controller ///
   final inTimeController = TextEditingController();
   final outTimeController = TextEditingController();
 
@@ -41,6 +45,7 @@ class _EmployeeState extends State<Employee> {
   void initState() {
     super.initState();
     fetchEmployeeNames();
+    fetchAttendanceData();
   }
 
   // Fetch employee names from the API
@@ -80,7 +85,38 @@ class _EmployeeState extends State<Employee> {
       });
     }
   }
-            /// Dropdown logic for shifts ///
+
+  // Fetch the attendance data from the API to count present and absent employees
+  Future<void> fetchAttendanceData() async {
+    final String url = "$apiUrl/Employee%20Attendance?fields=[%22attendance%22]"; // API URL
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'token $apiKey',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print(response.body);
+        List<dynamic> attendanceList = data['data']; // List of attendance data
+
+        setState(() {
+          presentCount = attendanceList.where((attendance) => attendance['attendance'] == 'Present').toList().length;
+          absentCount = attendanceList.where((attendance) => attendance['attendance'] == 'Absent').toList().length;
+        });
+      } else {
+        print("Failed to fetch attendance data. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching attendance data: $e");
+    }
+  }
+
+  /// Dropdown logic for shifts ///
   void _showShiftDropdown(BuildContext context) {
     showDialog(
       context: context,
@@ -138,7 +174,7 @@ class _EmployeeState extends State<Employee> {
       },
     );
   }
-                 /// Post method for Employee //
+  /// Post method for Employee //
   Future<void> MobileDocument(BuildContext context) async {
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
@@ -163,13 +199,50 @@ class _EmployeeState extends State<Employee> {
     final body = jsonEncode(data);
     print(data);
 
+    // Use SharedPreferences to check for duplicate submissions
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastSubmission = prefs.getString('lastSubmission');
+
+    if (lastSubmission != null) {
+      final lastSubmissionData = jsonDecode(lastSubmission);
+      if (lastSubmissionData['employee'] == selectedEmployee &&
+          lastSubmissionData['date'] == selectedDate) {
+        Get.snackbar(
+          "Duplicate Entry",
+          "This data has already been submitted.",
+          colorText: Colors.white,
+          backgroundColor: Colors.orange,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return; // Prevent duplicate submission
+      }
+    }
+
     try {
-      // Use Uri.parse() to convert the string URL into a Uri object
       final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
 
       if (response.statusCode == 200) {
-        Get.snackbar("Employee", " Document Posted Successfully",colorText: Colors.white,backgroundColor: Colors.green,snackPosition: SnackPosition.BOTTOM);
-        // Navigator.pop(context);
+        // Save the current submission to SharedPreferences
+        await prefs.setString('lastSubmission', jsonEncode({
+          'employee': selectedEmployee,
+          'date': selectedDate
+        }));
+
+        Get.snackbar(
+          "Employee",
+          "Document Posted Successfully",
+          colorText: Colors.white,
+          backgroundColor: Colors.green,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+
+        // Clear input fields after successful submission
+        selectedEmployee = null;
+        // attendanceStatus = null;
+        // selectedDate = null;
+        selectedShift = null;
+        inTimeController.clear();
+        outTimeController.clear();
       } else {
         String message = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
@@ -207,9 +280,10 @@ class _EmployeeState extends State<Employee> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
-         /// Define Sizes //
+    /// Define Sizes //
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
@@ -245,6 +319,30 @@ class _EmployeeState extends State<Employee> {
         child: Column(
           children: [
             SizedBox(height: 20.h),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Container(
+                  height: height/15.h,
+                  width: width/2.4.w,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Center(child: MyText(text: "Present : $presentCount", color: Colors.white, weight: FontWeight.w500)),
+                ),
+                SizedBox(width: 5.w,),
+                Container(
+                  height: height/15.h,
+                  width: width/2.4.w,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Center(child: MyText(text: "Absent : $absentCount", color: Colors.white, weight: FontWeight.w500)),
+                )
+              ],
+            ),
+            SizedBox(height: 20.h,),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10.w),
               height: height / 10.h,
@@ -395,41 +493,41 @@ class _EmployeeState extends State<Employee> {
               ),
             ),
             SizedBox(height: 20.h,),
-        GestureDetector(
-          onTap: () async {
-            // Show the date picker
-            DateTime? pickedDate = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-            );
+            GestureDetector(
+              onTap: () async {
+                // Show the date picker
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
 
-            // Update the container's text with the selected date if a date is picked
-            if (pickedDate != null) {
-              setState(() {
-                selectedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
-              });
-            }
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w),
-            height: height / 10.h,
-            width: width / 1.2.w,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(7.r),
-            ),
-            child: Center(
-              child: MyText(
-                text: selectedDate, // Display the selected date dynamically
-                color: Colors.black,
-                weight: FontWeight.w500,
+                // Update the container's text with the selected date if a date is picked
+                if (pickedDate != null) {
+                  setState(() {
+                    selectedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+                  });
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                height: height / 10.h,
+                width: width / 1.2.w,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(7.r),
+                ),
+                child: Center(
+                  child: MyText(
+                    text: selectedDate, // Display the selected date dynamically
+                    color: Colors.black,
+                    weight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
             SizedBox(height: 20.h,),
             GestureDetector(
               onTap: (){
@@ -530,13 +628,10 @@ class _EmployeeState extends State<Employee> {
             ),
             SizedBox(height: 20.h,),
             GestureDetector(
-              onTap: (){
-                MobileDocument(context);
-              },
+                onTap: (){
+                  MobileDocument(context);
+                },
                 child: Buttons(height: height/15.h, width: width/1.5, radius: BorderRadius.circular(10.r), color: Colors.blue, text: "Submit"))
-
-
-
           ],
         ),
       ),

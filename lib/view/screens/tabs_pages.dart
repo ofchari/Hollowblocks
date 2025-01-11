@@ -42,7 +42,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
         if (width <= 1000) {
           return _smallBuildLayout();
         } else {
-          return Text("Please make sure your device is in portrait view");
+          return const Center(child: Text("Please make sure your device is in portrait view"));
         }
       },
     );
@@ -64,11 +64,12 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
           controller: _tabController,
           isScrollable: true,
           indicatorColor: Colors.blue,
+          labelStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: Colors.black),
           tabs: const [
             Tab(text: 'Update Project'),
-            Tab(text: 'Employee',),
-            Tab(text: 'Material',),
-            Tab(text: 'Files Upload',),
+            Tab(text: 'Employee'),
+            Tab(text: 'Material'),
+            Tab(text: 'Files Upload'),
             Tab(text: 'Todo'),
             Tab(text: 'Reports'),
           ],
@@ -77,8 +78,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Each tab's content
-          UpdateProjectForm(projectName: '${widget.projectName}'),
+          UpdateProjectForm(projectName: widget.projectName),
           Employee(),
           MaterialScreen(),
           FileUpload(),
@@ -89,3 +89,4 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
     );
   }
 }
+

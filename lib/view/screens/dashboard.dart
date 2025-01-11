@@ -87,7 +87,7 @@ class _DashboardState extends State<Dashboard> {
   Future<void> _saveProjectToApi(String projectName) async {
     try {
       final response = await http.post(
-        Uri.parse('$apiUrl/addProject'), // Replace with your actual API URL to add project
+        Uri.parse('$apiUrl/Project Form/$projectName'), // Replace with your actual API URL to add project
         headers: {
           'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
           'Content-Type': 'application/json',

@@ -28,7 +28,7 @@ class UpdateProjectForm extends StatefulWidget {
   State<UpdateProjectForm> createState() => _UpdateProjectFormState();
 }
 
-class _UpdateProjectFormState extends State<UpdateProjectForm> {
+class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKeepAliveClientMixin  {
   late double height;
   late double width;
   bool isLoading = true;
@@ -324,6 +324,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (isLoading) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -364,201 +365,209 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
       body: SizedBox(
         width: width.w,
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(height: 10.h),
-              _buildTextField(
-                controller: Nameoftheworkr,
-                hintText: "   Name of the work",
-                icon: Icons.drive_file_rename_outline,
-
+          // scrollDirection: Axis.vertical,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  SizedBox(height: 10.h),
+                  _buildTextField(
+                    controller: Nameoftheworkr,
+                    hintText: "   Name of the work",
+                    icon: Icons.drive_file_rename_outline,
+              
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/Work%20Type",
+                    hintText: "   Work Type",
+                    selectedValue: selectedWorkType,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedWorkType = value;
+                        print(selectedWorkType);
+                      });
+              
+                    }, hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/worktype'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/Scheme",
+                    hintText: "   Scheme Name",
+              
+                    selectedValue: selectedSchema,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSchema = value;
+                        print(selectedSchema);
+                      });
+                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/scheme'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/Scheme Group",
+                    hintText: "   Scheme Group",
+                    selectedValue: selectedSchemaGroupName,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSchemaGroupName = value;
+                        print(selectedSchemaGroupName);
+                      });
+                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/schemegroup'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/Work Group",
+                    hintText: "   Work Group",
+                    selectedValue: selectedWorkGroupName,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedWorkGroupName = value;
+                        print(selectedWorkGroupName);
+                      });
+                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/workgroup'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/Agency",
+                    hintText: "   Agency Name",
+                    selectedValue: selectedAgencyName,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedAgencyName = value;
+                        print(selectedAgencyName);
+                      });
+                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/agency'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildFinancialYearDropdown(
+                      controller: financialYearController
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/District",
+                    hintText: "   District",
+                    selectedValue: selectedDistrictName,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDistrictName = value;
+                        print(selectedDistrictName);
+                      });
+                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/district'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/Block",
+                    hintText: "   Block",
+                    selectedValue: selectedBlockName,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedBlockName = value;
+                        print(selectedBlockName);
+                      });
+                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/block'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/Village",
+                    hintText: "   Village",
+                    selectedValue: selectedVillageName,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedVillageName = value;
+                        print(selectedVillageName);
+                      });
+                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/village'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildDropdownField(
+                    apiUrl: "$apiUrl/Construction Status",
+                    hintText: "   Status",
+                    selectedValue: selectedStatus,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedStatus = value;
+                        print(selectedStatus);
+                      });
+                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    onAddNewRoute: () {
+                      Get.toNamed('/status'); // Use GetX to navigate to the "Add Work Type" page
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildTextField(
+                    controller: initalamount,
+                    hintText: "   Initial Amount",
+                    icon: Icons.monetization_on,
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildTextField(
+                    hintText: "   Last Visited Date",
+                    icon: Icons.date_range,
+                    controller: _lastVisitedDateController,
+                    isDateField: true,
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildTextField(
+                    hintText: "   As Date",
+                    icon: Icons.date_range,
+                    controller: _asDateController,
+                    isDateField: true,
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildTextField(
+                    hintText: "   Ts Date",
+                    icon: Icons.date_range,
+                    controller: _vsDateController,
+                    isDateField: true,
+                  ),
+                  SizedBox(height: 10.h),
+                  // Button for generating and previewing PDF
+                  GestureDetector(
+                    onTap: () async {
+                      MobileDocument(context);
+                    },
+                    child: Buttons(
+                      height: height / 20.h,
+                      width: width / 2.5.w,
+                      radius: BorderRadius.circular(10.r),
+                      color: Colors.blue,
+                      text: "Submit",
+                    ),
+                  ),
+              
+                  SizedBox(height: 20.h),
+              
+                ],
               ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/Work%20Type",
-                hintText: "   Work Type",
-                selectedValue: selectedWorkType,
-                onChanged: (value) {
-                  setState(() {
-                    selectedWorkType = value;
-                    print(selectedWorkType);
-                  });
-
-                }, hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/worktype'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/Scheme",
-                hintText: "   Scheme Name",
-
-                selectedValue: selectedSchema,
-                onChanged: (value) {
-                  setState(() {
-                    selectedSchema = value;
-                    print(selectedSchema);
-                  });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/scheme'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/Scheme Group",
-                hintText: "   Scheme Group",
-                selectedValue: selectedSchemaGroupName,
-                onChanged: (value) {
-                  setState(() {
-                    selectedSchemaGroupName = value;
-                    print(selectedSchemaGroupName);
-                  });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/schemegroup'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/Work Group",
-                hintText: "   Work Group",
-                selectedValue: selectedWorkGroupName,
-                onChanged: (value) {
-                  setState(() {
-                    selectedWorkGroupName = value;
-                    print(selectedWorkGroupName);
-                  });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/workgroup'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/Agency",
-                hintText: "   Agency Name",
-                selectedValue: selectedAgencyName,
-                onChanged: (value) {
-                  setState(() {
-                    selectedAgencyName = value;
-                    print(selectedAgencyName);
-                  });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/agency'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildFinancialYearDropdown(
-                  controller: financialYearController
-              ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/District",
-                hintText: "   District",
-                selectedValue: selectedDistrictName,
-                onChanged: (value) {
-                  setState(() {
-                    selectedDistrictName = value;
-                    print(selectedDistrictName);
-                  });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/district'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/Block",
-                hintText: "   Block",
-                selectedValue: selectedBlockName,
-                onChanged: (value) {
-                  setState(() {
-                    selectedBlockName = value;
-                    print(selectedBlockName);
-                  });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/block'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/Village",
-                hintText: "   Village",
-                selectedValue: selectedVillageName,
-                onChanged: (value) {
-                  setState(() {
-                    selectedVillageName = value;
-                    print(selectedVillageName);
-                  });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/village'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildDropdownField(
-                apiUrl: "$apiUrl/Construction Status",
-                hintText: "   Status",
-                selectedValue: selectedStatus,
-                onChanged: (value) {
-                  setState(() {
-                    selectedStatus = value;
-                    print(selectedStatus);
-                  });
-                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/status'); // Use GetX to navigate to the "Add Work Type" page
-                },
-              ),
-              SizedBox(height: 30.h),
-              _buildTextField(
-                controller: initalamount,
-                hintText: "   Initial Amount",
-                icon: Icons.monetization_on,
-              ),
-              SizedBox(height: 30.h),
-              _buildTextField(
-                hintText: "   Last Visited Date",
-                icon: Icons.date_range,
-                controller: _lastVisitedDateController,
-                isDateField: true,
-              ),
-              SizedBox(height: 30.h),
-              _buildTextField(
-                hintText: "   As Date",
-                icon: Icons.date_range,
-                controller: _asDateController,
-                isDateField: true,
-              ),
-              SizedBox(height: 30.h),
-              _buildTextField(
-                hintText: "   Ts Date",
-                icon: Icons.date_range,
-                controller: _vsDateController,
-                isDateField: true,
-              ),
-              SizedBox(height: 10.h),
-              // Button for generating and previewing PDF
-              GestureDetector(
-                onTap: () async {
-                  MobileDocument(context);
-                },
-                child: Buttons(
-                  height: height / 20.h,
-                  width: width / 2.5.w,
-                  radius: BorderRadius.circular(10.r),
-                  color: Colors.blue,
-                  text: "Submit",
-                ),
-              ),
-
-              SizedBox(height: 20.h),
-
-            ],
+            ),
           ),
         ),
       ),
@@ -770,5 +779,9 @@ class _UpdateProjectFormState extends State<UpdateProjectForm> {
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 

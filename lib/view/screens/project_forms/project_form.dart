@@ -482,20 +482,22 @@ class _ProjectFormState extends State<ProjectForm> {
                     MaterialPageRoute(
                       builder: (context) => PdfPreviewScreen(
                         pdfFile: pdfFile,
-                        projectName: Nameoftheworkr.text,  // Pass the project name
+                        projectName: Nameoftheworkr.text,
                         onConfirm: () {
-                          MobileDocument(context); // Post the form on confirmation
-                          Navigator.pop(context); // Close the PDF preview screen
+                          MobileDocument(context); // Post form
                         },
                       ),
                     ),
                   ).then((projectName) {
-                    // Handle the returned project name if needed (for example, update the dashboard)
-                    if (projectName != null) {
-                      // Optionally, you can update the dashboard or perform other actions here
-                      Navigator.of(context).pop(projectName); // Return project name to the dashboard
+                    if (projectName != null && projectName.isNotEmpty) {
+                      setState(() {
+                        projectName.add(projectName); // Update the project list
+                      });
+                    } else {
+                      print("No project name returned");
                     }
                   });
+
                 },
                 child: Buttons(
                   height: height / 20.h,
