@@ -534,9 +534,6 @@ class _EmployeeState extends State<Employee> {
                 MobileDocument(context);
               },
                 child: Buttons(height: height/15.h, width: width/1.5, radius: BorderRadius.circular(10.r), color: Colors.blue, text: "Submit"))
-
-
-
           ],
         ),
       ),
