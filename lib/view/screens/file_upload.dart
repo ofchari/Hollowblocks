@@ -9,7 +9,7 @@ import 'package:permission_handler/permission_handler.dart'; // Import permissio
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:photo_view/photo_view.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:vetri_hollowblock/view/screens/project_details.dart';
 import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
@@ -28,25 +28,29 @@ class _FileUploadState extends State<FileUpload> {
   List<String> filePaths = [];
   bool isUploading = false;
   final ImagePicker _picker = ImagePicker(); // Create an instance of ImagePicker
+  late Box<String> fileBox;
 
   @override
   void initState() {
     super.initState();
-    _loadFilePaths(); // Load file paths on initialization
+    _initializeHive(); // Initialize Hive and load file paths
   }
 
-  // Load file paths from SharedPreferences
-  Future<void> _loadFilePaths() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  // Initialize Hive and open a box for file paths
+  Future<void> _initializeHive() async {
+    await Hive.initFlutter();
+    fileBox = await Hive.openBox<String>('filePathsBox');
     setState(() {
-      filePaths = prefs.getStringList('filePaths') ?? [];
+      filePaths = fileBox.values.toList();
     });
   }
 
-  // Save file paths to SharedPreferences
+  // Save file paths to Hive
   Future<void> _saveFilePaths() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('filePaths', filePaths);
+    await fileBox.clear();
+    for (String path in filePaths) {
+      await fileBox.add(path);
+    }
   }
 
   // Method to pick multiple files (images)

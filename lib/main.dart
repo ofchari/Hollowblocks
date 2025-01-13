@@ -2,6 +2,8 @@ import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/agency_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/block_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/district_screen.dart';
@@ -23,7 +25,9 @@ import 'package:vetri_hollowblock/view/screens/project_details.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/work_type_screen.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter(); // Initialize Hive
   runApp(const MyApp());
 }
 

@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:vetri_hollowblock/view/screens/materials/purchased_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/used_screen.dart';
@@ -21,112 +22,91 @@ class _MaterialScreenState extends State<MaterialScreen> {
   late double width;
 
   int _selectedIndex = -1; // Track the selected container index (-1 means none)
+  late Box receivedBox;
+  late Box usedBox;
   List<Map<String, dynamic>> receivedMaterialData = []; // Store list of received materials
   List<Map<String, dynamic>> usedMaterialData = []; // Store list of used materials
 
   @override
   void initState() {
     super.initState();
-    _loadStoredData();
-    print("Received Data: $receivedMaterialData");
-    print("Used Data: $usedMaterialData");
+    _initializeHive();
+  }
+
+  Map<String, double> calculateInventory() {
+    Map<String, double> inventory = {};
+
+    // Calculate received quantities
+    for (int i = 0; i < receivedBox.length; i++) {
+      final data = Map<String, dynamic>.from(receivedBox.getAt(i) as Map);
+      final material = data['material_name'] as String;
+      final quantity = double.tryParse(data['quantity'].toString()) ?? 0.0;
+
+      inventory[material] = (inventory[material] ?? 0) + quantity;
+    }
+
+    // Subtract used quantities
+    for (int i = 0; i < usedBox.length; i++) {
+      final data = Map<String, dynamic>.from(usedBox.getAt(i) as Map);
+      final material = data['material'] as String;
+      final quantity = double.tryParse(data['quantity'].toString()) ?? 0.0;
+
+      inventory[material] = (inventory[material] ?? 0) - quantity;
+    }
+
+    // Remove materials with zero or negative inventory
+    inventory.removeWhere((key, value) => value <= 0);
+
+    return inventory;
+  }
+
+
+
+
+
+  Future<void> _initializeHive() async {
+    final dir = await getApplicationDocumentsDirectory();
+    Hive.init(dir.path);
+
+    // Open the boxes asynchronously
+    receivedBox = await Hive.openBox('receivedMaterialData');
+    usedBox = await Hive.openBox('usedMaterialData');
+
+    // After initialization, rebuild the UI if necessary
+    setState(() {});
+
+    // Now, it's safe to access receivedBox and usedBox
     if (Get.arguments != null) {
       final args = Get.arguments as Map<String, dynamic>;
       if (args.containsKey('used')) {
-        setState(() {
-          usedMaterialData.add(args['used']);
-          _saveData('usedMaterialData', usedMaterialData);
-          _selectedIndex = 2;
-        });
+        _addUsedData(args['used']);
+        _selectedIndex = 2;
       } else if (args.containsKey('received')) {
-        setState(() {
-          receivedMaterialData.add(args['received']);
-          _saveData('receivedMaterialData', receivedMaterialData);
-          _selectedIndex = 1;
-        });
+        _addReceivedData(args['received']);
+        _selectedIndex = 1;
       }
     }
   }
 
-
-  Future<void> _loadStoredData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final receivedData = prefs.getString('receivedMaterialData');
-    final usedData = prefs.getString('usedMaterialData');
-
-    print("Raw Received Data from SharedPreferences: $receivedData");
-    print("Raw Used Data from SharedPreferences: $usedData");
-
-    if (receivedData != null) {
-      try {
-        receivedMaterialData = List<Map<String, dynamic>>.from(json.decode(receivedData));
-        print("Parsed Received Data: $receivedMaterialData");
-      } catch (e) {
-        print("Error Parsing Received Data: $e");
-      }
-    }
-
-    if (usedData != null) {
-      try {
-        usedMaterialData = List<Map<String, dynamic>>.from(json.decode(usedData));
-        print("Parsed Used Data: $usedMaterialData");
-      } catch (e) {
-        print("Error Parsing Used Data: $e");
-      }
-    }
-
-    setState(() {}); // Trigger UI rebuild
+  void _addReceivedData(Map<String, dynamic> data) {
+    receivedBox.add(Map<String, dynamic>.from(data)); // Explicit conversion
+    setState(() {});
   }
 
-
-
-  Future<void> _saveData(String key, List<Map<String, dynamic>> newData) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    // Load the existing data
-    final existingDataString = prefs.getString(key);
-    List<Map<String, dynamic>> existingData = [];
-    if (existingDataString != null) {
-      try {
-        existingData = List<Map<String, dynamic>>.from(json.decode(existingDataString));
-      } catch (e) {
-        print("Error decoding existing $key: $e");
-      }
-    }
-
-    // Append new data
-    existingData.addAll(newData);
-
-    // Save updated data back to SharedPreferences
-    await prefs.setString(key, json.encode(existingData));
-    print("Saved $key to SharedPreferences: ${json.encode(existingData)}");
-
-    // Update local state
-    if (key == 'receivedMaterialData') {
-      receivedMaterialData = existingData;
-    } else if (key == 'usedMaterialData') {
-      usedMaterialData = existingData;
-    }
-
-    setState(() {}); // Trigger UI rebuild
+  void _addUsedData(Map<String, dynamic> data) {
+    usedBox.add(Map<String, dynamic>.from(data)); // Explicit conversion
+    setState(() {});
   }
 
 
   Future<void> _clearAllData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    print("All SharedPreferences Data Cleared.");
+    await receivedBox.clear();
+    await usedBox.clear();
+    setState(() {});
   }
 
-
-  Future<void> _deleteData(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(key);
-    if (key == 'receivedMaterialData') {
-      receivedMaterialData.clear();
-    } else if (key == 'usedMaterialData') {
-      usedMaterialData.clear();
-    }
+  Future<void> _deleteData(Box box, int index) async {
+    await box.deleteAt(index);
     setState(() {});
   }
 
@@ -169,7 +149,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
         ),
       ),
       body: SizedBox(
-        width : width.w,
+        width: width.w,
         child: Column(
           children: [
             // Horizontal menu
@@ -190,9 +170,10 @@ class _MaterialScreenState extends State<MaterialScreen> {
               ),
             ),
             SizedBox(height: 10.h),
-            if (_selectedIndex == 1 && receivedMaterialData.isNotEmpty)
+            if (_selectedIndex == 0) Expanded(child: _buildInventoryDataContainer()),
+            if (_selectedIndex == 1 && receivedBox.isNotEmpty)
               Expanded(child: _buildReceivedDataContainer()),
-            if (_selectedIndex == 2 && usedMaterialData.isNotEmpty)
+            if (_selectedIndex == 2 && usedBox.isNotEmpty)
               Expanded(child: _buildUsedDataContainer()),
             const Spacer(),
             _buildBottomActionBar(),
@@ -229,8 +210,68 @@ class _MaterialScreenState extends State<MaterialScreen> {
     );
   }
 
+  Widget _buildInventoryDataContainer() {
+    final inventory = calculateInventory();
+
+    if (inventory.isEmpty) {
+      return Center(
+        child: Text(
+          "No Inventory Data",
+          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+        ),
+      );
+    }
+
+    return Flexible(
+      child: ListView.builder(
+        itemCount: inventory.length,
+        itemBuilder: (context, index) {
+          final material = inventory.keys.elementAt(index);
+          final quantity = inventory[material];
+
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      MyText(
+                        text: "Material: $material",
+                        color: Colors.grey,
+                        weight: FontWeight.w500,
+                      ),
+                    ],
+                  ),
+                  Divider(color: Colors.grey.shade300, thickness: 1),
+                  _buildDetailsRow("Quantity", quantity?.toStringAsFixed(2)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+
   Widget _buildReceivedDataContainer() {
-    if (receivedMaterialData.isEmpty) {
+    if (receivedBox.isEmpty) {
       return Center(
         child: Text(
           "No Received Materials",
@@ -241,9 +282,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
     return Flexible(
       child: ListView.builder(
-        itemCount: receivedMaterialData.length,
+        itemCount: receivedBox.length,
         itemBuilder: (context, index) {
-          final data = receivedMaterialData[index];
+          final data = Map<String, dynamic>.from(receivedBox.getAt(index) as Map);
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -269,12 +310,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                       MyText(text: "Received Details", color: Colors.grey, weight: FontWeight.w500),
                       IconButton(
                         icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          setState(() {
-                            receivedMaterialData.removeAt(index);
-                            _saveData('receivedMaterialData', receivedMaterialData);
-                          });
-                        },
+                        onPressed: () => _deleteData(receivedBox, index),
                       ),
                     ],
                   ),
@@ -292,9 +328,8 @@ class _MaterialScreenState extends State<MaterialScreen> {
     );
   }
 
-
   Widget _buildUsedDataContainer() {
-    if (usedMaterialData.isEmpty) {
+    if (usedBox.isEmpty) {
       return Center(
         child: Text(
           "No Used Materials",
@@ -305,9 +340,10 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
     return Flexible(
       child: ListView.builder(
-        itemCount: usedMaterialData.length,
+        itemCount: usedBox.length,
         itemBuilder: (context, index) {
-          final data = usedMaterialData[index];
+          // final data = usedBox.getAt(index) as Map<String, dynamic>;
+          final data = Map<String, dynamic>.from(usedBox.getAt(index) as Map);
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -333,12 +369,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                       MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
                       IconButton(
                         icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          setState(() {
-                            usedMaterialData.removeAt(index);
-                            _saveData('usedMaterialData', usedMaterialData);
-                          });
-                        },
+                        onPressed: () => _deleteData(usedBox, index),
                       ),
                     ],
                   ),
@@ -354,7 +385,6 @@ class _MaterialScreenState extends State<MaterialScreen> {
       ),
     );
   }
-
 
   Widget _buildDetailsRow(String label, String? value) {
     return Row(
@@ -389,8 +419,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
             onTap: () async {
               final result = await Get.to(() => ReceivedScreen(material: {}));
               if (result != null && result is Map<String, dynamic>) {
-                receivedMaterialData.add(result);
-                _saveData('receivedMaterialData', receivedMaterialData);
+                _addReceivedData(result);
               }
             },
             child: _buildActionButton("Received", Colors.deepPurple.shade500),
@@ -411,8 +440,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
             onTap: () async {
               final result = await Get.to(() => UsedScreen());
               if (result != null && result is Map<String, dynamic>) {
-                usedMaterialData.add(result);
-                _saveData('usedMaterialData', usedMaterialData);
+                _addUsedData(result);
               }
             },
             child: _buildActionButton("Used", Colors.brown),
@@ -445,28 +473,16 @@ class _MaterialScreenState extends State<MaterialScreen> {
               SizedBox(height: 16.h),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Received", Colors.blue, () async {
-                // Navigate to the ReceivedScreen and wait for the result
                 final result = await Get.to(() => ReceivedScreen(material: {}));
                 if (result != null) {
-                  // Update the receivedMaterialData if new data is returned
-                  setState(() {
-                    receivedMaterialData = result;
-                  });
-                  // Save the updated data to SharedPreferences
-                  await _saveData('receivedMaterialData', receivedMaterialData!);
+                  _addReceivedData(result);
                 }
               }),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Used", Colors.green, () async {
-                // Navigate to the UsedScreen
                 final result = await Get.to(() => UsedScreen());
                 if (result != null) {
-                  // Update usedMaterialData if new data is returned
-                  setState(() {
-                    usedMaterialData = result;
-                  });
-                  // Save the updated data to SharedPreferences
-                  await _saveData('usedMaterialData', usedMaterialData!);
+                  _addUsedData(result);
                 }
               }),
             ],
@@ -512,3 +528,4 @@ Widget _buildBottomSheetButton(BuildContext context, String text, Color color, V
     ),
   );
 }
+
