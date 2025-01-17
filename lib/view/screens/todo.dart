@@ -394,10 +394,11 @@ class _TodoState extends State<Todo> {
                             ),
                           ),
                         ),
-                        // trailing: Icon(
-                        //   Icons.more_vert, // Overflow menu icon for more options
-                        //   color: Colors.grey[600], // Color of the trailing icon
-                        // ),
+                        trailing: IconButton(onPressed: (){
+                          setState(() {
+                            tasks.removeAt(index);
+                          });
+                        }, icon: Icon(Icons.delete,color: Colors.red,)),
                         onTap: () {
                           // Optionally add an onTap event to open details or perform an action
                         },

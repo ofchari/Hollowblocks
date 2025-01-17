@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
@@ -174,7 +175,8 @@ class _EmployeeState extends State<Employee> {
       },
     );
   }
-  /// Post method for Employee //
+
+  /// Post method for Employee
   Future<void> MobileDocument(BuildContext context) async {
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
@@ -189,7 +191,7 @@ class _EmployeeState extends State<Employee> {
       'doctype': 'Employee Attendance',
       'employee': selectedEmployee,
       'attendance': attendanceStatus,
-      'date': selectedDate,
+      'date': selectedDate.toString(),
       'shift': selectedShift,
       'in_time': inTimeController.text,
       'out_time': outTimeController.text,
@@ -199,9 +201,10 @@ class _EmployeeState extends State<Employee> {
     final body = jsonEncode(data);
     print(data);
 
-    // Use SharedPreferences to check for duplicate submissions
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lastSubmission = prefs.getString('lastSubmission');
+    // Open Hive box for storing submission data
+    var box = await Hive.openBox('submissionBox');
+
+    String? lastSubmission = box.get('lastSubmission');
 
     if (lastSubmission != null) {
       final lastSubmissionData = jsonDecode(lastSubmission);
@@ -222,8 +225,8 @@ class _EmployeeState extends State<Employee> {
       final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
 
       if (response.statusCode == 200) {
-        // Save the current submission to SharedPreferences
-        await prefs.setString('lastSubmission', jsonEncode({
+        // Save the current submission to Hive
+        await box.put('lastSubmission', jsonEncode({
           'employee': selectedEmployee,
           'date': selectedDate
         }));
@@ -237,10 +240,12 @@ class _EmployeeState extends State<Employee> {
         );
 
         // Clear input fields after successful submission
-        selectedEmployee = null;
-        // attendanceStatus = null;
-        // selectedDate = null;
-        selectedShift = null;
+        setState(() {
+          selectedEmployee = null;
+          attendanceStatus = "Mark Attendance";
+          selectedDate = "Date";
+          selectedShift = null;
+        });
         inTimeController.clear();
         outTimeController.clear();
       } else {
@@ -279,7 +284,6 @@ class _EmployeeState extends State<Employee> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {

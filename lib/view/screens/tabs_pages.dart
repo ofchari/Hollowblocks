@@ -5,13 +5,15 @@ import 'package:vetri_hollowblock/view/screens/file_upload.dart';
 import 'package:vetri_hollowblock/view/screens/materials/material_details.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/update_project_form.dart';
+import 'package:vetri_hollowblock/view/widgets/text.dart';
 import '../widgets/subhead.dart';
 import 'reports/all_reports.dart'; // Custom widget to style your text
 
 
 class TabsPages extends StatefulWidget {
-  const TabsPages({super.key, required this.projectName});
+  const TabsPages({super.key, required this.projectName, this.initialTabIndex = 0});
   final String projectName;
+  final int initialTabIndex; // New parameter for initial tab index
 
   @override
   State<TabsPages> createState() => _TabsPagesState();
@@ -25,7 +27,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this); // Number of tabs
+    _tabController = TabController(length: 6, vsync: this, initialIndex: widget.initialTabIndex);
   }
 
   @override
@@ -52,12 +54,12 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: const Color(0xfff1f2f4),
       appBar: AppBar(
-        backgroundColor: const Color(0xfff1f2f4),
+        backgroundColor: Colors.blue,
         toolbarHeight: 80.h,
         centerTitle: true,
         title: Subhead(
           text: "User Tabs",
-          color: Colors.black,
+          color: Colors.white,
           weight: FontWeight.w500,
         ),
         bottom: TabBar(
@@ -66,12 +68,12 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
           indicatorColor: Colors.blue,
           labelStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: Colors.black),
           tabs: const [
-            Tab(text: 'Update Project'),
-            Tab(text: 'Employee'),
-            Tab(text: 'Material'),
-            Tab(text: 'Files Upload'),
-            Tab(text: 'Todo'),
-            Tab(text: 'Reports'),
+            Tab(child: MyText(text: "Update Project", color: Colors.white, weight: FontWeight.w500),),
+            Tab(child: MyText(text: "Employee", color: Colors.white, weight: FontWeight.w500),),
+            Tab(child: MyText(text: "Material", color: Colors.white, weight: FontWeight.w500),),
+            Tab(child: MyText(text: "Files Upload", color: Colors.white, weight: FontWeight.w500),),
+            Tab(child: MyText(text: "Todo", color: Colors.white, weight: FontWeight.w500),),
+            Tab(child: MyText(text: "Reports", color: Colors.white, weight: FontWeight.w500),),
           ],
         ),
       ),
@@ -89,4 +91,5 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
     );
   }
 }
+
 

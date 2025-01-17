@@ -27,6 +27,7 @@ class ProjectForm extends StatefulWidget {
 }
 
 class _ProjectFormState extends State<ProjectForm> {
+  final ProjectFormController controller = Get.put(ProjectFormController());
   late double height;
   late double width;
 
@@ -224,20 +225,42 @@ class _ProjectFormState extends State<ProjectForm> {
     }
   }
 
-
-  @override
+@override
   void initState() {
     // TODO: implement initState
     super.initState();
-    print(Nameoftheworkr.text);
-    print(financialYearController.text);
-    print(cuurentstage.text);
-    print(initalamount.text);
+  // Initialize text controllers with values from GetX controller
+  Nameoftheworkr.text = controller.workName.value;
+    // Add listener to update controller when text changes
+    Nameoftheworkr.addListener(() {
+      if (Nameoftheworkr.text != controller.workName.value) {
+        controller.updateWorkName(Nameoftheworkr.text);
+      }
+    });
+  financialYearController.text = controller.financialYear.value;
+  initalamount.text = controller.initialAmount.value;
+  _lastVisitedDateController.text = controller.lastVisitedDate.value;
+  _asDateController.text = controller.asDate.value;
+  _vsDateController.text = controller.tsDate.value;
 
-  }
+  // Set initial dropdown values
+  selectedWorkType = controller.workType.value;
+  selectedSchema = controller.schemaName.value;
+  selectedSchemaGroupName = controller.schemaGroupName.value;
+  selectedWorkGroupName = controller.workGroupName.value;
+  selectedAgencyName = controller.agencyName.value;
+  selectedDistrictName = controller.districtName.value;
+  selectedBlockName = controller.blockName.value;
+  selectedVillageName = controller.villageName.value;
+  selectedStatus = controller.status.value;
+}
+
 
   @override
   void dispose() {
+    Nameoftheworkr.removeListener(() {
+      controller.workName.value = Nameoftheworkr.text;
+    });
     _lastVisitedDateController.dispose();
     _asDateController.dispose();
     _vsDateController.dispose();
@@ -302,8 +325,9 @@ class _ProjectFormState extends State<ProjectForm> {
                   });
 
                 }, hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/worktype'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async {
+                  final result = await Get.toNamed('/worktype');
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -318,8 +342,9 @@ class _ProjectFormState extends State<ProjectForm> {
                     print(selectedSchema);
                   });
                 },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black,overflow: TextOverflow.ellipsis,)),
-                onAddNewRoute: () {
-                  Get.toNamed('/scheme'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async {
+                 final result = await Get.toNamed('/scheme'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -333,8 +358,9 @@ class _ProjectFormState extends State<ProjectForm> {
                     print(selectedSchemaGroupName);
                   });
                 },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/schemegroup'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async{
+                  final result = await Get.toNamed('/schemegroup'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -348,8 +374,9 @@ class _ProjectFormState extends State<ProjectForm> {
                     print(selectedWorkGroupName);
                   });
                 },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/workgroup'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async{
+                  final result = await Get.toNamed('/workgroup'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -363,8 +390,9 @@ class _ProjectFormState extends State<ProjectForm> {
                     print(selectedAgencyName);
                   });
                 },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/agency'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async{
+                  final result = await Get.toNamed('/agency'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -382,8 +410,9 @@ class _ProjectFormState extends State<ProjectForm> {
                     print(selectedDistrictName);
                   });
                 },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/district'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async{
+                  final result = await Get.toNamed('/district'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -397,8 +426,9 @@ class _ProjectFormState extends State<ProjectForm> {
                     print(selectedBlockName);
                   });
                 },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/block'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async{
+                  final result = await Get.toNamed('/block'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -412,8 +442,9 @@ class _ProjectFormState extends State<ProjectForm> {
                     print(selectedVillageName);
                   });
                 },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/village'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async{
+                  final result = await Get.toNamed('/village'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -427,8 +458,9 @@ class _ProjectFormState extends State<ProjectForm> {
                     print(selectedStatus);
                   });
                 },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                onAddNewRoute: () {
-                  Get.toNamed('/status'); // Use GetX to navigate to the "Add Work Type" page
+                onAddNewRoute: () async{
+                  final result = await Get.toNamed('/status'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
                 },
               ),
               SizedBox(height: 30.h),
@@ -477,27 +509,24 @@ class _ProjectFormState extends State<ProjectForm> {
                   final pdfFile = await generateProfessionalPdf(); // Generate the PDF
 
                   // Navigate to a new page to show the PDF preview and confirmation
-                  Navigator.push(
+                  final projectName = await Navigator.push<String?>(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PdfPreviewScreen(
                         pdfFile: pdfFile,
-                        projectName: Nameoftheworkr.text,
+                        projectName: Nameoftheworkr.text, // Pass the project name
                         onConfirm: () {
-                          MobileDocument(context); // Post form
+                          // Post the form on confirmation
+                          MobileDocument(context);
                         },
                       ),
                     ),
-                  ).then((projectName) {
-                    if (projectName != null && projectName.isNotEmpty) {
-                      setState(() {
-                        projectName.add(projectName); // Update the project list
-                      });
-                    } else {
-                      print("No project name returned");
-                    }
-                  });
+                  );
 
+                  // Navigate to the dashboard after the process completes
+                  if (projectName != null) {
+                    Navigator.of(context).pop(projectName); // Return project name to the dashboard
+                  }
                 },
                 child: Buttons(
                   height: height / 20.h,
@@ -507,6 +536,8 @@ class _ProjectFormState extends State<ProjectForm> {
                   text: "Submit",
                 ),
               ),
+
+
 
               SizedBox(height: 20.h),
 
@@ -526,23 +557,80 @@ class _ProjectFormState extends State<ProjectForm> {
 
 
   /// Dropdown field //
+
   Widget _buildDropdownField({
     required String apiUrl,
     required String hintText,
     required TextStyle hintStyle,
     required String? selectedValue,
     required Function(String?) onChanged,
-    required Function onAddNewRoute, // Pass the onAddNewRoute callback
+    required Function onAddNewRoute,
   }) {
     return DropdownField(
       apiUrl: apiUrl,
       hintText: hintText,
       hintStyle: hintStyle,
-      onChanged: onChanged,
       selectedValue: selectedValue,
-      onAddNewRoute: onAddNewRoute, // Pass it to DropdownField
+      onChanged: (String? value) async {
+        if (value == "add_new") {
+          // Navigate and wait for result
+          final result = await onAddNewRoute();
+          if (result != null) {
+            _updateStateAndController(hintText.trim(), result);
+            onChanged(result);
+          }
+        } else {
+          _updateStateAndController(hintText.trim(), value);
+          onChanged(value);
+        }
+      },
+      onAddNewRoute: onAddNewRoute,
     );
   }
+
+  void _updateStateAndController(String fieldType, String? value) {
+    setState(() {
+      switch (fieldType) {
+        case "Work Type":
+          selectedWorkType = value;
+          controller.workType.value = value;
+          break;
+        case "Scheme Name":
+          selectedSchema = value;
+          controller.schemaName.value = value;
+          break;
+        case "Scheme Group":
+          selectedSchemaGroupName = value;
+          controller.schemaGroupName.value = value;
+          break;
+        case "Work Group":
+          selectedWorkGroupName = value;
+          controller.workGroupName.value = value;
+          break;
+        case "Agency Name":
+          selectedAgencyName = value;
+          controller.agencyName.value = value;
+          break;
+        case "District":
+          selectedDistrictName = value;
+          controller.districtName.value = value;
+          break;
+        case "Block":
+          selectedBlockName = value;
+          controller.blockName.value = value;
+          break;
+        case "Village":
+          selectedVillageName = value;
+          controller.villageName.value = value;
+          break;
+        case "Status":
+          selectedStatus = value;
+          controller.status.value = value;
+          break;
+      }
+    });
+  }
+
 
 /// Finanaical dropdown //
   Widget _buildFinancialYearDropdown({
@@ -664,12 +752,13 @@ class _ProjectFormState extends State<ProjectForm> {
   }
 
 
-  // Updated _buildTextField method
+
+  // Update your _buildTextField method
   Widget _buildTextField({
+    required TextEditingController controller,
     required String hintText,
-    required IconData icon,
-    TextEditingController? controller,
-    bool isDateField = false, // Boolean flag to identify date fields
+    IconData? icon,
+    bool isDateField = false,
   }) {
     return Container(
       height: height / 15.2.h,
@@ -677,50 +766,71 @@ class _ProjectFormState extends State<ProjectForm> {
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(6.r),
-        border: Border.all(
-          color: Colors.grey.shade500,
-        ),
+        border: Border.all(color: Colors.grey.shade500),
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-        child: TextFormField(
-          controller: controller,
-          style: GoogleFonts.dmSans(
-            textStyle: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.only(left: 20.0),
-            prefixIconConstraints: BoxConstraints(
-              minWidth: 24,minHeight: 24
-            ),
-            prefixIcon: Icon(icon, size: 16), // Icon size adjusted to 16
-            hintText: hintText,
-            hintStyle: GoogleFonts.sora(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-            border: InputBorder.none,
-          ),
-          onTap: isDateField
-              ? () async {
-            DateTime? pickedDate = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-            );
-            if (pickedDate != null) {
-              controller?.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: hintText,
+          prefixIcon: icon != null ? Icon(icon) : null,
+        ),
+        readOnly: isDateField,
+        onTap: isDateField ? () async {
+          final date = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
+          );
+          if (date != null) {
+            controller.text = DateFormat('yyyy-MM-dd').format(date);
+            // Update GetX controller if this is a date field
+            if (controller == _lastVisitedDateController) {
+              this.controller.lastVisitedDate.value = controller.text;
+            } else if (controller == _asDateController) {
+              this.controller.asDate.value = controller.text;
+            } else if (controller == _vsDateController) {
+              this.controller.tsDate.value = controller.text;
             }
           }
-              : null,
-        ),
+        } : null,
+        onChanged: (value) {
+          // Update GetX controller based on which text field changed
+          if (controller == Nameoftheworkr) {
+            this.controller.workName.value = value;
+          } else if (controller == initalamount) {
+            this.controller.initialAmount.value = value;
+          } else if (controller == financialYearController) {
+            this.controller.financialYear.value = value;
+          }
+        },
       ),
     );
   }
+}
+
+
+class ProjectFormController extends GetxController {
+
+  void updateWorkName(String value) {
+    workName.value = value;
+    print("Updated work name to: $value"); // For debugging
+  }
+  // Observable variables
+  var workName = ''.obs;
+  var workType = Rxn<String>();
+  var schemaName = Rxn<String>();
+  var schemaGroupName = Rxn<String>();
+  var workGroupName = Rxn<String>();
+  var agencyName = Rxn<String>();
+  var financialYear = ''.obs;
+  var districtName = Rxn<String>();
+  var blockName = Rxn<String>();
+  var villageName = Rxn<String>();
+  var status = Rxn<String>();
+  var initialAmount = ''.obs;
+  var lastVisitedDate = ''.obs;
+  var asDate = ''.obs;
+  var tsDate = ''.obs;
 }

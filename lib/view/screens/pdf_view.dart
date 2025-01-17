@@ -63,8 +63,8 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              widget.onConfirm();
-              Navigator.of(context).pop(widget.projectName);
+              widget.onConfirm(); // Call the form submission method
+              Navigator.of(context).pop(widget.projectName); // Return project name to parent
             },
             child: Text("Confirm and Submit"),
           ),

@@ -11,6 +11,7 @@ import '../../universal_key_api/api_url.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/subhead.dart';
 import '../../widgets/text.dart';
+import '../tabs_pages.dart';
 import 'material_details.dart';
 import 'materials_add.dart';
 
@@ -109,7 +110,7 @@ class _UsedScreenState extends State<UsedScreen> {
 
         // Navigate back to MaterialScreen and pass the data
         Get.off(
-          MaterialScreen(),
+          TabsPages(projectName: 'Material',initialTabIndex: 2,),
           arguments: {
             'used': {
               'material': materialController.text,

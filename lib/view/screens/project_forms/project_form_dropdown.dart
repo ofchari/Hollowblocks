@@ -58,9 +58,11 @@ class _DropdownFieldState extends State<DropdownField> {
         final data = jsonDecode(response.body);
 
         setState(() {
-          options = List<String>.from(
+          // Merge fetched options with existing ones, avoiding duplicates
+          final fetchedOptions = List<String>.from(
             data['data'].map((item) => item['name'].toString()),
-          ).toSet().toList(); // Ensure unique options
+          ).toSet();
+          options = (options.toSet()..addAll(fetchedOptions)).toList();
           isLoading = false;
 
           // Validate selectedValue against fetched options
@@ -74,6 +76,16 @@ class _DropdownFieldState extends State<DropdownField> {
     } catch (e) {
       print("Error fetching data for ${widget.hintText}: $e");
     }
+  }
+
+  void _addNewOption(String newOption) {
+    setState(() {
+      // Add the new option to the options list if it doesn't already exist
+      if (!options.contains(newOption)) {
+        options.add(newOption);
+      }
+      selectedValue = newOption; // Automatically select the new option
+    });
   }
 
   @override
@@ -133,9 +145,12 @@ class _DropdownFieldState extends State<DropdownField> {
                   ),
                 ),
               ],
-              onChanged: (value) {
+              onChanged: (value) async {
                 if (value == "add_new") {
-                  widget.onAddNewRoute(); // Call the route callback
+                  final newOption = await widget.onAddNewRoute(); // Get new data from the route
+                  if (newOption != null) {
+                    _addNewOption(newOption); // Add the new option
+                  }
                 } else {
                   setState(() {
                     selectedValue = value; // Update selected value
@@ -157,5 +172,6 @@ class _DropdownFieldState extends State<DropdownField> {
     );
   }
 }
+
 
 

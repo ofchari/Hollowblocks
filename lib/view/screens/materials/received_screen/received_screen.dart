@@ -8,6 +8,7 @@ import 'package:http/io_client.dart';
 import 'package:intl/intl.dart'; // For date formatting
 import 'package:vetri_hollowblock/view/screens/materials/materials_add.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/create_party.dart';
+import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
 import 'package:http/http.dart' as http;
 import '../../../universal_key_api/api_url.dart';
@@ -121,7 +122,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
         //   },
         // );
         Get.off(
-          MaterialScreen(),
+          TabsPages(projectName: 'Material',initialTabIndex: 2,),
           arguments: {
             'received': {
               'material_name': widget.material['material_name'],

@@ -10,6 +10,7 @@ import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
 import '../../universal_key_api/api_url.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/subhead.dart';
+import '../tabs_pages.dart';
 
 class EmployeeAdd extends StatefulWidget {
   const EmployeeAdd({super.key});
@@ -53,13 +54,23 @@ class _EmployeeAddState extends State<EmployeeAdd> {
     print(data);
 
     try {
-      // Use Uri.parse() to convert the string URL into a Uri object
       final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
 
       if (response.statusCode == 200) {
-        Get.snackbar("Employee", " Document Added Posted Successfully",colorText: Colors.white,backgroundColor: Colors.green,snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar(
+          "Employee",
+          "Document Added Posted Successfully",
+          colorText: Colors.white,
+          backgroundColor: Colors.green,
+          snackPosition: SnackPosition.BOTTOM,
+        );
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => Employee()),
+          MaterialPageRoute(
+            builder: (context) => TabsPages(
+              projectName: 'Employee', // Pass your actual project name
+              initialTabIndex: 1,  // Pass the inital index
+            ),
+          ),
         );
       } else {
         String message = 'Request failed with status: ${response.statusCode}';
@@ -97,6 +108,7 @@ class _EmployeeAddState extends State<EmployeeAdd> {
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
