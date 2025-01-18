@@ -1,8 +1,8 @@
-import 'package:animated_splash_screen/animated_splash_screen.dart';
+import g'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hive/hive.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/agency_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/block_screen.dart';
@@ -28,6 +28,8 @@ import 'package:vetri_hollowblock/view/screens/todo.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter(); // Initialize Hive
+  await GetStorage.init();
+  // await Hive.openBox('userBox'); // Open a box to store user data
   runApp(const MyApp());
 }
 
@@ -63,13 +65,13 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           home:
-          Dashboard()
-          // AnimatedSplashScreen(
-          //   backgroundColor: Colors.white,
-          //     splash: Image.asset("assets/KBSCo.jpg"),
-          //     splashIconSize: 500,
-          //     duration: 2000,
-          //     nextScreen: const Login())
+            // Dashboard()
+          AnimatedSplashScreen(
+            backgroundColor: Colors.white,
+              splash: Image.asset("assets/KBSCo.jpg"),
+              splashIconSize: 500,
+              duration: 2000,
+              nextScreen: const Login())
         );
       },
     );

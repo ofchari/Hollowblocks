@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form.dart';
 import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/update_project_form.dart';
@@ -18,6 +17,7 @@ import 'login.dart';
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
 
+
   @override
   State<Dashboard> createState() => _DashboardState();
 }
@@ -28,6 +28,7 @@ class _DashboardState extends State<Dashboard> {
   List<String> projectList = [];
   Map<String, dynamic> selectedFilters = {};
   Map<String, List<String>> dropdownData = {};
+  final SessionManager sessionManager = SessionManager();
 
   @override
   void initState() {
@@ -107,16 +108,7 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-  Future<void> _handleLogout() async {
-    final prefs = await SharedPreferences.getInstance();
 
-    // Clear the login status and username
-    await prefs.remove('isLoggedIn');
-    await prefs.remove('username');
-
-    // Navigate back to the Login screen
-    Get.offAll(Login()); // Using Get.offAll to remove the current screen and go to login screen
-  }
 
   Future<void> MobileDocument(BuildContext context, String projectName) async {
     HttpClient client = HttpClient();
@@ -201,6 +193,7 @@ class _DashboardState extends State<Dashboard> {
 
         if (data.containsKey('data') && data['data'] is List) {
           final List<dynamic> filterData = data['data'];
+          print('Filter data fetched successfully: ${data['data']}'); // Add debug logs
 
           // Collect unique field values for dropdowns
           Map<String, Set<String>> tempDropdownData = {
@@ -218,9 +211,12 @@ class _DashboardState extends State<Dashboard> {
             });
           }
 
-          setState(() {
-            dropdownData = tempDropdownData.map((key, value) => MapEntry(key, value.toList()));
-          });
+          if (mounted) {
+            setState(() {
+              dropdownData = tempDropdownData.map((key, value) => MapEntry(key, value.toList()));
+            });
+          }
+
         }
       }
     } catch (e) {
@@ -321,7 +317,7 @@ class _DashboardState extends State<Dashboard> {
         centerTitle: true,
         leading: GestureDetector(
           onTap: () {
-            _handleLogout();
+            sessionManager.logout(); // Call the logout method
           },
           child: const Icon(Icons.logout),
         ),

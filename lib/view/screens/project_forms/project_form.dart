@@ -167,18 +167,16 @@ class _ProjectFormState extends State<ProjectForm> {
       'last_visited_date': _lastVisitedDateController.text,
       'as_date': _asDateController.text,
       'vs_date': _vsDateController.text,
-
     };
 
-    final url = '$apiUrl/Project Form'; // Replace with your actual API URL
+    final url = '$apiUrl/Project Form';
     final body = jsonEncode(data);
-    print(data);
 
     try {
-      // Use Uri.parse() to convert the string URL into a Uri object
       final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
 
       if (response.statusCode == 200) {
+        // Use Get.snackbar since you're using GetX
         Get.snackbar(
           "Project Form",
           "Document Posted Successfully",
@@ -186,42 +184,17 @@ class _ProjectFormState extends State<ProjectForm> {
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
         );
-        Navigator.of(context).pop(Nameoftheworkr.text); // Return project name to Dashboard
-      }
-      else {
+        return; // Just return without navigation
+      } else {
         String message = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
           final serverMessages = json.decode(response.body)['_server_messages'];
           message = serverMessages ?? message;
         }
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(response.statusCode == 417 ? 'Message' : 'Error'),
-            content: Text(message),
-            actions: [
-              ElevatedButton(
-                child: Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
+        throw Exception(message); // Throw the error to be handled by the caller
       }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('An error occurred: $e'),
-          actions: [
-            ElevatedButton(
-              child: Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      );
+      rethrow; // Rethrow the error to be handled by the caller
     }
   }
 
@@ -495,7 +468,6 @@ class _ProjectFormState extends State<ProjectForm> {
               GestureDetector(
                 onTap: () async {
                   if (Nameoftheworkr.text.isEmpty) {
-                    // Show error if the mandatory field is empty
                     Get.snackbar(
                       "Validation Error",
                       "Name of Work is required.",
@@ -506,26 +478,43 @@ class _ProjectFormState extends State<ProjectForm> {
                     return;
                   }
 
-                  final pdfFile = await generateProfessionalPdf(); // Generate the PDF
+                  try {
+                    final pdfFile = await generateProfessionalPdf();
 
-                  // Navigate to a new page to show the PDF preview and confirmation
-                  final projectName = await Navigator.push<String?>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PdfPreviewScreen(
-                        pdfFile: pdfFile,
-                        projectName: Nameoftheworkr.text, // Pass the project name
-                        onConfirm: () {
-                          // Post the form on confirmation
-                          MobileDocument(context);
-                        },
+                    // Show PDF preview and wait for confirmation
+                    final confirmed = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PdfPreviewScreen(
+                          pdfFile: pdfFile,
+                          projectName: Nameoftheworkr.text,
+                        ),
                       ),
-                    ),
-                  );
+                    );
 
-                  // Navigate to the dashboard after the process completes
-                  if (projectName != null) {
-                    Navigator.of(context).pop(projectName); // Return project name to the dashboard
+                    // If user confirmed, submit the document
+                    if (confirmed == true) {
+                      await MobileDocument(context);
+                      // After successful submission, navigate back to dashboard
+                      Navigator.of(context).pop(Nameoftheworkr.text);
+                    }
+                  } catch (e) {
+                    // Show error dialog only if we're not in the middle of navigation
+                    if (context.mounted) {
+                      await showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Error'),
+                          content: Text('An error occurred: $e'),
+                          actions: [
+                            ElevatedButton(
+                              child: Text('OK'),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                   }
                 },
                 child: Buttons(

@@ -5,13 +5,11 @@ import 'package:vetri_hollowblock/view/widgets/subhead.dart';
 
 class PdfPreviewScreen extends StatefulWidget {
   final File pdfFile;
-  final VoidCallback onConfirm;
   final String projectName;
 
   const PdfPreviewScreen({
     Key? key,
     required this.pdfFile,
-    required this.onConfirm,
     required this.projectName,
   }) : super(key: key);
 
@@ -25,12 +23,12 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
   @override
   void initState() {
     super.initState();
-    // You can perform any setup here, like checking if the PDF exists or loading
-    // After setup, set isLoading to false to show the PDF
     Future.delayed(Duration(seconds: 1), () {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     });
   }
 
@@ -38,10 +36,14 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Subhead(text: "PDF Preview", color: Colors.black, weight: FontWeight.w500),
+        title: Subhead(
+            text: "PDF Preview",
+            color: Colors.black,
+            weight: FontWeight.w500
+        ),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loading indicator
+          ? Center(child: CircularProgressIndicator())
           : Column(
         children: [
           Expanded(
@@ -63,8 +65,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              widget.onConfirm(); // Call the form submission method
-              Navigator.of(context).pop(widget.projectName); // Return project name to parent
+              Navigator.of(context).pop(true); // Return true to indicate confirmation
             },
             child: Text("Confirm and Submit"),
           ),

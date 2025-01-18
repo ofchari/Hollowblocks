@@ -6,7 +6,6 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vetri_hollowblock/view/screens/employee/employee_add.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
 import 'dart:convert'; // For JSON decoding
@@ -632,10 +631,32 @@ class _EmployeeState extends State<Employee> {
             ),
             SizedBox(height: 20.h,),
             GestureDetector(
-                onTap: (){
+              onTap: () {
+                if (selectedEmployee == null || selectedEmployee!.isEmpty) {
+                  // Show an error message if no employee is selected
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Please select an employee.",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } else {
+                  // Proceed with submission if validation passes
                   MobileDocument(context);
-                },
-                child: Buttons(height: height/15.h, width: width/1.5, radius: BorderRadius.circular(10.r), color: Colors.blue, text: "Submit"))
+                }
+              },
+              child: Buttons(
+                height: height / 15.h,
+                width: width / 1.5,
+                radius: BorderRadius.circular(10.r),
+                color: Colors.blue,
+                text: "Submit",
+              ),
+            ),
+
           ],
         ),
       ),
