@@ -52,6 +52,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
 
   Widget _smallBuildLayout() {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xfff1f2f4),
       appBar: AppBar(
         backgroundColor: Colors.blue,

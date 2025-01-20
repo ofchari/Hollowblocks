@@ -145,7 +145,7 @@ class _LoginState extends State<Login> {
     }
   }
 
-      /// Logout logic ///
+              /// Logout logic ///
   void logout() async {
     try {
       await storage.remove(keyIsLoggedIn); // Remove the login status
