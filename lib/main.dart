@@ -7,6 +7,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/agency_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/block_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/district_screen.dart';
+import 'package:vetri_hollowblock/view/screens/Form_types/level.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/scheme_group_name.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/scheme_name_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/status_screen.dart';
@@ -24,6 +25,7 @@ import 'package:vetri_hollowblock/view/screens/materials/used_screen.dart';
 import 'package:vetri_hollowblock/view/screens/project_details.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/work_type_screen.dart';
+import 'package:vetri_hollowblock/view/screens/reports/all_reports.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +53,7 @@ class MyApp extends StatelessWidget {
               GetPage(name: '/scheme', page: () => SchemeNameScreen()),
               GetPage(name: '/schemegroup', page: () => SchemeGroupNameScreen()),
               GetPage(name: '/workgroup', page: () => WorkGroupScreen()),
+              GetPage(name: '/level', page: () => LevelScreen()),
               GetPage(name: '/agency', page: () => AgencyScreen()),
               GetPage(name: '/district', page: () => DistrictScreen()),
               GetPage(name: '/block', page: () => BlockScreen()),
@@ -65,13 +68,13 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           home:
-            // Dashboard()
-          AnimatedSplashScreen(
-            backgroundColor: Colors.white,
-              splash: Image.asset("assets/KBSCo.jpg"),
-              splashIconSize: 500,
-              duration: 2000,
-              nextScreen: const Login())
+            AllReports()
+          // AnimatedSplashScreen(
+          //   backgroundColor: Colors.white,
+          //     splash: Image.asset("assets/KBSCo.jpg"),
+          //     splashIconSize: 500,
+          //     duration: 2000,
+          //     nextScreen: const Login())
         );
       },
     );

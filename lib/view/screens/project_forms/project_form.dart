@@ -36,6 +36,7 @@ class _ProjectFormState extends State<ProjectForm> {
   String? selectedSchemaGroupName;
   String? selectedWorkGroupName;
   String? selectedAgencyName;
+  String? selectedLevelName;
   String? selectedDistrictName;
   String? selectedBlockName;
   String? selectedVillageName;
@@ -46,9 +47,11 @@ class _ProjectFormState extends State<ProjectForm> {
   TextEditingController financialYearController = TextEditingController();
  final TextEditingController cuurentstage = TextEditingController();
  final TextEditingController initalamount = TextEditingController();
+ final TextEditingController depositamount = TextEditingController();
   final TextEditingController _lastVisitedDateController = TextEditingController();
   final TextEditingController _asDateController = TextEditingController();
   final TextEditingController _vsDateController = TextEditingController();
+
 
 
               /// PDF Generate logic //
@@ -94,15 +97,17 @@ class _ProjectFormState extends State<ProjectForm> {
               ['Scheme Group Name', selectedSchemaGroupName ?? ''],
               ['Work Group Name', selectedWorkGroupName ?? ''],
               ['Agency Name', selectedAgencyName ?? ''],
+              ['Level Name', selectedLevelName ?? ''],
               ['Financial Year', financialYearController.text],
               ['District', selectedDistrictName ?? ''],
               ['Block', selectedBlockName ?? ''],
               ['Village', selectedVillageName ?? ''],
               ['Current Stage', selectedStatus ?? ''],
-              ['Initial Amount', initalamount.text],
-              ['Last Visited Date', _lastVisitedDateController.text],
+              ['Estimate Amount', initalamount.text],
+              ['Deposit Amount', depositamount.text],
               ['As Date', _asDateController.text],
-              ['Ts Date', _vsDateController.text],
+              ['Work Order Date', _lastVisitedDateController.text],
+              ['Project Duration', _vsDateController.text],
 
             ],
             border: pw.TableBorder.all(),
@@ -158,15 +163,17 @@ class _ProjectFormState extends State<ProjectForm> {
       'scheme_group': selectedSchemaGroupName,
       'work_group': selectedWorkGroupName,
       'agency_name': selectedAgencyName,
+      'level': selectedLevelName,
       'financial_year': financialYearController.text,
       'district': selectedDistrictName,
       'block': selectedBlockName,
       'village': selectedVillageName,
       'current_stage': selectedStatus,
-      'initial_amount': initalamount.text,
-      'last_visited_date': _lastVisitedDateController.text,
+      'estimate_amount': initalamount.text,
+      'deposite_amount': depositamount.text,
+      'work_order_date': _vsDateController.text,
       'as_date': _asDateController.text,
-      'vs_date': _vsDateController.text,
+      'project_duration': _lastVisitedDateController.text,
     };
 
     final url = '$apiUrl/Project Form';
@@ -212,6 +219,7 @@ class _ProjectFormState extends State<ProjectForm> {
     });
   financialYearController.text = controller.financialYear.value;
   initalamount.text = controller.initialAmount.value;
+  depositamount.text = controller.depositAmount.value;
   _lastVisitedDateController.text = controller.lastVisitedDate.value;
   _asDateController.text = controller.asDate.value;
   _vsDateController.text = controller.tsDate.value;
@@ -222,6 +230,7 @@ class _ProjectFormState extends State<ProjectForm> {
   selectedSchemaGroupName = controller.schemaGroupName.value;
   selectedWorkGroupName = controller.workGroupName.value;
   selectedAgencyName = controller.agencyName.value;
+  selectedLevelName = controller.levelName.value;
   selectedDistrictName = controller.districtName.value;
   selectedBlockName = controller.blockName.value;
   selectedVillageName = controller.villageName.value;
@@ -368,6 +377,22 @@ class _ProjectFormState extends State<ProjectForm> {
                   return result;
                 },
               ),
+              SizedBox(height: 30.h,),
+              _buildDropdownField(
+                apiUrl: "$apiUrl/Level",
+                hintText: "   Level Name",
+                selectedValue: selectedLevelName,
+                onChanged: (value) {
+                  setState(() {
+                    selectedLevelName = value;
+                    print(selectedLevelName);
+                  });
+                },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                onAddNewRoute: () async{
+                  final result = await Get.toNamed('/level'); // Use GetX to navigate to the "Add Work Type" page
+                  return result;
+                },
+              ),
               SizedBox(height: 30.h),
               _buildFinancialYearDropdown(
                   controller: financialYearController
@@ -439,15 +464,14 @@ class _ProjectFormState extends State<ProjectForm> {
               SizedBox(height: 30.h),
               _buildTextField(
                 controller: initalamount,
-                hintText: "   Initial Amount",
-                icon: Icons.monetization_on,
+                hintText: "   Estimate Amount",
+                icon: Icons.currency_rupee,
               ),
               SizedBox(height: 30.h),
               _buildTextField(
-                hintText: "   Last Visited Date",
-                icon: Icons.date_range,
-                controller: _lastVisitedDateController,
-                isDateField: true,
+                controller: depositamount,
+                hintText: "   Deposit Amount",
+                icon: Icons.currency_rupee,
               ),
               SizedBox(height: 30.h),
               _buildTextField(
@@ -458,9 +482,17 @@ class _ProjectFormState extends State<ProjectForm> {
               ),
               SizedBox(height: 30.h),
               _buildTextField(
-                hintText: "   Ts Date",
-                icon: Icons.date_range,
+                hintText: "   Work Order Date",
+                icon: Icons.calendar_month_outlined,
                 controller: _vsDateController,
+                isDateField: true,
+              ),
+              SizedBox(height: 30.h,),
+              // SizedBox(height: 30.h),
+              _buildTextField(
+                hintText: "   Project Duration",
+                icon: Icons.calendar_month_rounded,
+                controller: _lastVisitedDateController,
                 isDateField: true,
               ),
               SizedBox(height: 10.h),
@@ -525,8 +557,6 @@ class _ProjectFormState extends State<ProjectForm> {
                   text: "Submit",
                 ),
               ),
-
-
 
               SizedBox(height: 20.h),
 
@@ -599,6 +629,10 @@ class _ProjectFormState extends State<ProjectForm> {
         case "Agency Name":
           selectedAgencyName = value;
           controller.agencyName.value = value;
+          break;
+        case "Level Name":
+          selectedLevelName = value;
+          controller.levelName.value = value;
           break;
         case "District":
           selectedDistrictName = value;
@@ -757,9 +791,12 @@ class _ProjectFormState extends State<ProjectForm> {
         borderRadius: BorderRadius.circular(6.r),
         border: Border.all(color: Colors.grey.shade500),
       ),
-      child: TextField(
+      child: TextFormField(
+        textAlign: TextAlign.start,
+        style: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.grey)),
         controller: controller,
         decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 10.w),
           border: InputBorder.none,
           hintText: hintText,
           prefixIcon: icon != null ? Icon(icon) : null,
@@ -775,14 +812,14 @@ class _ProjectFormState extends State<ProjectForm> {
           if (date != null) {
             controller.text = DateFormat('yyyy-MM-dd').format(date);
             // Update GetX controller if this is a date field
-            if (controller == _lastVisitedDateController) {
-              this.controller.lastVisitedDate.value = controller.text;
-            } else if (controller == _asDateController) {
-              this.controller.asDate.value = controller.text;
-            } else if (controller == _vsDateController) {
-              this.controller.tsDate.value = controller.text;
-            }
-          }
+                  if (controller == _lastVisitedDateController) {
+                    this.controller.lastVisitedDate.value = controller.text;
+                  } else if (controller == _asDateController) {
+                    this.controller.asDate.value = controller.text;
+                  } else if (controller == _vsDateController) {
+                    this.controller.tsDate.value = controller.text;
+                  }
+                }
         } : null,
         onChanged: (value) {
           // Update GetX controller based on which text field changed
@@ -790,7 +827,9 @@ class _ProjectFormState extends State<ProjectForm> {
             this.controller.workName.value = value;
           } else if (controller == initalamount) {
             this.controller.initialAmount.value = value;
-          } else if (controller == financialYearController) {
+          } else if (controller == depositamount) {
+            this.controller.depositAmount.value = value;
+          }else if (controller == financialYearController) {
             this.controller.financialYear.value = value;
           }
         },
@@ -813,12 +852,14 @@ class ProjectFormController extends GetxController {
   var schemaGroupName = Rxn<String>();
   var workGroupName = Rxn<String>();
   var agencyName = Rxn<String>();
+  var levelName = Rxn<String>();
   var financialYear = ''.obs;
   var districtName = Rxn<String>();
   var blockName = Rxn<String>();
   var villageName = Rxn<String>();
   var status = Rxn<String>();
   var initialAmount = ''.obs;
+  var depositAmount = ''.obs;
   var lastVisitedDate = ''.obs;
   var asDate = ''.obs;
   var tsDate = ''.obs;

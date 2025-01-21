@@ -60,10 +60,6 @@ class _MaterialScreenState extends State<MaterialScreen> {
     return inventory;
   }
 
-
-
-
-
   Future<void> _initializeHive() async {
     final dir = await getApplicationDocumentsDirectory();
     Hive.init(dir.path);

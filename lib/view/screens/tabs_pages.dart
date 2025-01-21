@@ -27,7 +27,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this, initialIndex: widget.initialTabIndex);
+    _tabController = TabController(length: 5, vsync: this, initialIndex: widget.initialTabIndex);
   }
 
   @override
@@ -72,7 +72,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
             Tab(child: MyText(text: "Update Project", color: Colors.white, weight: FontWeight.w500),),
             Tab(child: MyText(text: "Employee", color: Colors.white, weight: FontWeight.w500),),
             Tab(child: MyText(text: "Material", color: Colors.white, weight: FontWeight.w500),),
-            Tab(child: MyText(text: "Files Upload", color: Colors.white, weight: FontWeight.w500),),
+            // Tab(child: MyText(text: "Files Upload", color: Colors.white, weight: FontWeight.w500),),
             Tab(child: MyText(text: "Todo", color: Colors.white, weight: FontWeight.w500),),
             Tab(child: MyText(text: "Reports", color: Colors.white, weight: FontWeight.w500),),
           ],
@@ -84,7 +84,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
           UpdateProjectForm(projectName: widget.projectName),
           Employee(),
           MaterialScreen(),
-          FileUpload(),
+          // FileUpload(),
           Todo(),
           AllReports(),
         ],
