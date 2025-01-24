@@ -53,6 +53,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
   final TextEditingController _lastVisitedDateController = TextEditingController();
   final TextEditingController _asDateController = TextEditingController();
   final TextEditingController _vsDateController = TextEditingController();
+  final TextEditingController remarksController = TextEditingController();
 
 
 
@@ -95,6 +96,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
             _lastVisitedDateController.text = projectInfo['work_order_date']?.toString() ?? '';
             _asDateController.text = projectInfo['as_date']?.toString() ?? '';
             _vsDateController.text = projectInfo['project_duration']?.toString() ?? '';
+            remarksController.text = projectInfo['remarks']?.toString() ?? '';
             isLoading = false;
           });
 
@@ -180,6 +182,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
         'work_order_date': _vsDateController.text,
         'as_date': _asDateController.text,
         'project_duration': _lastVisitedDateController.text,
+        'remarks': remarksController.text,
       };
 
       final url = '$apiUrl/Project Form/${Uri.encodeComponent(widget.projectName)}';
@@ -289,6 +292,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
               child: Column(
                 children: [
                   SizedBox(height: 10.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                        child: Text("  Name of the work :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildTextField(
                     controller: Nameoftheworkr,
                     hintText: "   Name of the work",
@@ -296,6 +306,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
               
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Work Type :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Work%20Type",
                     hintText: "   Work Type",
@@ -312,6 +329,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Scheme Name :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Scheme",
                     hintText: "   Scheme Name",
@@ -328,6 +352,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Scheme Group:",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Scheme Group",
                     hintText: "   Scheme Group",
@@ -343,6 +374,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Work Group :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Work Group",
                     hintText: "   Work Group",
@@ -358,6 +396,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Agency Name :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Agency",
                     hintText: "   Agency Name",
@@ -373,6 +418,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h,),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Level :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Level",
                     hintText: "   Level Name",
@@ -389,10 +441,23 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Finanaical Year :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildFinancialYearDropdown(
                       controller: financialYearController
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Districts :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/District",
                     hintText: "   District",
@@ -408,6 +473,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Block :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Block",
                     hintText: "   Block",
@@ -423,6 +495,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Village :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Village",
                     hintText: "   Village",
@@ -438,6 +517,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Status :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Construction Status",
                     hintText: "   Status",
@@ -453,12 +539,26 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     },
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Estimate Amount :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildTextField(
                     controller: initalamount,
                     hintText: "   Estimate Amount",
                     icon: Icons.currency_rupee,
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Deposit Amount :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildTextField(
                     controller: depositamount,
                     hintText: "   Deposit Amount",
@@ -472,6 +572,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                   //   isDateField: true,
                   // ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  As Date :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildTextField(
                     hintText: "   As Date",
                     icon: Icons.date_range,
@@ -479,6 +586,13 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     isDateField: true,
                   ),
                   SizedBox(height: 30.h),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Work Order Date :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildTextField(
                     hintText: "   work Order Date",
                     icon: Icons.date_range,
@@ -486,11 +600,31 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     isDateField: true,
                   ),
                   SizedBox(height: 30.h,),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Project Duration:",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
                   _buildTextField(
                     hintText: "   Project Duration",
                     icon: Icons.date_range,
                     controller: _lastVisitedDateController,
                     isDateField: true,
+                  ),
+                  SizedBox(height: 30.h,),
+                  Padding(
+                    padding:  EdgeInsets.only(left: 12.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text("  Remarks :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                  ),
+                  SizedBox(height: 9.5.h,),
+                  _buildTextField(
+                    controller: remarksController,
+                    hintText: "   Remarks",
+                    icon: Icons.remember_me,
                   ),
                   SizedBox(height: 10.h),
                   // Button for generating and previewing PDF

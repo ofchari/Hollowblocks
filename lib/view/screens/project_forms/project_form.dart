@@ -51,6 +51,7 @@ class _ProjectFormState extends State<ProjectForm> {
   final TextEditingController _lastVisitedDateController = TextEditingController();
   final TextEditingController _asDateController = TextEditingController();
   final TextEditingController _vsDateController = TextEditingController();
+  final TextEditingController remarksController = TextEditingController();
 
 
 
@@ -105,6 +106,7 @@ class _ProjectFormState extends State<ProjectForm> {
               ['Current Stage', selectedStatus ?? ''],
               ['Estimate Amount', initalamount.text],
               ['Deposit Amount', depositamount.text],
+              ['Remarks', remarksController.text],
               ['As Date', _asDateController.text],
               ['Work Order Date', _lastVisitedDateController.text],
               ['Project Duration', _vsDateController.text],
@@ -174,6 +176,7 @@ class _ProjectFormState extends State<ProjectForm> {
       'work_order_date': _vsDateController.text,
       'as_date': _asDateController.text,
       'project_duration': _lastVisitedDateController.text,
+      'remarks': remarksController.text,
     };
 
     final url = '$apiUrl/Project Form';
@@ -223,6 +226,7 @@ class _ProjectFormState extends State<ProjectForm> {
   _lastVisitedDateController.text = controller.lastVisitedDate.value;
   _asDateController.text = controller.asDate.value;
   _vsDateController.text = controller.tsDate.value;
+  remarksController.text = controller.tsDate.value;
 
   // Set initial dropdown values
   selectedWorkType = controller.workType.value;
@@ -494,6 +498,13 @@ class _ProjectFormState extends State<ProjectForm> {
                 icon: Icons.calendar_month_rounded,
                 controller: _lastVisitedDateController,
                 isDateField: true,
+              ),
+              SizedBox(height: 30.h,),
+              // SizedBox(height: 30.h),
+              _buildTextField(
+                controller: remarksController,
+                hintText: "   Remakrs",
+                icon: Icons.remember_me,
               ),
               SizedBox(height: 10.h),
               // Button for generating and previewing PDF
@@ -793,7 +804,7 @@ class _ProjectFormState extends State<ProjectForm> {
       ),
       child: TextFormField(
         textAlign: TextAlign.start,
-        style: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.grey)),
+        style: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
         controller: controller,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 10.w),
@@ -863,4 +874,5 @@ class ProjectFormController extends GetxController {
   var lastVisitedDate = ''.obs;
   var asDate = ''.obs;
   var tsDate = ''.obs;
+  var remarks = ''.obs;
 }

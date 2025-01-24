@@ -28,6 +28,7 @@ class _EmployeeAddState extends State<EmployeeAdd> {
   TextEditingController addressController = TextEditingController();
   TextEditingController cityController = TextEditingController();
   TextEditingController pincodeController = TextEditingController();
+  TextEditingController salaryController = TextEditingController();
 
                    /// Post method for Add Employee //
   Future<void> MobileDocument(BuildContext context) async {
@@ -47,6 +48,7 @@ class _EmployeeAddState extends State<EmployeeAdd> {
       'address': addressController.text,
       'pincode': pincodeController.text,
       'phone': phoneController.text,
+      'day_salary': salaryController.text,
     };
 
     final url = '$apiUrl/Construction Employee'; // Replace with your actual API URL
@@ -323,6 +325,43 @@ class _EmployeeAddState extends State<EmployeeAdd> {
                       ),
                       prefixIcon:  Icon(
                         Icons.person_pin_circle,
+                        color: Colors.grey.shade700,
+                        size: 17.5,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(vertical: 1.h),
+                      border: InputBorder.none
+                  ),
+                ),
+              ),
+              SizedBox(height: 10.h,),
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text('    Day Salary:',
+                    style: GoogleFonts.dmSans(fontWeight: FontWeight.w500, fontSize: 16)),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                height: height/15.2.h,
+                width: width/1.13.w,
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    border: Border.all(
+                        color: Colors.grey.shade500
+                    ),
+                    borderRadius: BorderRadius.circular(6.r)
+                ),
+                child: TextFormField(
+                  controller: salaryController,
+                  style: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                  decoration: InputDecoration(
+                      labelText: "",
+                      labelStyle: GoogleFonts.sora(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                      prefixIcon:  Icon(
+                        Icons.currency_rupee,
                         color: Colors.grey.shade700,
                         size: 17.5,
                       ),

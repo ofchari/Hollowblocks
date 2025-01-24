@@ -36,11 +36,14 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: ^4.6.5
   flutter_screenutil: ^5.7.0
+  syncfusion_flutter_xlsio: ^28.1.41
   file_picker: ^8.1.7
   pdf: ^3.10.5
   open_file: ^3.5.10
   camera: ^0.11.0+2
   permission_handler: ^11.3.1
+  device_info_plus: ^11.1.1
+  share_plus: ^10.1.4
   image_picker: ^0.8.5+3
   flutter_pdfview: ^1.4.0
   photo_view: ^0.15.0

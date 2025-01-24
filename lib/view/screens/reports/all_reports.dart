@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:vetri_hollowblock/view/screens/reports/employee_attendance_reports.dart';
 import '../../widgets/subhead.dart';
 import 'dart:math'as math;
+
+import '../../widgets/text.dart';
 
 class AllReports extends StatefulWidget {
   const AllReports({super.key});
@@ -52,20 +56,19 @@ class _AllReportsState extends State<AllReports> {
         child: Column(
           children: [
             Padding(
-            padding:  const EdgeInsets.only(left: 11.0,top: 2.0,right: 11.0),
-            child: Row(
-              children: [
+            padding:  const EdgeInsets.only(left: 5.0,top: 2.0,right: 5.0),
+            child:
                 GestureDetector(
                   onTap: (){
-                    // Get.to(const OrderForm(updatedWorkflowState: '',));
-                    // Get.to();
+                    Get.to(EmployeeReport());
+
                   },
                   child: Container(
-                    height: height/7.h,
-                    width: width/2.w,
+                    height: height/6.h,
+                    width: width/1.2.w,
                     decoration: BoxDecoration(
-                        color: Colors.pink.shade100,
-                        borderRadius: BorderRadius.circular(26.r)
+                        color: Colors.brown.shade600,
+                        borderRadius: BorderRadius.circular(16.r)
                     ),
                     child: Column(
                       children: [
@@ -75,31 +78,45 @@ class _AllReportsState extends State<AllReports> {
                           padding: const EdgeInsets.all(8.0),
                           child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Padding(
-                                padding:  EdgeInsets.only(left: 5.0),
-                                child:  Subhead(text: "Employee", color: Colors.black, weight: FontWeight.w500,),
+                              Padding(
+                                padding:  const EdgeInsets.only(left: 5.0),
+                                child:  Text("Employee Attendance \n Reports",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 19.sp,fontWeight: FontWeight.w500,color: Colors.white)),),
                               ),
                               Padding(
-                                padding:  const EdgeInsets.only(right: 5.0),
+                                padding: const EdgeInsets.only(right: 5.0),
                                 child: Container(
-                                    width: width/7.w,
-                                    decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: Colors.grey
-                                        ),
-                                        shape: BoxShape.circle
+                                  width: width / 7.w,
+                                  height: width / 7.w, // Ensure the container is a circle
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.blue.shade400,
+                                        Colors.blue.shade700,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
-                                    child: Transform.rotate(
-                                        angle: 60 * math.pi / 180,
-                                        child: IconButton(
-                                            onPressed: (){
-                                              // Get.to(const OrderForm(updatedWorkflowState: '',));
-                                            },
-                                            icon: const Icon(Icons.arrow_upward,size: 23,))
-                                    )
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.blue.withOpacity(0.5),
+                                        blurRadius: 10.0,
+                                        offset: Offset(2, 4), // Slight shadow for depth
+                                      ),
+                                    ],
+                                  ),
+                                  child: Transform.rotate(
+                                    angle: 60 * math.pi / 180,
+                                    child: IconButton(
+                                      onPressed: () {
+                                        Get.to(EmployeeReport());
+                                      },
+                                      icon: const Icon(Icons.arrow_upward, size: 23),
+                                      color: Colors.white, // Icon color matches the professional theme
+                                    ),
+                                  ),
                                 ),
                               )
-
                             ],
                           ),
                         ),
@@ -109,6 +126,7 @@ class _AllReportsState extends State<AllReports> {
                     ),
                   ),
                 ),
+      ),
                 SizedBox(width: 2.w,),
                 // GestureDetector(
                 //   onTap: (){
@@ -165,13 +183,11 @@ class _AllReportsState extends State<AllReports> {
                 //   ),
                 // ),
 
-              ],
-            )
-
-            ),
-      ]
+            ]
     ),
-    ));
+
+      )
+    );
   }
 
 }
