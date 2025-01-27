@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
+import 'package:vetri_hollowblock/view/screens/materials/purchased_screen/purchased_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/used_screen.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
@@ -338,10 +339,13 @@ class _MaterialsAddState extends State<MaterialsAdd> {
                         onTap: () {
                           if (widget.routeType == 'used') {
                             Get.to(() => UsedScreen(material: material));
-                          } else {
+                          } else if (widget.routeType == 'received') {
                             Get.to(() => ReceivedScreen(material: material));
+                          } else if (widget.routeType == 'purchased') {
+                            Get.to(() => PurchasedScreen(material: material));
                           }
                         },
+
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                           child: Container(

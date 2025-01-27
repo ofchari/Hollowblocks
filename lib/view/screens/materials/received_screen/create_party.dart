@@ -14,9 +14,11 @@ import 'package:http/http.dart'as http;
 import '../../../widgets/buttons.dart';
 import '../../../widgets/subhead.dart';
 import '../../../widgets/text.dart';
+import '../purchased_screen/purchased_screen.dart';
 
 class CreateParty extends StatefulWidget {
-  const CreateParty({super.key});
+  const CreateParty({super.key, required this.sourceScreen});
+  final String sourceScreen;
 
   @override
   State<CreateParty> createState() => _CreatePartyState();
@@ -80,7 +82,7 @@ class _CreatePartyState extends State<CreateParty> {
   }
 
          /// Post method for Party ///
-  Future<void> MobileDocument(BuildContext context) async {
+  Future<void> MobileDocument(BuildContext context, {required String sourceScreen}) async {
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
     IOClient ioClient = IOClient(client);
@@ -102,8 +104,6 @@ class _CreatePartyState extends State<CreateParty> {
       'billing_address': billingController.text,
       'party_will_pay': partyWillPayController.text,
       'party_will_receive': partyWillReceiveController.text,
-
-
     };
 
     final url = '$apiUrl/Party'; // Replace with your actual API URL
@@ -111,8 +111,8 @@ class _CreatePartyState extends State<CreateParty> {
     print(data);
 
     try {
-      // Use Uri.parse() to convert the string URL into a Uri object
       final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
+      print('Response Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         Get.snackbar(
@@ -122,9 +122,20 @@ class _CreatePartyState extends State<CreateParty> {
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
         );
-        Get.to(ReceivedScreen(material: {},));
+
+        Future.delayed(Duration(milliseconds: 500), () {
+          if (sourceScreen == 'ReceivedScreen') {
+            print('Navigating to ReceivedScreen');
+            Get.to(ReceivedScreen(material: {}));
+          } else if (sourceScreen == 'PurchasedScreen') {
+            print('Navigating to PurchasedScreen');
+            Get.to(PurchasedScreen(material: {}));
+          }
+        });
+
       }
       else {
+        print('Failed: ${response.statusCode}');
         String message = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
           final serverMessages = json.decode(response.body)['_server_messages'];
@@ -145,6 +156,7 @@ class _CreatePartyState extends State<CreateParty> {
         );
       }
     } catch (e) {
+      print('Error: $e');
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -160,6 +172,8 @@ class _CreatePartyState extends State<CreateParty> {
       );
     }
   }
+
+
 
   @override
   void initState() {
@@ -267,7 +281,7 @@ class _CreatePartyState extends State<CreateParty> {
                 padding: EdgeInsets.only(bottom: 8.0),
                 child: GestureDetector(
                   onTap: (){
-                    MobileDocument(context);
+                    MobileDocument(context, sourceScreen: widget.sourceScreen);
                   },
                   child: Buttons(
                     height: height / 20.h,

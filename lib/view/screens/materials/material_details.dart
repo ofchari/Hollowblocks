@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:vetri_hollowblock/view/screens/materials/purchased_screen.dart';
+import 'package:vetri_hollowblock/view/screens/materials/purchased_screen/purchased_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/used_screen.dart';
 import '../../widgets/subhead.dart';
@@ -24,8 +24,10 @@ class _MaterialScreenState extends State<MaterialScreen> {
   int _selectedIndex = -1; // Track the selected container index (-1 means none)
   late Box receivedBox;
   late Box usedBox;
+  late Box purchaseBox;
   List<Map<String, dynamic>> receivedMaterialData = []; // Store list of received materials
   List<Map<String, dynamic>> usedMaterialData = []; // Store list of used materials
+  List<Map<String, dynamic>> purchasedMaterialData = []; // Store list of used materials
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
     // Open the boxes asynchronously
     receivedBox = await Hive.openBox('receivedMaterialData');
     usedBox = await Hive.openBox('usedMaterialData');
+    purchaseBox = await Hive.openBox('purchasedMaterialData');
 
     // After initialization, rebuild the UI if necessary
     setState(() {});
@@ -79,6 +82,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
         _selectedIndex = 2;
       } else if (args.containsKey('received')) {
         _addReceivedData(args['received']);
+        _selectedIndex = 3;
+      } else if (args.containsKey('purchased')) {
+        _addPurchasedData(args['purchased']);
         _selectedIndex = 1;
       }
     }
@@ -91,6 +97,10 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
   void _addUsedData(Map<String, dynamic> data) {
     usedBox.add(Map<String, dynamic>.from(data)); // Explicit conversion
+    setState(() {});
+  }
+  void _addPurchasedData(Map<String, dynamic> data) {
+    purchaseBox.add(Map<String, dynamic>.from(data)); // Explicit conversion
     setState(() {});
   }
 
@@ -158,19 +168,24 @@ class _MaterialScreenState extends State<MaterialScreen> {
                   children: [
                     _buildContainer(0, "Inventory"),
                     SizedBox(width: 5.w),
-                    _buildContainer(1, "Received"),
+                    _buildContainer(1, "Purchased"),
                     SizedBox(width: 5.w),
                     _buildContainer(2, "Used"),
+                    SizedBox(width: 5.w),
+                    _buildContainer(3, "Received"),
                   ],
                 ),
               ),
             ),
             SizedBox(height: 10.h),
             if (_selectedIndex == 0) Expanded(child: _buildInventoryDataContainer()),
-            if (_selectedIndex == 1 && receivedBox.isNotEmpty)
-              Expanded(child: _buildReceivedDataContainer()),
+            if (_selectedIndex == 1 && purchaseBox.isNotEmpty)
+              Expanded(child: _buildPurchaseDataContainer()),
             if (_selectedIndex == 2 && usedBox.isNotEmpty)
               Expanded(child: _buildUsedDataContainer()),
+            if (_selectedIndex == 3 && receivedBox.isNotEmpty)
+              Expanded(child: _buildReceivedDataContainer()),
+
             const Spacer(),
             _buildBottomActionBar(),
           ],
@@ -252,6 +267,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                         color: Colors.grey,
                         weight: FontWeight.w500,
                       ),
+                      MyText(text: "In Stock", color: Colors.black, weight: FontWeight.w500)
                     ],
                   ),
                   Divider(color: Colors.grey.shade300, thickness: 1),
@@ -325,6 +341,8 @@ class _MaterialScreenState extends State<MaterialScreen> {
   }
 
   Widget _buildUsedDataContainer() {
+    final inventory = calculateInventory(); // Fetch the inventory data
+
     if (usedBox.isEmpty) {
       return Center(
         child: Text(
@@ -338,8 +356,18 @@ class _MaterialScreenState extends State<MaterialScreen> {
       child: ListView.builder(
         itemCount: usedBox.length,
         itemBuilder: (context, index) {
-          // final data = usedBox.getAt(index) as Map<String, dynamic>;
+          // Fetch used material data
           final data = Map<String, dynamic>.from(usedBox.getAt(index) as Map);
+
+          final material = data['material']; // Material name
+          final usedQuantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0; // Used quantity
+
+          // Get inventory quantity for the material
+          final inventoryQuantity = inventory[material] ?? 0.0;
+
+          // Calculate balance stock
+          final balanceStock = inventoryQuantity - usedQuantity;
+
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -366,6 +394,66 @@ class _MaterialScreenState extends State<MaterialScreen> {
                       IconButton(
                         icon: Icon(Icons.delete, color: Colors.red),
                         onPressed: () => _deleteData(usedBox, index),
+                      ),
+                    ],
+                  ),
+                  Divider(color: Colors.grey.shade300, thickness: 1),
+                  _buildDetailsRow("Material", material),
+                  _buildDetailsRow("Quantity", usedQuantity.toStringAsFixed(2)),
+                  _buildDetailsRow("Balance Stock", balanceStock.toStringAsFixed(2)), // Display calculated balance
+                  _buildDetailsRow("Date", data['date']),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+
+  Widget _buildPurchaseDataContainer() {
+    if (purchaseBox.isEmpty) {
+      return Center(
+        child: Text(
+          "No Purchased Materials",
+          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+        ),
+      );
+    }
+
+    return Flexible(
+      child: ListView.builder(
+        itemCount: purchaseBox.length,
+        itemBuilder: (context, index) {
+          // final data = usedBox.getAt(index) as Map<String, dynamic>;
+          final data = Map<String, dynamic>.from(purchaseBox.getAt(index) as Map);
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      MyText(text: "Material Purchased Details", color: Colors.grey, weight: FontWeight.w500),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _deleteData(purchaseBox, index),
                       ),
                     ],
                   ),
@@ -413,12 +501,12 @@ class _MaterialScreenState extends State<MaterialScreen> {
         children: [
           GestureDetector(
             onTap: () async {
-              final result = await Get.to(() => ReceivedScreen(material: {}));
+              final result = await Get.to(() => PurchasedScreen(material: {},));
               if (result != null && result is Map<String, dynamic>) {
-                _addReceivedData(result);
+                _addPurchasedData(result);
               }
             },
-            child: _buildActionButton("Received", Colors.deepPurple.shade500),
+            child: _buildActionButton("Purchased", Colors.deepPurple.shade500),
           ),
           GestureDetector(
             onTap: () => _showMaterialBottomSheet(context),
@@ -467,6 +555,13 @@ class _MaterialScreenState extends State<MaterialScreen> {
                 ),
               ),
               SizedBox(height: 16.h),
+              SizedBox(height: 12.h),
+              _buildBottomSheetButton(context, "Purchased", Colors.pink, () async {
+                final result = await Get.to(() => PurchasedScreen(material: {},));
+                if (result != null) {
+                  _addPurchasedData(result);
+                }
+              }),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Received", Colors.blue, () async {
                 final result = await Get.to(() => ReceivedScreen(material: {}));

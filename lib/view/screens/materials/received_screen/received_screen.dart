@@ -122,7 +122,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
         //   },
         // );
         Get.off(
-          TabsPages(projectName: 'Material',initialTabIndex: 2,),
+          TabsPages(projectName: 'Material',initialTabIndex: 3,),
           arguments: {
             'received': {
               'material_name': widget.material['material_name'],
@@ -268,7 +268,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
               // "Add Party" Button placed below the Dropdown
               GestureDetector(
                 onTap: () {
-                  Get.to(const CreateParty()); // Navigate to the screen to add a new party
+                  Get.to(() => CreateParty(sourceScreen: 'ReceivedScreen')); // Navigate to the screen to add a new party
                 },
                 child: Align(
                   alignment: Alignment.centerRight,
