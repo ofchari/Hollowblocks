@@ -271,6 +271,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
     return Scaffold(
       backgroundColor: const Color(0xfff1f2f4),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color(0xfff1f2f4),
         toolbarHeight: 80.h,
         centerTitle: true,

@@ -205,6 +205,7 @@ class _TodoState extends State<Todo> {
         backgroundColor: const Color(0xfff1f2f4),
         appBar: AppBar(
           backgroundColor: const Color(0xfff1f2f4),
+          automaticallyImplyLeading: false,
           toolbarHeight: 80.h,
           centerTitle: true,
           title: Subhead(

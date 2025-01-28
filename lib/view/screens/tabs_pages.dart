@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
 import 'package:vetri_hollowblock/view/screens/file_upload.dart';
 import 'package:vetri_hollowblock/view/screens/materials/material_details.dart';
@@ -30,6 +34,39 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
     _tabController = TabController(length: 6, vsync: this, initialIndex: widget.initialTabIndex);
   }
 
+          /// Will Pop Scope Logic //
+  /// wiil popscope logic //
+  Future<bool> popScopes(BuildContext context) async {
+    return await Get.dialog(
+      AlertDialog(
+        title: const Text("Are Sure Want to exit? "),
+        titleTextStyle: GoogleFonts.poppins(
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: Colors.green,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            onPressed: () {
+              Get.offAll(() => const Dashboard());  // Navigate to BottomNavigation and replace the current page
+            },
+            child: const Text("Yes", style: TextStyle(color: Colors.white)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade500),
+            onPressed: () {
+              Navigator.pop(context);  // Just close the dialog and stay on the current page
+            },
+            child: const Text("No", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -51,43 +88,46 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
   }
 
   Widget _smallBuildLayout() {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: const Color(0xfff1f2f4),
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        toolbarHeight: 80.h,
-        centerTitle: true,
-        title: Subhead(
-          text: "User Tabs",
-          color: Colors.white,
-          weight: FontWeight.w500,
+    return WillPopScope(
+      onWillPop: ()=>popScopes(context),
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: const Color(0xfff1f2f4),
+        appBar: AppBar(
+          backgroundColor: Colors.blue,
+          toolbarHeight: 80.h,
+          centerTitle: true,
+          title: Subhead(
+            text: "User Tabs",
+            color: Colors.white,
+            weight: FontWeight.w500,
+          ),
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            indicatorColor: Colors.blue,
+            labelStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: Colors.black),
+            tabs: const [
+              Tab(child: MyText(text: "Update Project", color: Colors.white, weight: FontWeight.w500),),
+              Tab(child: MyText(text: "Employee", color: Colors.white, weight: FontWeight.w500),),
+              Tab(child: MyText(text: "Material", color: Colors.white, weight: FontWeight.w500),),
+              Tab(child: MyText(text: "Files Upload", color: Colors.white, weight: FontWeight.w500),),
+              Tab(child: MyText(text: "Todo", color: Colors.white, weight: FontWeight.w500),),
+              Tab(child: MyText(text: "Reports", color: Colors.white, weight: FontWeight.w500),),
+            ],
+          ),
         ),
-        bottom: TabBar(
+        body: TabBarView(
           controller: _tabController,
-          isScrollable: true,
-          indicatorColor: Colors.blue,
-          labelStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: Colors.black),
-          tabs: const [
-            Tab(child: MyText(text: "Update Project", color: Colors.white, weight: FontWeight.w500),),
-            Tab(child: MyText(text: "Employee", color: Colors.white, weight: FontWeight.w500),),
-            Tab(child: MyText(text: "Material", color: Colors.white, weight: FontWeight.w500),),
-            Tab(child: MyText(text: "Files Upload", color: Colors.white, weight: FontWeight.w500),),
-            Tab(child: MyText(text: "Todo", color: Colors.white, weight: FontWeight.w500),),
-            Tab(child: MyText(text: "Reports", color: Colors.white, weight: FontWeight.w500),),
+          children: [
+            UpdateProjectForm(projectName: widget.projectName),
+            Employee(),
+            MaterialScreen(),
+            FileUpload(),
+            Todo(),
+            AllReports(),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          UpdateProjectForm(projectName: widget.projectName),
-          Employee(),
-          MaterialScreen(),
-          FileUpload(),
-          Todo(),
-          AllReports(),
-        ],
       ),
     );
   }

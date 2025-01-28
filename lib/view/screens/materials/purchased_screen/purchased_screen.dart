@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart'; // For date formatting
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vetri_hollowblock/view/screens/materials/materials_add.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/create_party.dart';
 import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
@@ -114,7 +115,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
   }
 
 
-  /// Function to show the date picker
+              /// Function to show the date picker
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -129,7 +130,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
     }
   }
 
-  /// Get Api's for Party Name ///
+          /// Get Api's for Party Name ///
   Future<void> fetchPartyName() async {
     final String url = "$apiUrl/Party?fields=[%22party_name%22]&limit_page_length=50000";
     setState(() => isLoading = true);
@@ -200,7 +201,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
         );
 
         Get.off(
-          TabsPages(projectName: 'Material',initialTabIndex: 1,),
+          TabsPages(projectName: 'Material',initialTabIndex: 2,),
           arguments: {
             'purchased': {
               'material': widget.material['material_name'],
@@ -247,10 +248,34 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
     }
   }
 
+  // New method to handle initialization
+  Future<void> _initializeData() async {
+    await Future.wait([
+      fetchPartyName(),
+      loadSelectedName(),
+    ]);
+  }
+
+  // Modified saveSelectedName to handle null values
+  Future<void> saveSelectedName(String? name) async {
+    if (name == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedName', name);
+  }
+
+  // Modified loadSelectedName to update state
+  Future<void> loadSelectedName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      selectedName = prefs.getString('selectedName');
+    });
+  }
+
+
   @override
   void initState() {
     super.initState();
-    fetchPartyName(); // Fetch party names when the screen is initialized
+    _initializeData();
   }
   @override
   void dispose() {
@@ -339,11 +364,12 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
                       ),
                     );
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedName = value;
-                    });
-                  },
+                    onChanged: (String? value) {
+                      setState(() {
+                        selectedName = value;
+                      });
+                      saveSelectedName(value); // Save whenever selection changes
+                    }
                 ),
               ),
 

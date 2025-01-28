@@ -58,8 +58,7 @@ class MyApp extends StatelessWidget {
               GetPage(name: '/district', page: () => DistrictScreen()),
               GetPage(name: '/block', page: () => BlockScreen()),
               GetPage(name: '/village', page: () => VillageScreen()),
-              GetPage(name: '/status', page: () => StatusScreen(
-              )),
+              GetPage(name: '/status', page: () => StatusScreen()),
             ],
             title: 'KBS Construction ',
           debugShowCheckedModeBanner: false,
@@ -68,13 +67,13 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           home:
-            // Dashboard()
-          AnimatedSplashScreen(
-            backgroundColor: Colors.white,
-              splash: Image.asset("assets/KBSCo.jpg"),
-              splashIconSize: 500,
-              duration: 2000,
-              nextScreen: const Login())
+            Dashboard()
+          // AnimatedSplashScreen(
+          //   backgroundColor: Colors.white,
+          //     splash: Image.asset("assets/KBSCo.jpg"),
+          //     splashIconSize: 500,
+          //     duration: 2000,
+          //     nextScreen: const Login())
         );
       },
     );

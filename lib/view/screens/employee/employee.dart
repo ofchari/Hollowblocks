@@ -588,6 +588,7 @@ class _EmployeeState extends State<Employee> {
     return Scaffold(
       backgroundColor: const Color(0xfff1f2f4),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color(0xfff1f2f4),
         toolbarHeight: 80.h,
         centerTitle: true,
@@ -688,6 +689,42 @@ class _EmployeeState extends State<Employee> {
                     ),
                   ),
                 ],
+              ),
+              SizedBox(height: 20.h,),
+              GestureDetector(
+                onTap: () async {
+                  // Show the date picker
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+
+                  // Update the container's text with the selected date if a date is picked
+                  if (pickedDate != null) {
+                    setState(() {
+                      selectedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+                    });
+                  }
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w),
+                  height: height / 10.h,
+                  width: width / 1.2.w,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(7.r),
+                  ),
+                  child: Center(
+                    child: MyText(
+                      text: selectedDate, // Display the selected date dynamically
+                      color: Colors.black,
+                      weight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ),
               SizedBox(height: 20.h,),
               Container(
@@ -836,42 +873,6 @@ class _EmployeeState extends State<Employee> {
               ),
             ),
           ),
-              SizedBox(height: 20.h,),
-              GestureDetector(
-                onTap: () async {
-                  // Show the date picker
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-          
-                  // Update the container's text with the selected date if a date is picked
-                  if (pickedDate != null) {
-                    setState(() {
-                      selectedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
-                    });
-                  }
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w),
-                  height: height / 10.h,
-                  width: width / 1.2.w,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(7.r),
-                  ),
-                  child: Center(
-                    child: MyText(
-                      text: selectedDate, // Display the selected date dynamically
-                      color: Colors.black,
-                      weight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
               SizedBox(height: 20.h,),
               GestureDetector(
                 onTap: (){

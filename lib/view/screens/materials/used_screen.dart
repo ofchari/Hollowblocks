@@ -216,19 +216,19 @@ class _UsedScreenState extends State<UsedScreen> {
             SizedBox(height: 20.h,),
             _buildTextField("Quantity", quantityController, TextInputType.number),
             SizedBox(height: 20.h,),
-            GestureDetector(
-              onTap: _selectMaterial,  // Use the same method for consistency
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 15.0),
-                  child: MyText(
-                      text: selectedMaterial == null ? "+ Add Material" : "Change Material",
-                      color: Colors.blue,
-                      weight: FontWeight.w500),
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: _selectMaterial,  // Use the same method for consistency
+            //   child: Align(
+            //     alignment: Alignment.centerRight,
+            //     child: Padding(
+            //       padding: const EdgeInsets.only(right: 15.0),
+            //       child: MyText(
+            //           text: selectedMaterial == null ? "+ Add Material" : "Change Material",
+            //           color: Colors.blue,
+            //           weight: FontWeight.w500),
+            //     ),
+            //   ),
+            // ),
             SizedBox(height: 20.h),
             GestureDetector(
               onTap: (){

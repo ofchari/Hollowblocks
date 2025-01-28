@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart'; // For date formatting
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vetri_hollowblock/view/screens/materials/materials_add.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/create_party.dart';
 import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
@@ -120,9 +121,9 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
         //     'party_name': selectedName,
         //     'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
         //   },
-        // );
+        // )
         Get.off(
-          TabsPages(projectName: 'Material',initialTabIndex: 3,),
+          TabsPages(projectName: 'Material',initialTabIndex: 2,),
           arguments: {
             'received': {
               'material_name': widget.material['material_name'],
@@ -168,11 +169,34 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
       );
     }
   }
+  // New method to handle initialization
+  Future<void> _initializeData() async {
+    await Future.wait([
+      fetchPartyName(),
+      loadSelectedName(),
+    ]);
+  }
+
+  // Modified saveSelectedName to handle null values
+  Future<void> saveSelectedName(String? name) async {
+    if (name == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedName', name);
+  }
+
+  // Modified loadSelectedName to update state
+  Future<void> loadSelectedName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      selectedName = prefs.getString('selectedName');
+    });
+  }
+
 
   @override
   void initState() {
     super.initState();
-    fetchPartyName(); // Fetch party names when the screen is initialized
+    _initializeData();
   }
 
   @override
@@ -255,11 +279,12 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
                       ),
                     );
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedName = value;
-                    });
-                  },
+                    onChanged: (String? value) {
+                      setState(() {
+                        selectedName = value;
+                      });
+                      saveSelectedName(value); // Save whenever selection changes
+                    }
                 ),
               ),
 
