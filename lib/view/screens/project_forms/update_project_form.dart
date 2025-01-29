@@ -79,7 +79,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
           setState(() {
             projectDetails = projectInfo;
             // Safely set text controller values with null checks
-            Nameoftheworkr.text = projectInfo['name']?.toString() ?? '';
+            Nameoftheworkr.text = projectInfo['work']?.toString() ?? '';
             selectedWorkType = projectInfo['work_type']?.toString() ?? '';
             selectedSchema = projectInfo['scheme_name']?.toString() ?? '';
             selectedSchemaGroupName = projectInfo['scheme_group']?.toString() ?? '';

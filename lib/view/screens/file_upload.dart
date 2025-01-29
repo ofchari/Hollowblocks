@@ -341,7 +341,8 @@ import 'package:path/path.dart'as path;
 
  /// Document attach with images //
 class FileUpload extends StatefulWidget {
-  const FileUpload({super.key});
+  const FileUpload({super.key,required this.projectName,});
+  final String projectName;
 
   @override
   State<FileUpload> createState() => _FileUploadState();
@@ -358,6 +359,7 @@ class _FileUploadState extends State<FileUpload> {
   @override
   void initState() {
     super.initState();
+    print("Project Name in File Upload: ${widget.projectName}"); // Debugging
     _initializeHive();
   }
 

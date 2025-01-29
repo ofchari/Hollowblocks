@@ -15,8 +15,9 @@ import '../../universal_key_api/api_url.dart';
 import '../../widgets/subhead.dart';
 
 class MaterialsAdd extends StatefulWidget {
-  const MaterialsAdd({super.key, required this.routeType});
+  const MaterialsAdd({super.key, required this.routeType,required this.projectName});
   final String routeType;
+  final String projectName;
 
   @override
   State<MaterialsAdd> createState() => _MaterialsAddState();
@@ -338,11 +339,11 @@ class _MaterialsAddState extends State<MaterialsAdd> {
                       return GestureDetector(
                         onTap: () {
                           if (widget.routeType == 'used') {
-                            Get.to(() => UsedScreen(material: material));
+                            Get.to(() => UsedScreen(material: material, projectName: widget.projectName,));
                           } else if (widget.routeType == 'received') {
-                            Get.to(() => ReceivedScreen(material: material));
+                            Get.to(() => ReceivedScreen(material: material, projectName: widget.projectName,));
                           } else if (widget.routeType == 'purchased') {
-                            Get.to(() => PurchasedScreen(material: material));
+                            Get.to(() => PurchasedScreen(material: material, projectName: widget.projectName,));
                           }
                         },
 

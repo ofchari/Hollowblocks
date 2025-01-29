@@ -18,7 +18,8 @@ import '../../../widgets/subhead.dart';
 import '../material_details.dart';
 
 class ReceivedScreen extends StatefulWidget {
-  const ReceivedScreen({super.key, required this.material});
+  const ReceivedScreen({super.key, required this.material,required this.projectName});
+  final String projectName;
   final Map<String, dynamic> material; // Accept material data
 
   @override
@@ -94,6 +95,8 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
       'party_name': selectedName,
       'material_name':  widget.material['material_name'] ,
       'quantity': qtyController.text,
+      'project_form': widget.projectName,
+      'name': '',
       'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
     };
     print(data);
@@ -122,8 +125,11 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
         //     'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
         //   },
         // )
-        Get.off(
-          TabsPages(projectName: 'Material',initialTabIndex: 2,),
+        Get.to(
+          TabsPages(
+            projectName: 'Material',
+            initialTabIndex: 2,
+          ),
           arguments: {
             'received': {
               'material_name': widget.material['material_name'],
@@ -131,8 +137,10 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
               'party_name': selectedName,
               'date': DateFormat('yyyy-MM-dd').format(selectedDate),
             },
+            'projectName': widget.projectName, // Pass the projectName here
           },
         );
+
       } else {
         String message = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
@@ -196,6 +204,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
   @override
   void initState() {
     super.initState();
+    print("Project Name in Received: ${widget.projectName}"); // Debugging
     _initializeData();
   }
 
@@ -308,7 +317,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
 
               GestureDetector(
                 onTap: () {
-                  Get.to(MaterialsAdd(routeType: 'received',));
+                  Get.to(MaterialsAdd(routeType: 'received', projectName: widget.projectName,));
                 },
                 child: Align(
                   alignment: Alignment.centerRight,

@@ -415,24 +415,47 @@ class _EmployeeState extends State<Employee> {
   /// Post method for Employee
   Future<void> MobileDocument(BuildContext context) async {
     // Add validation function
+    // Add validation function
     bool validateFields() {
-      if (selectedEmployee == null ||
-          selectedEmployee!.isEmpty ||
-          attendanceStatus == "Mark Attendance" ||
-          selectedDate == "Date" ||
-          selectedShift == null ||
-          selectedShift!.isEmpty ||
-          daySalaryController.text.isEmpty ||
-          inTimeController.text.isEmpty ||
-          outTimeController.text.isEmpty) {
-        Get.snackbar(
-          "Validation Error",
-          "Please fill all the required fields",
-          colorText: Colors.white,
-          backgroundColor: Colors.red,
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
+      // Special validation for Absent status
+      if (attendanceStatus == "Absent") {
+        if (selectedEmployee == null ||
+            selectedEmployee!.isEmpty ||
+            attendanceStatus == "Mark Attendance" ||
+            selectedDate == "Date" ||
+            // selectedShift == null ||
+            // selectedShift!.isEmpty ||
+            daySalaryController.text.isEmpty
+        ) {
+          Get.snackbar(
+            "Validation Error",
+            "Please fill all the required fields",
+            colorText: Colors.white,
+            backgroundColor: Colors.red,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return false;
+        }
+      } else {
+        // Normal validation for other attendance statuses
+        if (selectedEmployee == null ||
+            selectedEmployee!.isEmpty ||
+            attendanceStatus == "Mark Attendance" ||
+            selectedDate == "Date" ||
+            selectedShift == null ||
+            selectedShift!.isEmpty ||
+            daySalaryController.text.isEmpty ||
+            inTimeController.text.isEmpty ||
+            outTimeController.text.isEmpty) {
+          Get.snackbar(
+            "Validation Error",
+            "Please fill all the required fields",
+            colorText: Colors.white,
+            backgroundColor: Colors.red,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return false;
+        }
       }
       return true;
     }

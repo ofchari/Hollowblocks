@@ -126,10 +126,10 @@ class _CreatePartyState extends State<CreateParty> {
         Future.delayed(Duration(milliseconds: 500), () {
           if (sourceScreen == 'ReceivedScreen') {
             print('Navigating to ReceivedScreen');
-            Get.to(ReceivedScreen(material: {}));
+            Get.to(ReceivedScreen(material: {}, projectName: '',));
           } else if (sourceScreen == 'PurchasedScreen') {
             print('Navigating to PurchasedScreen');
-            Get.to(PurchasedScreen(material: {}));
+            Get.to(PurchasedScreen(material: {}, projectName: '',));
           }
         });
 

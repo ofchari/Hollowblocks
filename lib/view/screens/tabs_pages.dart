@@ -31,6 +31,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    print(widget.projectName);
     _tabController = TabController(length: 6, vsync: this, initialIndex: widget.initialTabIndex);
   }
 
@@ -122,8 +123,8 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
           children: [
             UpdateProjectForm(projectName: widget.projectName),
             Employee(),
-            MaterialScreen(),
-            FileUpload(),
+            MaterialScreen(projectName: widget.projectName,),
+            FileUpload(projectName: widget.projectName,),
             Todo(),
             AllReports(),
           ],

@@ -17,10 +17,12 @@ import 'materials_add.dart';
 
 class UsedScreen extends StatefulWidget {
   final Map<String, dynamic>? material; // Add this parameter
+  final String projectName;
 
   const UsedScreen({
     super.key,
     this.material, // Make it optional in case you navigate directly to this screen
+    required this.projectName
   });
 
   @override
@@ -38,6 +40,7 @@ class _UsedScreenState extends State<UsedScreen> {
   @override
   void initState() {
     super.initState();
+    print("Project Name in Used: ${widget.projectName}"); // Debugging
     materialController = TextEditingController(
         text: widget.material?['material_name'] ?? ''
     );
@@ -67,7 +70,7 @@ class _UsedScreenState extends State<UsedScreen> {
 
   // Add this method to handle material selection
   void _selectMaterial() async {
-    final result = await Get.to(() => MaterialsAdd(routeType: 'used'));
+    final result = await Get.to(() => MaterialsAdd(routeType: 'used', projectName: widget.projectName,));
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
         selectedMaterial = result;
@@ -90,6 +93,8 @@ class _UsedScreenState extends State<UsedScreen> {
       'doctype': 'Material Used',
       'material': materialController.text,
       'quantity': quantityController.text,
+      'project_form': widget.projectName,
+      'name': '',
       'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
     };
     print(data);
@@ -109,7 +114,7 @@ class _UsedScreenState extends State<UsedScreen> {
         );
 
         // Navigate back to MaterialScreen and pass the data
-        Get.off(
+        Get.to(
           TabsPages(projectName: 'Material',initialTabIndex: 2,),
           arguments: {
             'used': {

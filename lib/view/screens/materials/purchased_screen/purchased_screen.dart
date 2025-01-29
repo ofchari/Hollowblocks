@@ -18,7 +18,8 @@ import '../../../widgets/subhead.dart';
 
 
 class PurchasedScreen extends StatefulWidget {
-  const PurchasedScreen({super.key, required this.material});
+  const PurchasedScreen({super.key, required this.material,required this.projectName});
+  final String projectName;
   final Map<String, dynamic> material; // Accept material data
 
   @override
@@ -168,8 +169,9 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
       'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
       'Content-Type': 'application/json',
     };
+    print('purchase'+ widget.projectName);
 
-    final data = {
+    final message = {
       'doctype': 'Material Purchase',
       'party_name': selectedName,
       'material':  widget.material['material_name'] ,
@@ -182,11 +184,13 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
       'gst': gstAmount,
       'total': total,
       'sub_total': subTotal,
+      'project_form': widget.projectName,
+      'name': '',
       'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
     };
-    print(data);
+    print(message);
     final url = '$apiUrl/Material Purchase';
-    final body = jsonEncode(data);
+    final body = jsonEncode(message);
 
     try {
       final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
@@ -200,7 +204,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
           snackPosition: SnackPosition.BOTTOM,
         );
 
-        Get.off(
+        Get.to(
           TabsPages(projectName: 'Material',initialTabIndex: 2,),
           arguments: {
             'purchased': {
@@ -209,6 +213,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
               'party_name': selectedName,
               'date': DateFormat('yyyy-MM-dd').format(selectedDate),
             },
+            'projectName': widget.projectName,
           },
         );
       } else {
@@ -275,6 +280,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
   @override
   void initState() {
     super.initState();
+    print("Project Name in Purchased: ${widget.projectName}"); // Debugging
     _initializeData();
   }
   @override
@@ -393,7 +399,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
 
               GestureDetector(
                 onTap: () {
-                  Get.to(MaterialsAdd(routeType: 'purchased',));
+                  Get.to(MaterialsAdd(routeType: 'purchased', projectName: widget.projectName,));
                 },
                 child: Align(
                   alignment: Alignment.centerRight,

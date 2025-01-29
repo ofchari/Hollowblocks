@@ -7,11 +7,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:vetri_hollowblock/view/screens/materials/purchased_screen/purchased_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/used_screen.dart';
+import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 import '../../widgets/subhead.dart';
 import '../../widgets/text.dart';
+import 'package:http/http.dart'as http;
 
 class MaterialScreen extends StatefulWidget {
-  const MaterialScreen({super.key});
+  const MaterialScreen({super.key,required this.projectName});
+  final String projectName;
 
   @override
   State<MaterialScreen> createState() => _MaterialScreenState();
@@ -28,41 +31,39 @@ class _MaterialScreenState extends State<MaterialScreen> {
   List<Map<String, dynamic>> receivedMaterialData = []; // Store list of received materials
   List<Map<String, dynamic>> usedMaterialData = []; // Store list of used materials
   List<Map<String, dynamic>> purchasedMaterialData = []; // Store list of used materials
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    print("Project Name in MaterialScreen: ${widget.projectName}"); // Debugging
     _initializeHive();
+    fetchAllData();
+
   }
 
   Map<String, double> calculateInventory() {
     final Map<String, double> inventory = {};
 
-    // Iterate over the purchased materials and add them to inventory
-    for (int i = 0; i < purchaseBox.length; i++) {
-      final data = Map<String, dynamic>.from(purchaseBox.getAt(i) as Map);
-      final material = data['material'];
+    // Add received materials to inventory
+    for (var data in receivedMaterialData) {
+      final material = data['material_name'];
       final quantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0;
-
       if (material != null) {
         inventory[material] = (inventory[material] ?? 0.0) + quantity;
       }
     }
 
-    // Subtract used materials from the inventory
-    for (int i = 0; i < usedBox.length; i++) {
-      final data = Map<String, dynamic>.from(usedBox.getAt(i) as Map);
+    // Subtract used materials from inventory
+    for (var data in usedMaterialData) {
       final material = data['material'];
       final quantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0;
-
       if (material != null) {
         inventory[material] = (inventory[material] ?? 0.0) - quantity;
       }
     }
 
-    // Remove materials with zero or negative quantities
     inventory.removeWhere((key, value) => value <= 0);
-
     return inventory;
   }
 
@@ -133,6 +134,128 @@ class _MaterialScreenState extends State<MaterialScreen> {
     }
   }
 
+  Future<void> fetchAllData() async {
+    setState(() => isLoading = true);
+    try {
+      await Future.wait([
+        fetchPurchasedData(),
+        fetchUsedData(),
+        fetchReceivedData(),
+      ]);
+    } catch (e) {
+      print('Error fetching data: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to fetch data. Please try again.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+    setState(() => isLoading = false);
+  }
+                 /// Purchase Api's method ///
+  Future<void> fetchPurchasedData() async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      // Properly encode the project name for URL
+      final encodedProjectName = Uri.encodeComponent(widget.projectName);
+      final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_purchased?name=$encodedProjectName';
+
+      print('Fetching purchased data from: $url'); // Debug log
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: headers,
+      );
+
+      print('Purchased Response: ${response.body}'); // Debug log
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          purchasedMaterialData = List<Map<String, dynamic>>.from(data['message'] ?? []);
+        });
+      } else {
+        print('Purchased Error Status: ${response.statusCode}'); // Debug log
+        throw Exception('Failed to load purchased data');
+      }
+    } catch (e) {
+      print('Error fetching purchased data: $e'); // Debug log
+      rethrow;
+    }
+  }
+
+  Future<void> fetchUsedData() async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      final encodedProjectName = Uri.encodeComponent(widget.projectName);
+      final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_used?name=$encodedProjectName';
+
+      print('Fetching used data from: $url'); // Debug log
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: headers,
+      );
+
+      print('Used Response: ${response.body}'); // Debug log
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          usedMaterialData = List<Map<String, dynamic>>.from(data['message'] ?? []);
+        });
+      } else {
+        print('Used Error Status: ${response.statusCode}'); // Debug log
+        throw Exception('Failed to load used data');
+      }
+    } catch (e) {
+      print('Error fetching used data: $e'); // Debug log
+      rethrow;
+    }
+  }
+
+  Future<void> fetchReceivedData() async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      final encodedProjectName = Uri.encodeComponent(widget.projectName);
+      final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_received?name=$encodedProjectName';
+
+      print('Fetching received data from: $url'); // Debug log
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: headers,
+      );
+
+      print('Received Response: ${response.body}'); // Debug log
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          receivedMaterialData = List<Map<String, dynamic>>.from(data['message'] ?? []);
+        });
+      } else {
+        print('Received Error Status: ${response.statusCode}'); // Debug log
+        throw Exception('Failed to load received data');
+      }
+    } catch (e) {
+      print('Error fetching received data: $e'); // Debug log
+      rethrow;
+    }
+  }
 
 
   Future<void> _clearAllData() async {
@@ -151,6 +274,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
+
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -267,8 +391,8 @@ class _MaterialScreenState extends State<MaterialScreen> {
     }
 
     return Container(
-      height: height/1.h,
-      width: width/1.w,
+      height: height / 1.h,
+      width: width / 1.w,
       child: ListView.builder(
         itemCount: inventory.length,
         itemBuilder: (context, index) {
@@ -321,20 +445,25 @@ class _MaterialScreenState extends State<MaterialScreen> {
   }
 
 
+
   Widget _buildReceivedDataContainer() {
-    if (receivedBox.isEmpty) {
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    if (receivedMaterialData.isEmpty) {
       return Center(
-        child: Text(
-          "No Received Materials",
+        child: Text("No Received Materials",
           style: TextStyle(fontSize: 16.sp, color: Colors.grey),
         ),
       );
     }
+
     return Flexible(
       child: ListView.builder(
-        itemCount: receivedBox.length,
+        itemCount: receivedMaterialData.length,
         itemBuilder: (context, index) {
-          final data = Map<String, dynamic>.from(receivedBox.getAt(index) as Map);
+          final data = receivedMaterialData[index];
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -358,17 +487,13 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Stock Details", color: Colors.grey, weight: FontWeight.w500),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteData(receivedBox, index),
-                      ),
                     ],
                   ),
                   Divider(color: Colors.grey.shade300, thickness: 1),
-                  _buildDetailsRow("Material", data['material_name']),
+                  _buildDetailsRow("Material", data['material_name']?.toString()),
                   _buildDetailsRow("Quantity", data['quantity']?.toString()),
-                  _buildDetailsRow("Party_Name", data['party_name']),
-                  _buildDetailsRow("Date", data['date']),
+                  _buildDetailsRow("Party Name", data['party_name']?.toString()),
+                  _buildDetailsRow("Date", data['date']?.toString()),
                 ],
               ),
             ),
@@ -379,56 +504,28 @@ class _MaterialScreenState extends State<MaterialScreen> {
   }
 
   Widget _buildUsedDataContainer() {
-    final inventory = calculateInventory(); // Fetch the inventory data
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
 
-    if (usedBox.isEmpty) {
+    if (usedMaterialData.isEmpty) {
       return Center(
-        child: Text(
-          "No Used Materials",
+        child: Text("No Used Materials",
           style: TextStyle(fontSize: 16.sp, color: Colors.grey),
         ),
       );
     }
 
+    final inventory = calculateInventory();
+
     return Flexible(
       child: ListView.builder(
-        itemCount: usedBox.length,
+        itemCount: usedMaterialData.length,
         itemBuilder: (context, index) {
-          // Fetch used material data
-          final data = Map<String, dynamic>.from(usedBox.getAt(index) as Map);
-
-          final material = data['material']; // Material name
-          final usedQuantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0; // Used quantity
-
-          // Validate if material has been purchased
-          final isPurchased = purchaseBox.values.any((entry) {
-            final purchaseData = Map<String, dynamic>.from(entry as Map);
-            return purchaseData['material'] == material;
-          });
-
-          if (!isPurchased) {
-            // Show Snackbar for error
-            Future.microtask(() {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    "Material '$material' is not purchased. Please purchase it before using.",
-                    style: TextStyle(fontSize: 14.sp),
-                  ),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            });
-
-            // Skip rendering this item
-            return SizedBox.shrink();
-          }
-
-          // Get inventory quantity for the material
+          final data = usedMaterialData[index];
+          final material = data['material'];
+          final usedQuantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0;
           final inventoryQuantity = inventory[material] ?? 0.0;
-
-          // Calculate balance stock
           final balanceStock = inventoryQuantity - usedQuantity;
 
           return Padding(
@@ -453,22 +550,14 @@ class _MaterialScreenState extends State<MaterialScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      MyText(
-                        text: "Material Used Details",
-                        color: Colors.grey,
-                        weight: FontWeight.w500,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteData(usedBox, index),
-                      ),
+                      MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
                     ],
                   ),
                   Divider(color: Colors.grey.shade300, thickness: 1),
-                  _buildDetailsRow("Material", material),
+                  _buildDetailsRow("Material", material?.toString()),
                   _buildDetailsRow("Quantity", usedQuantity.toStringAsFixed(2)),
-                  _buildDetailsRow("Balance Stock", balanceStock.toStringAsFixed(2)), // Display calculated balance
-                  _buildDetailsRow("Date", data['date']),
+                  _buildDetailsRow("Balance Stock", balanceStock.toStringAsFixed(2)),
+                  _buildDetailsRow("Date", data['date']?.toString()),
                 ],
               ),
             ),
@@ -478,13 +567,14 @@ class _MaterialScreenState extends State<MaterialScreen> {
     );
   }
 
-
-
   Widget _buildPurchaseDataContainer() {
-    if (purchaseBox.isEmpty) {
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    if (purchasedMaterialData.isEmpty) {
       return Center(
-        child: Text(
-          "No Purchased Materials",
+        child: Text("No Purchased Materials",
           style: TextStyle(fontSize: 16.sp, color: Colors.grey),
         ),
       );
@@ -492,10 +582,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
     return Flexible(
       child: ListView.builder(
-        itemCount: purchaseBox.length,
+        itemCount: purchasedMaterialData.length,
         itemBuilder: (context, index) {
-          // final data = usedBox.getAt(index) as Map<String, dynamic>;
-          final data = Map<String, dynamic>.from(purchaseBox.getAt(index) as Map);
+          final data = purchasedMaterialData[index];
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -519,17 +608,13 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Material Purchase Details", color: Colors.grey, weight: FontWeight.w500),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteData(purchaseBox, index),
-                      ),
                     ],
                   ),
                   Divider(color: Colors.grey.shade300, thickness: 1),
-                  _buildDetailsRow("Material", data['material']),
+                  _buildDetailsRow("Material", data['material']?.toString()),
                   _buildDetailsRow("Quantity", data['quantity']?.toString()),
                   _buildDetailsRow("Party Name", data['party_name']?.toString()),
-                  _buildDetailsRow("Date", data['date']),
+                  _buildDetailsRow("Date", data['date']?.toString()),
                 ],
               ),
             ),
@@ -571,7 +656,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
         children: [
           GestureDetector(
             onTap: () async {
-              final result = await Get.to(() => PurchasedScreen(material: {},));
+              final result = await Get.to(() => PurchasedScreen(material: {}, projectName: widget.projectName,));
               if (result != null && result is Map<String, dynamic>) {
                 _addPurchasedData(result);
               }
@@ -592,7 +677,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
           ),
           GestureDetector(
             onTap: () async {
-              final result = await Get.to(() => UsedScreen());
+              final result = await Get.to(() => UsedScreen(projectName: widget.projectName,));
               if (result != null && result is Map<String, dynamic>) {
                 _addUsedData(result);
               }
@@ -627,21 +712,21 @@ class _MaterialScreenState extends State<MaterialScreen> {
               SizedBox(height: 16.h),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Purchase", Colors.pink, () async {
-                final result = await Get.to(() => PurchasedScreen(material: {},));
+                final result = await Get.to(() => PurchasedScreen(material: {}, projectName: widget.projectName,));
                 if (result != null) {
                   _addPurchasedData(result);
                 }
               }),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Stock", Colors.blue, () async {
-                final result = await Get.to(() => ReceivedScreen(material: {}));
+                final result = await Get.to(() => ReceivedScreen(material: {}, projectName: widget.projectName,));
                 if (result != null) {
                   _addReceivedData(result);
                 }
               }),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Used", Colors.green, () async {
-                final result = await Get.to(() => UsedScreen());
+                final result = await Get.to(() => UsedScreen(projectName: widget.projectName,));
                 if (result != null) {
                   _addUsedData(result);
                 }

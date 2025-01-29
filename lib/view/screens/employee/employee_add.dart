@@ -111,7 +111,6 @@ class _EmployeeAddState extends State<EmployeeAdd> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     /// Define Sizes //

@@ -25,7 +25,7 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   late double height;
   late double width;
-  List<String> projectList = [];
+  List<Map<String, dynamic>> projectList = [];
   Map<String, dynamic> selectedFilters = {};
   Map<String, List<String>> dropdownData = {};
   final SessionManager sessionManager = SessionManager();
@@ -232,7 +232,7 @@ class _DashboardState extends State<Dashboard> {
       }
 
       final response = await http.get(
-        Uri.parse('$apiUrl/Project Form$filterQuery'),
+        Uri.parse('$apiUrl/Project Form?fields=["name","work"]$filterQuery'),
         headers: {
           'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
         },
@@ -240,12 +240,19 @@ class _DashboardState extends State<Dashboard> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
+        print(response.body);
 
         if (data.containsKey('data') && data['data'] is List) {
           final List<dynamic> projectListData = data['data'];
+          print("Project list: $projectListData");
 
           setState(() {
-            projectList = projectListData.map((project) => project['name'] as String).toList();
+            projectList = projectListData.map((project) {
+              return {
+                "name": project['name'] ?? "",
+                "work": project['work'] ?? ""
+              };
+            }).toList();
           });
         }
       } else {
@@ -255,6 +262,7 @@ class _DashboardState extends State<Dashboard> {
       print('Error: $e');
     }
   }
+
 
   Widget _buildFilterDropdown(String fieldName) {
     return Padding(
@@ -409,11 +417,13 @@ class _DashboardState extends State<Dashboard> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: projectList.length,
                 itemBuilder: (context, index) {
+                  final project = projectList[index];
                   return GestureDetector(
-                    onTap: () async {
-                      Get.to(() => TabsPages(projectName: projectList[index]));
-                    },
-                    child: Container(
+                      onTap: () async {
+                        print("Navigating with project name: ${project['name']}");
+                        Get.to(() => TabsPages(projectName: project['name']));
+                      },
+                      child:  Container(
                       margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 10.w),
                       padding: EdgeInsets.all(10.w),
                       decoration: BoxDecoration(
@@ -423,18 +433,24 @@ class _DashboardState extends State<Dashboard> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Wrapping the text in Flexible to handle overflow issues
                           Flexible(
                             child: Text(
-                             projectList[index],style: GoogleFonts.figtree(textStyle: TextStyle(fontSize: 16.sp,fontWeight: FontWeight.w500,color: Colors.white)),
-                              overflow: TextOverflow.ellipsis, // Ensures overflow text is truncated
-                              maxLines: 1, // Limits the text to 1 line
+                              project['work'], // Display the 'work' field
+                              style: GoogleFonts.figtree(
+                                textStyle: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () {
-                              MobileDocument(context, projectList[index]);
+                              MobileDocument(context, project['name']); // Use 'name' for deletion
                             },
                           ),
                         ],
@@ -443,7 +459,6 @@ class _DashboardState extends State<Dashboard> {
                   );
                 },
               ),
-
             ],
           ),
         ),
