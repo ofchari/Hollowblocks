@@ -201,8 +201,8 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
             backgroundColor: Colors.green,
             snackPosition: SnackPosition.BOTTOM,
           );
-          // Navigate back to dashboard after successful update
-          Get.off(() => const Dashboard());
+          // // Navigate back to dashboard after successful update
+          // Get.off(() => const Dashboard());
         }
       } else {
         throw Exception('Failed to update project: ${response.statusCode}');

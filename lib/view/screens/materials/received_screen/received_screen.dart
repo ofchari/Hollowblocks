@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart'; // For date formatting
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,8 +20,8 @@ import '../../../widgets/subhead.dart';
 import '../material_details.dart';
 
 class ReceivedScreen extends StatefulWidget {
-  const ReceivedScreen({super.key, required this.material,required this.projectName});
-  final String projectName;
+   ReceivedScreen({super.key, required this.material,required this.projectName});
+  late  String projectName;
   final Map<String, dynamic> material; // Accept material data
 
   @override
@@ -81,53 +83,99 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
   }
              /// Post method for Material Received //
   Future<void> MobileDocument(BuildContext context) async {
+    // Store project name in local storage for persistence
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastProjectName', widget.projectName);
+
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
     IOClient ioClient = IOClient(client);
+
+    // Check if project name is available
+    if (widget.projectName.isEmpty) {
+      final lastProjectName = prefs.getString('lastProjectName');
+      if (lastProjectName == null) {
+        Get.snackbar(
+          "Error",
+          "Project name is missing",
+          colorText: Colors.white,
+          backgroundColor: Colors.red,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+      // Restore project name from storage
+      setState(() {
+        widget.projectName = lastProjectName;
+      });
+    }
 
     final headers = {
       'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
       'Content-Type': 'application/json',
     };
 
-    final data = {
-      'doctype': 'Material Received',
-      'party_name': selectedName,
-      'material_name':  widget.material['material_name'] ,
-      'quantity': qtyController.text,
-      'project_form': widget.projectName,
-      'name': '',
-      'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
-    };
-    print(data);
-    final url = '$apiUrl/Material Received';
-    final body = jsonEncode(data);
-
     try {
-      final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
+      // Validate required fields before making the request
+      if (selectedName!.isEmpty ||
+          widget.material['material_name'] == null ||
+          qtyController.text.isEmpty) {
+        throw Exception('Please fill in all required fields');
+      }
+
+      final data = {
+        'doctype': 'Material Received',
+        'party_name': selectedName,
+        'material_name': widget.material['material_name'],
+        'quantity': qtyController.text,
+        'project_form': widget.projectName,
+        'name': '',
+        'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+      };
+
+      print('Sending material received request for project: ${widget.projectName}');
+      print('Request payload: $data');
+
+      final url = '$apiUrl/Material Received';
+      final body = jsonEncode(data);
+
+      final response = await ioClient.post(
+        Uri.parse(url),
+        headers: headers,
+        body: body,
+      ).timeout(
+        Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Request timed out');
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
+        // Store successful material received data locally
+        final receivedBox = await Hive.openBox('receivedMaterialData');
+        await receivedBox.add({
+          'material_name': widget.material['material_name'],
+          'quantity': qtyController.text,
+          'party_name': selectedName,
+          'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+          'project_name': widget.projectName,
+        });
+
         Get.snackbar(
-          "Material Received Posted",
-          "Successfully",
+          "Success",
+          "Material Received Posted Successfully",
           colorText: Colors.white,
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
         );
 
-        // Navigate back to MaterialScreen and pass the data
-        // Get.off(
-        //   MaterialScreen(),
-        //   arguments: {
-        //     'material_name': widget.material['material_name'],
-        //     'quantity': qtyController.text,
-        //     'party_name': selectedName,
-        //     'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
-        //   },
-        // )
+        // Navigate with preserved project name and data
         Get.to(
-          TabsPages(
-            projectName: 'Material',
+              () => TabsPages(
+            projectName: widget.projectName,
             initialTabIndex: 2,
           ),
           arguments: {
@@ -137,46 +185,42 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
               'party_name': selectedName,
               'date': DateFormat('yyyy-MM-dd').format(selectedDate),
             },
-            'projectName': widget.projectName, // Pass the projectName here
+            'projectName': widget.projectName,
           },
         );
-
       } else {
-        String message = 'Request failed with status: ${response.statusCode}';
+        String errorMessage = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
           final serverMessages = json.decode(response.body)['_server_messages'];
-          message = serverMessages ?? message;
+          errorMessage = serverMessages ?? errorMessage;
         }
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(response.statusCode == 417 ? 'Message' : 'Error'),
-            content: Text(message),
-            actions: [
-              ElevatedButton(
-                child: Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
+        _showErrorDialog(context, errorMessage);
       }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('An error occurred: $e'),
-          actions: [
-            ElevatedButton(
-              child: Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      );
+      print('Error in material received: $e');
+      _showErrorDialog(context, 'An error occurred: $e');
+    } finally {
+      ioClient.close();
     }
   }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          ElevatedButton(
+            child: Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
   // New method to handle initialization
   Future<void> _initializeData() async {
     await Future.wait([

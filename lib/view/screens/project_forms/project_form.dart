@@ -537,9 +537,28 @@ class _ProjectFormState extends State<ProjectForm> {
 
                     // If user confirmed, submit the document
                     if (confirmed == true) {
-                      await MobileDocument(context);
-                      // After successful submission, navigate back to dashboard
-                      Navigator.of(context).pop(Nameoftheworkr.text);
+                      try {
+                        await MobileDocument(context);
+
+                        // Clear navigation stack and go to Dashboard
+                        Get.offAll(() => Dashboard(), transition: Transition.noTransition);
+
+                        Get.snackbar(
+                          "Success",
+                          "Project added successfully",
+                          colorText: Colors.white,
+                          backgroundColor: Colors.green,
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      } catch (e) {
+                        Get.snackbar(
+                          "Error",
+                          "Failed to add project: $e",
+                          colorText: Colors.white,
+                          backgroundColor: Colors.red,
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      }
                     }
                   } catch (e) {
                     // Show error dialog only if we're not in the middle of navigation

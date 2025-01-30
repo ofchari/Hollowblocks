@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart'as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../universal_key_api/api_url.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/subhead.dart';
@@ -17,9 +20,9 @@ import 'materials_add.dart';
 
 class UsedScreen extends StatefulWidget {
   final Map<String, dynamic>? material; // Add this parameter
-  final String projectName;
+  late  String projectName;
 
-  const UsedScreen({
+   UsedScreen({
     super.key,
     this.material, // Make it optional in case you navigate directly to this screen
     required this.projectName
@@ -80,86 +83,137 @@ class _UsedScreenState extends State<UsedScreen> {
   }
            /// Post method for material Used //
   Future<void> MobileDocument(BuildContext context) async {
+    // Store project name in local storage for persistence
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastProjectName', widget.projectName);
+
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
     IOClient ioClient = IOClient(client);
+
+    // Check if project name is available
+    if (widget.projectName.isEmpty) {
+      final lastProjectName = prefs.getString('lastProjectName');
+      if (lastProjectName == null) {
+        Get.snackbar(
+          "Error",
+          "Project name is missing",
+          colorText: Colors.white,
+          backgroundColor: Colors.red,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+      // Restore project name from storage
+      setState(() {
+        widget.projectName = lastProjectName;
+      });
+    }
 
     final headers = {
       'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
       'Content-Type': 'application/json',
     };
 
-    final data = {
-      'doctype': 'Material Used',
-      'material': materialController.text,
-      'quantity': quantityController.text,
-      'project_form': widget.projectName,
-      'name': '',
-      'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
-    };
-    print(data);
-    final url = '$apiUrl/Material Used';
-    final body = jsonEncode(data);
-
     try {
-      final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
+      // Validate required fields before making the request
+      if (materialController.text.isEmpty || quantityController.text.isEmpty) {
+        throw Exception('Please fill in all required fields');
+      }
+
+      final data = {
+        'doctype': 'Material Used',
+        'material': materialController.text,
+        'quantity': quantityController.text,
+        'project_form': widget.projectName,
+        'name': '',
+        'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+      };
+
+      print('Sending material used request for project: ${widget.projectName}');
+      print('Request payload: $data');
+
+      final url = '$apiUrl/Material Used';
+      final body = jsonEncode(data);
+
+      final response = await ioClient.post(
+        Uri.parse(url),
+        headers: headers,
+        body: body,
+      ).timeout(
+        Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Request timed out');
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
+        // Store successful material usage data locally
+        final usageBox = await Hive.openBox('usedMaterialData');
+        await usageBox.add({
+          'material': materialController.text,
+          'quantity': quantityController.text,
+          'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+          'project_name': widget.projectName,
+        });
+
         Get.snackbar(
-          "Material Used Posted",
-          "Successfully",
+          "Success",
+          "Material Usage Posted Successfully",
           colorText: Colors.white,
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
         );
 
-        // Navigate back to MaterialScreen and pass the data
+        // Navigate with preserved project name
         Get.to(
-          TabsPages(projectName: 'Material',initialTabIndex: 2,),
+              () => TabsPages(
+            projectName: widget.projectName,
+            initialTabIndex: 2,
+          ),
           arguments: {
             'used': {
               'material': materialController.text,
               'quantity': quantityController.text,
               'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+              'project_name': widget.projectName,
             },
           },
         );
-
       } else {
-        String message = 'Request failed with status: ${response.statusCode}';
+        String errorMessage = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
           final serverMessages = json.decode(response.body)['_server_messages'];
-          message = serverMessages ?? message;
+          errorMessage = serverMessages ?? errorMessage;
         }
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(response.statusCode == 417 ? 'Message' : 'Error'),
-            content: Text(message),
-            actions: [
-              ElevatedButton(
-                child: Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
+        _showErrorDialog(context, errorMessage);
       }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('An error occurred: $e'),
-          actions: [
-            ElevatedButton(
-              child: Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      );
+      print('Error in material usage: $e');
+      _showErrorDialog(context, 'An error occurred: $e');
+    } finally {
+      ioClient.close();
     }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          ElevatedButton(
+            child: Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
   @override
   Widget build(BuildContext context) {

@@ -38,6 +38,7 @@ dependencies:
   flutter_screenutil: ^5.7.0
   syncfusion_flutter_xlsio: ^28.1.41
   shared_preferences: ^2.4.0
+  webview_flutter: ^4.7.0
   file_picker: ^8.1.7
   pdf: ^3.10.5
   open_file: ^3.5.10

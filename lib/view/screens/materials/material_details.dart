@@ -257,6 +257,128 @@ class _MaterialScreenState extends State<MaterialScreen> {
     }
   }
 
+                  // Delete API methods for Purchased ,Receieved & Used //
+  Future<void> deletePurchasedMaterial(String name) async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      final url = '$apiUrl/Material Purchase/$name';
+
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        // Remove from local data
+        setState(() {
+          purchasedMaterialData.removeWhere((item) => item['name'] == name);
+        });
+        Get.snackbar(
+          'Success',
+          'Material purchase deleted successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM
+        );
+        await fetchPurchasedData(); // Refresh data
+      } else {
+        throw Exception('Failed to delete purchased material');
+      }
+    } catch (e) {
+      print('Error deleting purchased material: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to delete material purchase',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> deleteUsedMaterial(String name) async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      final url = '$apiUrl/Material Used/$name';
+
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        setState(() {
+          usedMaterialData.removeWhere((item) => item['name'] == name);
+        });
+        Get.snackbar(
+          'Success',
+          'Material usage record deleted successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM
+        );
+        await fetchUsedData(); // Refresh data
+      } else {
+        throw Exception('Failed to delete used material');
+      }
+    } catch (e) {
+      print('Error deleting used material: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to delete material usage record',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> deleteReceivedMaterial(String name) async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      final url = 'https://vetri.regenterp.com/api/resource/Material Received/$name';
+
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        setState(() {
+          receivedMaterialData.removeWhere((item) => item['name'] == name);
+        });
+        Get.snackbar(
+          'Success',
+          'Material receipt deleted successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM
+        );
+        await fetchReceivedData(); // Refresh data
+      } else {
+        throw Exception('Failed to delete received material');
+      }
+    } catch (e) {
+      print('Error deleting received material: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to delete material receipt',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
 
   Future<void> _clearAllData() async {
     await receivedBox.clear();
@@ -309,7 +431,8 @@ class _MaterialScreenState extends State<MaterialScreen> {
           weight: FontWeight.w500,
         ),
       ),
-      body: SizedBox(
+      body: Container(
+        height: height/1.h,
         width: width.w,
         child: Column(
           children: [
@@ -333,13 +456,25 @@ class _MaterialScreenState extends State<MaterialScreen> {
               ),
             ),
             SizedBox(height: 10.h),
-            if (_selectedIndex == 0) Expanded(child: _buildInventoryDataContainer()),
+            if (_selectedIndex == 0) Container(
+              height: height/1.8.h,
+              width: width/1.w,
+                child: _buildInventoryDataContainer()),
             if (_selectedIndex == 1 && purchaseBox.isNotEmpty)
-              Expanded(child: _buildPurchaseDataContainer()),
+              Container(
+                height: height/1.8.h,
+                width: width/1.w,
+                  child: _buildPurchaseDataContainer()),
             if (_selectedIndex == 2 && usedBox.isNotEmpty)
-              Expanded(child: _buildUsedDataContainer()),
+              Container(
+                height: height/1.8.h,
+                width: width/1.w,
+                  child: _buildUsedDataContainer()),
             if (_selectedIndex == 3 && receivedBox.isNotEmpty)
-              Expanded(child: _buildReceivedDataContainer()),
+              Container(
+                height: height/1.8.h,
+                width: width/1.w,
+                  child: _buildReceivedDataContainer()),
             SizedBox(height: 50.h,),
 
             const Spacer(),
@@ -390,15 +525,13 @@ class _MaterialScreenState extends State<MaterialScreen> {
       );
     }
 
-    return Container(
-      height: height / 1.h,
-      width: width / 1.w,
+    return Expanded(
       child: ListView.builder(
         itemCount: inventory.length,
         itemBuilder: (context, index) {
           final material = inventory.keys.elementAt(index);
           final quantity = inventory[material];
-
+      
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -459,7 +592,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
       );
     }
 
-    return Flexible(
+    return Expanded(
       child: ListView.builder(
         itemCount: receivedMaterialData.length,
         itemBuilder: (context, index) {
@@ -487,6 +620,39 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Stock Details", color: Colors.grey, weight: FontWeight.w500),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            Get.defaultDialog(
+                              title: 'Confirm Deletion',
+                              titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              middleText: 'Are you sure you want to delete this material receipt?',
+                              middleTextStyle: TextStyle(fontSize: 16),
+                              barrierDismissible: false,
+                              radius: 8,
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  child: Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    Get.back(); // Close the dialog
+                                    if (data['name'] != null) {
+                                      await deleteReceivedMaterial(data['name'].toString());
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                                  ),
+                                  child: Text('Delete', style: TextStyle(color: Colors.white, fontSize: 16)),
+                                ),
+                              ],
+                            );
+                          },
+
+                      ),
                     ],
                   ),
                   Divider(color: Colors.grey.shade300, thickness: 1),
@@ -518,7 +684,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
     final inventory = calculateInventory();
 
-    return Flexible(
+    return Expanded(
       child: ListView.builder(
         itemCount: usedMaterialData.length,
         itemBuilder: (context, index) {
@@ -526,7 +692,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
           final material = data['material'];
           final usedQuantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0;
           final inventoryQuantity = inventory[material] ?? 0.0;
-          final balanceStock = inventoryQuantity - usedQuantity;
+          final balanceStock = inventoryQuantity;
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -551,6 +717,38 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            Get.defaultDialog(
+                              title: 'Confirm Deletion',
+                              titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              middleText: 'Are you sure you want to delete this material receipt?',
+                              middleTextStyle: TextStyle(fontSize: 16),
+                              barrierDismissible: false,
+                              radius: 8,
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  child: Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    Get.back(); // Close the dialog
+                                    if (data['name'] != null) {
+                                      await deleteUsedMaterial(data['name'].toString());
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                                  ),
+                                  child: Text('Delete', style: TextStyle(color: Colors.white, fontSize: 16)),
+                                ),
+                              ],
+                            );
+                          },
+                      ),
                     ],
                   ),
                   Divider(color: Colors.grey.shade300, thickness: 1),
@@ -580,7 +778,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
       );
     }
 
-    return Flexible(
+    return Expanded(
       child: ListView.builder(
         itemCount: purchasedMaterialData.length,
         itemBuilder: (context, index) {
@@ -608,6 +806,38 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Material Purchase Details", color: Colors.grey, weight: FontWeight.w500),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          Get.defaultDialog(
+                            title: 'Confirm Deletion',
+                            titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            middleText: 'Are you sure you want to delete this material receipt?',
+                            middleTextStyle: TextStyle(fontSize: 16),
+                            barrierDismissible: false,
+                            radius: 8,
+                            actions: [
+                              TextButton(
+                                onPressed: () => Get.back(),
+                                child: Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  Get.back(); // Close the dialog
+                                  if (data['name'] != null) {
+                                    await deletePurchasedMaterial(data['name'].toString());
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                                ),
+                                child: Text('Delete', style: TextStyle(color: Colors.white, fontSize: 16)),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ],
                   ),
                   Divider(color: Colors.grey.shade300, thickness: 1),
@@ -741,7 +971,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
     return Container(
       height: height / 17.h,
       width: width / 3.5.w,
-      decoration: BoxDecoration(color: color),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+          color: color),
       child: Center(
         child: MyText(
           text: text,

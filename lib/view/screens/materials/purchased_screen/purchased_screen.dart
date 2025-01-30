@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart'; // For date formatting
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,8 +20,8 @@ import '../../../widgets/subhead.dart';
 
 
 class PurchasedScreen extends StatefulWidget {
-  const PurchasedScreen({super.key, required this.material,required this.projectName});
-  final String projectName;
+   PurchasedScreen({super.key, required this.material,required this.projectName});
+    late  String projectName;
   final Map<String, dynamic> material; // Accept material data
 
   @override
@@ -161,96 +163,150 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
   }
   /// Post method for Material Received //
   Future<void> MobileDocument(BuildContext context) async {
+    // Store project name in local storage for persistence
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastProjectName', widget.projectName);
+
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
     IOClient ioClient = IOClient(client);
+
+    // Check if project name is available
+    if (widget.projectName.isEmpty) {
+      final lastProjectName = prefs.getString('lastProjectName');
+      if (lastProjectName == null) {
+        Get.snackbar(
+          "Error",
+          "Project name is missing",
+          colorText: Colors.white,
+          backgroundColor: Colors.red,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+      // Restore project name from storage
+      setState(() {
+        widget.projectName = lastProjectName;
+      });
+    }
 
     final headers = {
       'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
       'Content-Type': 'application/json',
     };
-    print('purchase'+ widget.projectName);
-
-    final message = {
-      'doctype': 'Material Purchase',
-      'party_name': selectedName,
-      'material':  widget.material['material_name'] ,
-      'quantity': qtyController.text,
-      'additional_discount': additionalChargesController.text,
-      'add_discount': discountController.text,
-      'add_notes': notesController.text,
-      'reference_no': referenceController.text,
-      'unit_rate': unitRateController.text,
-      'gst': gstAmount,
-      'total': total,
-      'sub_total': subTotal,
-      'project_form': widget.projectName,
-      'name': '',
-      'date': DateFormat('yyyy-MM-dd').format(selectedDate), // Format DateTime as a string,
-    };
-    print(message);
-    final url = '$apiUrl/Material Purchase';
-    final body = jsonEncode(message);
 
     try {
-      final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
+      // Validate required fields before making the request
+      if (selectedName!.isEmpty ||
+          qtyController.text.isEmpty ||
+          widget.material['material_name'] == null) {
+        throw Exception('Please fill in all required fields');
+      }
+
+      final data = {
+        'doctype': 'Material Purchase',
+        'party_name': selectedName,
+        'material': widget.material['material_name'],
+        'quantity': qtyController.text,
+        'additional_discount': additionalChargesController.text,
+        'add_discount': discountController.text,
+        'add_notes': notesController.text,
+        'reference_no': referenceController.text,
+        'unit_rate': unitRateController.text,
+        'gst': gstAmount,
+        'total': total,
+        'sub_total': subTotal,
+        'project_form': widget.projectName,
+        'name': '',
+        'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+      };
+
+      print('Sending purchase request for project: ${widget.projectName}');
+      print('Request payload: $data');
+
+      final url = '$apiUrl/Material Purchase';
+      final body = jsonEncode(data);
+
+      final response = await ioClient.post(
+          Uri.parse(url),
+          headers: headers,
+          body: body
+      ).timeout(
+        Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Request timed out');
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
+        // Store successful purchase data locally
+        final purchaseBox = await Hive.openBox('purchasedMaterialData');
+        await purchaseBox.add({
+          'material': widget.material['material_name'],
+          'quantity': qtyController.text,
+          'party_name': selectedName,
+          'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+          'project_name': widget.projectName,
+        });
+
         Get.snackbar(
-          "Material Purchased Posted",
-          "Successfully",
+          "Success",
+          "Material Purchase Posted Successfully",
           colorText: Colors.white,
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
         );
 
+        // Navigate with preserved project name
         Get.to(
-          TabsPages(projectName: 'Material',initialTabIndex: 2,),
+              () => TabsPages(
+            projectName: widget.projectName,
+            initialTabIndex: 2,
+          ),
           arguments: {
             'purchased': {
               'material': widget.material['material_name'],
               'quantity': qtyController.text,
               'party_name': selectedName,
               'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+              'project_name': widget.projectName,
             },
-            'projectName': widget.projectName,
           },
         );
       } else {
-        String message = 'Request failed with status: ${response.statusCode}';
+        String errorMessage = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
           final serverMessages = json.decode(response.body)['_server_messages'];
-          message = serverMessages ?? message;
+          errorMessage = serverMessages ?? errorMessage;
         }
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(response.statusCode == 417 ? 'Message' : 'Error'),
-            content: Text(message),
-            actions: [
-              ElevatedButton(
-                child: Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
+        _showErrorDialog(context, errorMessage);
       }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('An error occurred: $e'),
-          actions: [
-            ElevatedButton(
-              child: Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      );
+      print('Error in material purchase: $e');
+      _showErrorDialog(context, 'An error occurred: $e');
+    } finally {
+      ioClient.close();
     }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          ElevatedButton(
+            child: Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
 
   // New method to handle initialization
@@ -578,38 +634,41 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                   child: SizedBox(
-                    width: 180, // Increased width for a more spacious input
+                    width: 240, // Increased width for a more spacious input
                     height: 48, // Adjusted height for a modern feel
-                    child: TextFormField(
-                      controller: additionalChargesController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: "Additional Charges",
-                        labelStyle: GoogleFonts.outfit(
-                          textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.grey[600]),
+                    child: Padding(
+                      padding:  EdgeInsets.only(left: 100.0.w),
+                      child: TextFormField(
+                        controller: additionalChargesController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: "Additional Charges",
+                          labelStyle: GoogleFonts.outfit(
+                            textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.grey[600]),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0), // Rounded corners
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide(color: Colors.blue, width: 1.5), // Elevated border on focus
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1), // Subtle border
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100], // Light background
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10), // Adjusted padding
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0), // Rounded corners
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide: BorderSide(color: Colors.blue, width: 1.5), // Elevated border on focus
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide: BorderSide(color: Colors.grey[300]!, width: 1), // Subtle border
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100], // Light background
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10), // Adjusted padding
+                        style: GoogleFonts.outfit(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
+                        onChanged: (value) {
+                          setState(() {
+                            additionalCharges = double.tryParse(value) ?? 0.0;
+                            _calculateTotal();
+                          });
+                        },
                       ),
-                      style: GoogleFonts.outfit(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
-                      onChanged: (value) {
-                        setState(() {
-                          additionalCharges = double.tryParse(value) ?? 0.0;
-                          _calculateTotal();
-                        });
-                      },
                     ),
                   ),
                 ),
@@ -633,38 +692,41 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                   child: SizedBox(
-                    width: 180, // Increased width for a balanced input
+                    width: 240, // Increased width for a balanced input
                     height: 48, // Adjusted height for uniformity
-                    child: TextFormField(
-                      controller: discountController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: "Discount Amount",
-                        labelStyle: GoogleFonts.outfit(
-                          textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.grey[600]),
+                    child: Padding(
+                      padding:  EdgeInsets.only(left: 100.0.w),
+                      child: TextFormField(
+                        controller: discountController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: "Discount Amount",
+                          labelStyle: GoogleFonts.outfit(
+                            textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.grey[600]),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide: BorderSide(color: Colors.blue, width: 1.5),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        style: GoogleFonts.outfit(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
+                        onChanged: (value) {
+                          setState(() {
+                            discount = double.tryParse(value) ?? 0.0;
+                            _calculateTotal();
+                          });
+                        },
                       ),
-                      style: GoogleFonts.outfit(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
-                      onChanged: (value) {
-                        setState(() {
-                          discount = double.tryParse(value) ?? 0.0;
-                          _calculateTotal();
-                        });
-                      },
                     ),
                   ),
                 ),

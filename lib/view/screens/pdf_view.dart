@@ -67,8 +67,12 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
           ),
           SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop(true); // Return true to indicate confirmation
+            onPressed: () async {
+              // Return to previous screen with success indicator
+              Navigator.of(context).pop(true);
+
+              // Force refresh the dashboard
+              Get.off(() => Dashboard(), transition: Transition.noTransition);
             },
             child: Text("Confirm and Submit"),
           ),
