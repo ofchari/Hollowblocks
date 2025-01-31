@@ -20,8 +20,9 @@ import '../../../widgets/subhead.dart';
 import '../material_details.dart';
 
 class ReceivedScreen extends StatefulWidget {
-   ReceivedScreen({super.key, required this.material,required this.projectName});
+   ReceivedScreen({super.key, required this.material,required this.projectName,required this.work});
   late  String projectName;
+   late String work; //
   final Map<String, dynamic> material; // Accept material data
 
   @override
@@ -173,10 +174,10 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
         );
 
         // Navigate with preserved project name and data
-        Get.to(
+        Get.off(
               () => TabsPages(
             projectName: widget.projectName,
-            initialTabIndex: 2,
+            initialTabIndex: 2, work: widget.work,
           ),
           arguments: {
             'received': {
@@ -249,6 +250,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
   void initState() {
     super.initState();
     print("Project Name in Received: ${widget.projectName}"); // Debugging
+    print("Project work  in Purchased: ${widget.work}"); // Debugging
     _initializeData();
   }
 
@@ -361,7 +363,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
 
               GestureDetector(
                 onTap: () {
-                  Get.to(MaterialsAdd(routeType: 'received', projectName: widget.projectName,));
+                  Get.to(MaterialsAdd(routeType: 'received', projectName: widget.projectName, work: widget.work,));
                 },
                 child: Align(
                   alignment: Alignment.centerRight,

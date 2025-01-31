@@ -13,8 +13,9 @@ import '../../widgets/text.dart';
 import 'package:http/http.dart'as http;
 
 class MaterialScreen extends StatefulWidget {
-  const MaterialScreen({super.key,required this.projectName});
+  const MaterialScreen({super.key,required this.projectName,required this.work});
   final String projectName;
+  final String work;
 
   @override
   State<MaterialScreen> createState() => _MaterialScreenState();
@@ -886,7 +887,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
         children: [
           GestureDetector(
             onTap: () async {
-              final result = await Get.to(() => PurchasedScreen(material: {}, projectName: widget.projectName,));
+              final result = await Get.to(() => PurchasedScreen(material: {}, projectName: widget.projectName, work: widget.work,));
               if (result != null && result is Map<String, dynamic>) {
                 _addPurchasedData(result);
               }
@@ -907,7 +908,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
           ),
           GestureDetector(
             onTap: () async {
-              final result = await Get.to(() => UsedScreen(projectName: widget.projectName,));
+              final result = await Get.to(() => UsedScreen(projectName: widget.projectName, work: widget.work,));
               if (result != null && result is Map<String, dynamic>) {
                 _addUsedData(result);
               }
@@ -942,21 +943,21 @@ class _MaterialScreenState extends State<MaterialScreen> {
               SizedBox(height: 16.h),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Purchase", Colors.pink, () async {
-                final result = await Get.to(() => PurchasedScreen(material: {}, projectName: widget.projectName,));
+                final result = await Get.to(() => PurchasedScreen(material: {}, projectName: widget.projectName, work: widget.work,));
                 if (result != null) {
                   _addPurchasedData(result);
                 }
               }),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Stock", Colors.blue, () async {
-                final result = await Get.to(() => ReceivedScreen(material: {}, projectName: widget.projectName,));
+                final result = await Get.to(() => ReceivedScreen(material: {}, projectName: widget.projectName, work: widget.work,));
                 if (result != null) {
                   _addReceivedData(result);
                 }
               }),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Used", Colors.green, () async {
-                final result = await Get.to(() => UsedScreen(projectName: widget.projectName,));
+                final result = await Get.to(() => UsedScreen(projectName: widget.projectName, work: widget.work,));
                 if (result != null) {
                   _addUsedData(result);
                 }

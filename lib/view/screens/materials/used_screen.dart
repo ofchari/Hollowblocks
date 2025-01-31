@@ -21,11 +21,13 @@ import 'materials_add.dart';
 class UsedScreen extends StatefulWidget {
   final Map<String, dynamic>? material; // Add this parameter
   late  String projectName;
+  late String work; //
 
    UsedScreen({
     super.key,
     this.material, // Make it optional in case you navigate directly to this screen
-    required this.projectName
+    required this.projectName,
+    required this.work
   });
 
   @override
@@ -44,6 +46,7 @@ class _UsedScreenState extends State<UsedScreen> {
   void initState() {
     super.initState();
     print("Project Name in Used: ${widget.projectName}"); // Debugging
+    print("Project work  in Purchased: ${widget.work}"); // Debugging
     materialController = TextEditingController(
         text: widget.material?['material_name'] ?? ''
     );
@@ -73,7 +76,7 @@ class _UsedScreenState extends State<UsedScreen> {
 
   // Add this method to handle material selection
   void _selectMaterial() async {
-    final result = await Get.to(() => MaterialsAdd(routeType: 'used', projectName: widget.projectName,));
+    final result = await Get.to(() => MaterialsAdd(routeType: 'used', projectName: widget.projectName, work: widget.work,));
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
         selectedMaterial = result;
@@ -169,10 +172,10 @@ class _UsedScreenState extends State<UsedScreen> {
         );
 
         // Navigate with preserved project name
-        Get.to(
+        Get.off(
               () => TabsPages(
             projectName: widget.projectName,
-            initialTabIndex: 2,
+            initialTabIndex: 2, work: widget.work,
           ),
           arguments: {
             'used': {

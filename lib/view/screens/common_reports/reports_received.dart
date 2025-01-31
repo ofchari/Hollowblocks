@@ -1,22 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
-class MaterialUsedReport extends StatefulWidget {
-  const MaterialUsedReport({super.key,required this.projectName});
-  final String projectName;
+class ReportsReceived extends StatefulWidget {
+  const ReportsReceived({Key? key}) : super(key: key);
 
   @override
-  State<MaterialUsedReport> createState() => _MaterialUsedReportState();
+  State<ReportsReceived> createState() => _ReportsReceivedState();
 }
 
-class _MaterialUsedReportState extends State<MaterialUsedReport> {
+class _ReportsReceivedState extends State<ReportsReceived> {
   late double height;
   late double width;
 
@@ -24,8 +26,10 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
   List<Map<String, dynamic>> filteredData = [];
   bool isLoading = true;
 
+  // Define controllers for search fields
   final Map<String, TextEditingController> searchControllers = {
-    'material': TextEditingController(),
+    'party_name': TextEditingController(),
+    'material_name': TextEditingController(),
     'quantity': TextEditingController(),
     'date': TextEditingController(),
   };
@@ -40,6 +44,7 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
 
   @override
   void dispose() {
+    // Dispose controllers
     for (var controller in searchControllers.values) {
       controller.dispose();
     }
@@ -47,14 +52,9 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
   }
 
   Future<void> fetchMaterialData() async {
-    // ✅ URL for fetching material data
-    final encodedProjectName = Uri.encodeComponent(widget.projectName);
-    final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_used?name=$encodedProjectName';
-
-    // ✅ Authentication Token
+    final url =
+        'https://vetri.regenterp.com/api/resource/Material%20Received?fields=[%22party_name%22,%22material_name%22,%22quantity%22,%22date%22]';
     final token = "f1178cbff3f9a07:f1d2a24b5a005b7";
-
-    print('Fetching purchased data from: $url'); // Debug log
 
     try {
       final response = await http.get(
@@ -63,31 +63,21 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
       );
 
       if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        final List data;
-        print(response.body);
-
-        // ✅ Handling response structure
-        data = decodedResponse['message'] ?? [];
-
+        final List data = json.decode(response.body)['data'];
         setState(() {
           materialData = data.cast<Map<String, dynamic>>();
           filteredData = List.from(materialData)
             ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
           isLoading = false;
         });
-
-        if (data.isEmpty) {
-          print('⚠️ No data found for the current query.');
-        }
       } else {
         setState(() {
           isLoading = false;
         });
-        print("❌ Error: ${response.statusCode} - ${response.reasonPhrase}");
+        print("Error: ${response.statusCode} - ${response.reasonPhrase}");
       }
     } catch (e) {
-      print("❌ Error fetching data: $e");
+      print("Error fetching data: $e");
       setState(() {
         isLoading = false;
       });
@@ -135,7 +125,8 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
       final xlsio.Worksheet sheet = workbook.worksheets[0];
 
       const List<String> headers = [
-        "Material",
+        "Party Name",
+        "Material Name",
         "Quantity",
         "Date",
       ];
@@ -146,26 +137,27 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
 
       for (int i = 0; i < data.length; i++) {
         final row = data[i];
-        sheet.getRangeByIndex(i + 2, 1).setText(row["material"] ?? "");
+        sheet.getRangeByIndex(i + 2, 1).setText(row["party_name"] ?? "");
+        sheet.getRangeByIndex(i + 2, 2).setText(row["material_name"] ?? "");
         sheet
-            .getRangeByIndex(i + 2, 2)
+            .getRangeByIndex(i + 2, 3)
             .setNumber(double.tryParse(row["quantity"].toString()) ?? 0.0);
-        sheet.getRangeByIndex(i + 2, 3).setText(row["date"] ?? "");
+        sheet.getRangeByIndex(i + 2, 4).setText(row["date"] ?? "");
       }
 
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
 
-      final directory = Directory('/storage/emulated/0/Download/Material Used Report');
+      final directory = Directory('/storage/emulated/0/Download/Material Received Report');
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
 
-      final String path = '${directory.path}/MaterialUsedReport.xlsx';
+      final String path = '${directory.path}/MaterialReceivedReport.xlsx';
       final File file = File(path);
       await file.writeAsBytes(bytes, flush: true);
 
-      await Share.shareXFiles([XFile(path)], text: "Material Used Report");
+      await Share.shareXFiles([XFile(path)], text: "Material Received Report");
     } catch (e) {
       debugPrint("Error generating or sharing Excel file: $e");
     }
@@ -182,7 +174,7 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
         centerTitle: true,
         backgroundColor: const Color(0xff967e64),
         title: Text(
-          "Material Used Report",
+          "Material Received Report",
           style: GoogleFonts.outfit(
             textStyle: TextStyle(
               fontSize: 18.sp,
@@ -209,7 +201,8 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                filterField('material'),
+                filterField('party_name'),
+                filterField('material_name'),
                 filterField('quantity'),
                 filterField('date'),
               ],
@@ -223,92 +216,73 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
                   child: DataTable(
-                    dataRowHeight: 40,
-                    columnSpacing: 17,
+                    dataRowHeight: 40, // Reduce row height
+                    columnSpacing: 17, // Reduce column spacing
                     columns: [
-                      DataColumn(
-                        label: Text(
-                          "Material",
-                          style: GoogleFonts.dmSans(
-                            textStyle: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          "Quantity",
-                          style: GoogleFonts.dmSans(
-                            textStyle: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          "Date",
-                          style: GoogleFonts.dmSans(
-                            textStyle: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
+                      DataColumn(label: Text("Party Name",style: GoogleFonts.dmSans(
+                        textStyle: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),)),),
+                      DataColumn(label: Text("Material Name",style: GoogleFonts.dmSans(
+                        textStyle: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),))),
+                      DataColumn(label: Text("Quantity",style: GoogleFonts.dmSans(
+                        textStyle: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),))),
+                      DataColumn(label: Text("Date",style: GoogleFonts.dmSans(
+                        textStyle: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),))),
                     ],
                     rows: filteredData
-                        .map(
-                          (data) => DataRow(
-                        cells: [
-                          DataCell(
-                            Text(
-                              data['material'] ?? '',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(
-                                textStyle: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                ),
-                              ),
+                        .map((data) => DataRow(
+                      cells: [
+                        DataCell(Text(data['party_name'] ?? '',textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(
+                            textStyle: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
                             ),
                           ),
-                          DataCell(
-                            Text(
-                              data['quantity']?.toString() ?? '',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(
-                                textStyle: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                ),
-                              ),
+                        ),
+                        ),
+                        DataCell(Text(data['material_name'] ?? '',textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(
+                            textStyle: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
                             ),
-                          ),
-                          DataCell(
-                            Text(
-                              data['date'] ?? '',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(
-                                textStyle: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                ),
-                              ),
+                          ),)),
+                        DataCell(Text(data['quantity']?.toString() ?? '',textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(
+                            textStyle: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
                             ),
-                          ),
-                        ],
-                      ),
-                    )
+                          ),)),
+                        DataCell(Text(data['date'] ?? '',textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(
+                            textStyle: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                            ),
+                          ),)),
+                      ],
+                    ))
                         .toList(),
                   ),
                 ),

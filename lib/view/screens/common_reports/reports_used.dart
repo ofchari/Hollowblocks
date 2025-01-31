@@ -8,15 +8,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
-class MaterialUsedReport extends StatefulWidget {
-  const MaterialUsedReport({super.key,required this.projectName});
-  final String projectName;
+class ReportsUsed extends StatefulWidget {
+  const ReportsUsed({Key? key}) : super(key: key);
 
   @override
-  State<MaterialUsedReport> createState() => _MaterialUsedReportState();
+  State<ReportsUsed> createState() => _ReportsUsedState();
 }
 
-class _MaterialUsedReportState extends State<MaterialUsedReport> {
+class _ReportsUsedState extends State<ReportsUsed> {
   late double height;
   late double width;
 
@@ -47,14 +46,9 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
   }
 
   Future<void> fetchMaterialData() async {
-    // ✅ URL for fetching material data
-    final encodedProjectName = Uri.encodeComponent(widget.projectName);
-    final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_used?name=$encodedProjectName';
-
-    // ✅ Authentication Token
+    final url =
+        'https://vetri.regenterp.com/api/resource/Material%20Used?fields=[%22material%22,%22quantity%22,%22date%22]';
     final token = "f1178cbff3f9a07:f1d2a24b5a005b7";
-
-    print('Fetching purchased data from: $url'); // Debug log
 
     try {
       final response = await http.get(
@@ -63,31 +57,21 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
       );
 
       if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        final List data;
-        print(response.body);
-
-        // ✅ Handling response structure
-        data = decodedResponse['message'] ?? [];
-
+        final List data = json.decode(response.body)['data'];
         setState(() {
           materialData = data.cast<Map<String, dynamic>>();
           filteredData = List.from(materialData)
             ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
           isLoading = false;
         });
-
-        if (data.isEmpty) {
-          print('⚠️ No data found for the current query.');
-        }
       } else {
         setState(() {
           isLoading = false;
         });
-        print("❌ Error: ${response.statusCode} - ${response.reasonPhrase}");
+        print("Error: ${response.statusCode} - ${response.reasonPhrase}");
       }
     } catch (e) {
-      print("❌ Error fetching data: $e");
+      print("Error fetching data: $e");
       setState(() {
         isLoading = false;
       });

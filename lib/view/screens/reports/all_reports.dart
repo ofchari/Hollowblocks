@@ -13,7 +13,8 @@ import 'dart:math'as math;
 import '../../widgets/text.dart';
 
 class AllReports extends StatefulWidget {
-  const AllReports({super.key});
+  const AllReports({super.key,required, required this.projectName});
+  final String projectName;
 
   @override
   State<AllReports> createState() => _AllReportsState();
@@ -64,7 +65,7 @@ class _AllReportsState extends State<AllReports> {
             child:
                 GestureDetector(
                   onTap: (){
-                    Get.to(EmployeeReport());
+                    Get.to(EmployeeReport(projectName: widget.projectName,));
 
                   },
                   child: Container(
@@ -113,7 +114,7 @@ class _AllReportsState extends State<AllReports> {
                                     angle: 60 * math.pi / 180,
                                     child: IconButton(
                                       onPressed: () {
-                                        Get.to(EmployeeReport());
+                                        Get.to(EmployeeReport(projectName: widget.projectName,));
                                       },
                                       icon: const Icon(Icons.arrow_upward, size: 23),
                                       color: Colors.white, // Icon color matches the professional theme
@@ -137,7 +138,8 @@ class _AllReportsState extends State<AllReports> {
               child:
               GestureDetector(
                 onTap: (){
-                  Get.to(MaterialReceivedReport());
+                  Get.to(MaterialReceivedReport(projectName: widget.projectName,
+                    ));
 
                 },
                 child: Container(
@@ -186,7 +188,8 @@ class _AllReportsState extends State<AllReports> {
                                   angle: 60 * math.pi / 180,
                                   child: IconButton(
                                     onPressed: () {
-                                      Get.to(MaterialReceivedReport());
+                                      Get.to(MaterialReceivedReport(projectName: widget.projectName,
+                                         ));
                                     },
                                     icon: const Icon(Icons.arrow_upward, size: 23),
                                     color: Colors.white, // Icon color matches the professional theme
@@ -210,7 +213,8 @@ class _AllReportsState extends State<AllReports> {
               child:
               GestureDetector(
                 onTap: (){
-                  Get.to(MaterialUsedReport());
+                  Get.to(MaterialUsedReport(projectName: widget.projectName,
+                      ));
 
                 },
                 child: Container(
@@ -259,7 +263,8 @@ class _AllReportsState extends State<AllReports> {
                                   angle: 60 * math.pi / 180,
                                   child: IconButton(
                                     onPressed: () {
-                                      Get.to(MaterialUsedReport());
+                                      Get.to(MaterialUsedReport(projectName: widget.projectName,
+                                          ));
                                     },
                                     icon: const Icon(Icons.arrow_upward, size: 23),
                                     color: Colors.white, // Icon color matches the professional theme
@@ -283,7 +288,9 @@ class _AllReportsState extends State<AllReports> {
               child:
               GestureDetector(
                 onTap: (){
-                  Get.to(MaterialPurchaseReport());
+                  Get.to(MaterialPurchaseReport(
+                      projectName: widget.projectName,
+                  ));
 
                 },
                 child: Container(
@@ -332,7 +339,9 @@ class _AllReportsState extends State<AllReports> {
                                   angle: 60 * math.pi / 180,
                                   child: IconButton(
                                     onPressed: () {
-                                      Get.to(MaterialPurchaseReport());
+                                      Get.to(MaterialPurchaseReport(
+                                          projectName: widget.projectName, // Coming from tab page
+                                      ));
                                     },
                                     icon: const Icon(Icons.arrow_upward, size: 23),
                                     color: Colors.white, // Icon color matches the professional theme

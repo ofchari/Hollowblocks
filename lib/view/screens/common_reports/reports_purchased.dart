@@ -7,16 +7,14 @@ import 'package:http/http.dart' as http;
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
-class MaterialPurchaseReport extends StatefulWidget {
-  const MaterialPurchaseReport({super.key,required this.projectName});
-  final String projectName;
-
+class ReportPurchased extends StatefulWidget {
+  const ReportPurchased({Key? key}) : super(key: key);
 
   @override
-  State<MaterialPurchaseReport> createState() => _MaterialPurchaseReportState();
+  State<ReportPurchased> createState() => _ReportPurchasedState();
 }
 
-class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
+class _ReportPurchasedState extends State<ReportPurchased> {
   late double height;
   late double width;
 
@@ -49,14 +47,9 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
   }
 
   Future<void> fetchMaterialData() async {
-    // ✅ URL for fetching material data
-    final encodedProjectName = Uri.encodeComponent(widget.projectName);
-    final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_purchased?name=$encodedProjectName';
-
-    // ✅ Authentication Token
+    final url =
+        'https://vetri.regenterp.com/api/resource/Material%20Purchase?fields=[%22party_name%22,%22material%22,%22additional_discount%22,%22add_discount%22,%22add_notes%22,%22reference_no%22,%22quantity%22,%22unit_rate%22,%22gst%22,%22total%22,%22sub_total%22,%22date%22]';
     final token = "f1178cbff3f9a07:f1d2a24b5a005b7";
-
-    print('Fetching purchased data from: $url'); // Debug log
 
     try {
       final response = await http.get(
@@ -65,37 +58,26 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
       );
 
       if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        final List data;
-        print(response.body);
-
-        // ✅ Handling response structure
-        data = decodedResponse['message'] ?? [];
-
+        final List data = json.decode(response.body)['data'];
         setState(() {
           materialData = data.cast<Map<String, dynamic>>();
           filteredData = List.from(materialData)
             ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
           isLoading = false;
         });
-
-        if (data.isEmpty) {
-          print('⚠️ No data found for the current query.');
-        }
       } else {
         setState(() {
           isLoading = false;
         });
-        print("❌ Error: ${response.statusCode} - ${response.reasonPhrase}");
+        print("Error: ${response.statusCode} - ${response.reasonPhrase}");
       }
     } catch (e) {
-      print("❌ Error fetching data: $e");
+      print("Error fetching data: $e");
       setState(() {
         isLoading = false;
       });
     }
   }
-
 
   void filterData() {
     setState(() {

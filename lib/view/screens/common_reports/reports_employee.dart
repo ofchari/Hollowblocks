@@ -14,15 +14,14 @@ import 'package:share_plus/share_plus.dart';
 import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 
 
-class EmployeeReport extends StatefulWidget {
-  const EmployeeReport({super.key, required this.projectName,});
-  final String projectName;
+class ReportsEmployee extends StatefulWidget {
+  const ReportsEmployee({super.key});
 
   @override
-  State<EmployeeReport> createState() => _EmployeeReportState();
+  State<ReportsEmployee> createState() => _ReportsEmployeeState();
 }
 
-class _EmployeeReportState extends State<EmployeeReport> {
+class _ReportsEmployeeState extends State<ReportsEmployee> {
   late double height;
   late double width;
 
@@ -43,7 +42,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
   void initState() {
     super.initState();
     fetchAttendanceData();
-    print("Employee Attendance Reports ${widget.projectName}");
   }
 
   @override
@@ -56,9 +54,8 @@ class _EmployeeReportState extends State<EmployeeReport> {
   }
 
   Future<void> fetchAttendanceData() async {
-    final encodedProjectName = Uri.encodeComponent(widget.projectName);
     final url =
-        'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_employee_attendance?name=$encodedProjectName'; // New API URL
+        'https://vetri.regenterp.com/api/resource/Employee%20Attendance?fields=[%22attendance%22,%22employee%22,%22shift%22,%22date%22,%22in_time%22,%22out_time%22,%22day_salary%22]';
     final token = "f1178cbff3f9a07:f1d2a24b5a005b7";
 
     try {
@@ -67,18 +64,8 @@ class _EmployeeReportState extends State<EmployeeReport> {
         headers: {'Authorization': 'token $token'}, // Corrected headers
       );
 
-      print("Response Status Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
-
       if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        print(decodedResponse); // Log the entire decoded JSON to inspect the structure
-
-        final List data = decodedResponse['message'] ?? [];
-        if (data.isEmpty) {
-          print("No attendance data found for this project.");
-        }
-
+        final List data = json.decode(response.body)['data'];
         setState(() {
           attendanceData = data.cast<Map<String, dynamic>>();
           filteredData = List.from(attendanceData)
@@ -98,8 +85,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
       });
     }
   }
-
-
 
   void filterData() {
     setState(() {

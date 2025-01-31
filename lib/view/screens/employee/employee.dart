@@ -15,7 +15,8 @@ import '../../widgets/subhead.dart';
 import '../../widgets/text.dart';
 
 class Employee extends StatefulWidget {
-  const Employee({super.key});
+  const Employee({super.key ,required this.work});
+  final String work; //
 
   @override
   State<Employee> createState() => _EmployeeState();
@@ -799,7 +800,7 @@ class _EmployeeState extends State<Employee> {
                       onChanged: (value) {
                         if (value == "add_employee") {
                           // Navigate to Add Employee page
-                          Get.to(EmployeeAdd());
+                          Get.to(EmployeeAdd(work: '',));
                         } else {
                           setState(() {
                             selectedEmployee = value;

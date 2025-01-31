@@ -12,7 +12,8 @@ import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
 class MaterialReceivedReport extends StatefulWidget {
-  const MaterialReceivedReport({Key? key}) : super(key: key);
+  const MaterialReceivedReport({super.key,required this.projectName});
+  final String projectName;
 
   @override
   State<MaterialReceivedReport> createState() => _MaterialReceivedReportState();
@@ -52,9 +53,14 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
   }
 
   Future<void> fetchMaterialData() async {
-    final url =
-        'https://vetri.regenterp.com/api/resource/Material%20Received?fields=[%22party_name%22,%22material_name%22,%22quantity%22,%22date%22]';
+    // ✅ URL for fetching material data
+    final encodedProjectName = Uri.encodeComponent(widget.projectName);
+    final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_received?name=$encodedProjectName';
+
+    // ✅ Authentication Token
     final token = "f1178cbff3f9a07:f1d2a24b5a005b7";
+
+    print('Fetching purchased data from: $url'); // Debug log
 
     try {
       final response = await http.get(
@@ -63,26 +69,38 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
       );
 
       if (response.statusCode == 200) {
-        final List data = json.decode(response.body)['data'];
+        final decodedResponse = json.decode(response.body);
+        final List data;
+        print(response.body);
+
+        // ✅ Handling response structure
+        data = decodedResponse['message'] ?? [];
+
         setState(() {
           materialData = data.cast<Map<String, dynamic>>();
           filteredData = List.from(materialData)
             ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
           isLoading = false;
         });
+
+        if (data.isEmpty) {
+          print('⚠️ No data found for the current query.');
+        }
       } else {
         setState(() {
           isLoading = false;
         });
-        print("Error: ${response.statusCode} - ${response.reasonPhrase}");
+        print("❌ Error: ${response.statusCode} - ${response.reasonPhrase}");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("❌ Error fetching data: $e");
       setState(() {
         isLoading = false;
       });
     }
   }
+
+
 
   void filterData() {
     setState(() {
