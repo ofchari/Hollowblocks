@@ -202,10 +202,9 @@ class _TodoState extends State<Todo> {
 
   Widget _smallBuildLayout() {
     return Scaffold(
-        backgroundColor: const Color(0xfff1f2f4),
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: const Color(0xfff1f2f4),
-          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
           toolbarHeight: 80.h,
           centerTitle: true,
           title: Subhead(

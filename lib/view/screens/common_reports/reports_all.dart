@@ -51,7 +51,6 @@ class _ReportsCommonState extends State<ReportsCommon> {
           backgroundColor: const Color(0xfff1f2f4),
           toolbarHeight: 80.h,
           centerTitle: true,
-          automaticallyImplyLeading: false,
           title: Subhead(
             text: "All Reports",
             color: Colors.black,

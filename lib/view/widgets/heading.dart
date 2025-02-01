@@ -15,6 +15,6 @@ class Heading extends StatefulWidget {
 class _HeadingState extends State<Heading> {
   @override
   Widget build(BuildContext context) {
-    return Text(widget.text,style: GoogleFonts.figtree(textStyle: TextStyle(fontSize: 23.sp,fontWeight: widget.weight,color: widget.color)),);
+    return Text(widget.text,style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 23.sp,fontWeight: widget.weight,color: widget.color)),);
   }
 }

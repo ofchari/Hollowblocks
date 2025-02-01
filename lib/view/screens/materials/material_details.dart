@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:vetri_hollowblock/view/screens/materials/purchased_screen/purchased_screen.dart';
@@ -420,23 +421,24 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
   Widget _smallBuildLayout() {
     return Scaffold(
-      backgroundColor: const Color(0xfff1f2f4),
-      appBar: AppBar(
-        backgroundColor: const Color(0xfff1f2f4),
-        automaticallyImplyLeading: false,
-        toolbarHeight: 80.h,
-        centerTitle: true,
-        title: Subhead(
-          text: "Material",
-          color: Colors.black,
-          weight: FontWeight.w500,
-        ),
-      ),
+      backgroundColor: Colors.white,
+      // appBar: AppBar(
+      //   backgroundColor: Colors.white,
+      //   automaticallyImplyLeading: false,
+      //   toolbarHeight: 80.h,
+      //   centerTitle: true,
+      //   title: Subhead(
+      //     text: "Material",
+      //     color: Colors.black,
+      //     weight: FontWeight.w500,
+      //   ),
+      // ),
       body: Container(
         height: height/1.h,
         width: width.w,
         child: Column(
           children: [
+            SizedBox(height: 20.h),
             // Horizontal menu
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -458,22 +460,22 @@ class _MaterialScreenState extends State<MaterialScreen> {
             ),
             SizedBox(height: 10.h),
             if (_selectedIndex == 0) Container(
-              height: height/1.8.h,
+              height: height/1.7.h,
               width: width/1.w,
                 child: _buildInventoryDataContainer()),
             if (_selectedIndex == 1 && purchaseBox.isNotEmpty)
               Container(
-                height: height/1.8.h,
+                height: height/1.7.h,
                 width: width/1.w,
                   child: _buildPurchaseDataContainer()),
             if (_selectedIndex == 2 && usedBox.isNotEmpty)
               Container(
-                height: height/1.8.h,
+                height: height/1.7.h,
                 width: width/1.w,
                   child: _buildUsedDataContainer()),
             if (_selectedIndex == 3 && receivedBox.isNotEmpty)
               Container(
-                height: height/1.8.h,
+                height: height/1.7.h,
                 width: width/1.w,
                   child: _buildReceivedDataContainer()),
             SizedBox(height: 50.h,),
@@ -495,7 +497,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
       },
       child: Container(
         height: height / 17.h,
-        width: width / 3.5.w,
+        width: width / 4.3.w,
         decoration: BoxDecoration(
           color: _selectedIndex == index ? Colors.blue : Colors.white,
           borderRadius: BorderRadius.circular(10.r),
@@ -504,13 +506,16 @@ class _MaterialScreenState extends State<MaterialScreen> {
           ),
         ),
         child: Center(
-          child: MyText(
-            text: text,
-            color: _selectedIndex == index ? Colors.white : Colors.black,
-            weight: FontWeight.w500,
-          ),
+          child: Text(text,style: GoogleFonts.figtree(textStyle: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w500,color: _selectedIndex == index ? Colors.white : Colors.black)
+          // MyText(
+          //   text: text,
+          //   color: _selectedIndex == index ? Colors.white : Colors.black,
+          //   weight: FontWeight.w500,
+          // ),
         ),
       ),
+    )
+      )
     );
   }
 

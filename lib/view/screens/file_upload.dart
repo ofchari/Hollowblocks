@@ -215,22 +215,22 @@ class _FileUploadState extends State<FileUpload> {
     width = size.width;
 
     return Scaffold(
-      backgroundColor: const Color(0xfff1f2f4),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xfff1f2f4),
-        title: Subhead(text: "File Upload", color: Colors.black, weight: FontWeight.w500),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.camera_alt_outlined),
-            onPressed: _pickFiles,
-          ),
-        ],
-      ),
+      backgroundColor: Colors.white,
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   backgroundColor: Colors.white,
+      //   title: Subhead(text: "File Upload", color: Colors.black, weight: FontWeight.w500),
+      //   centerTitle: true,
+      //   actions: [
+      //     IconButton(
+      //       icon: Icon(Icons.camera_alt_outlined),
+      //       onPressed: _pickFiles,
+      //     ),
+      //   ],
+      // ),
       body: Column(
         children: [
-          SizedBox(height: 10.h,),
+          SizedBox(height: 20.h,),
           ElevatedButton(
             onPressed: _pickFiles,
             child: Text("Attach Documents / Images"),

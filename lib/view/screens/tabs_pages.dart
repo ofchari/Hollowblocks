@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
 import 'package:vetri_hollowblock/view/screens/file_upload.dart';
 import 'package:vetri_hollowblock/view/screens/materials/material_details.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/update_project_form.dart';
+import 'package:vetri_hollowblock/view/screens/transaction_screens/transaction_details.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
 import '../widgets/subhead.dart';
 import 'reports/all_reports.dart';
@@ -30,6 +32,24 @@ class TabsPages extends StatefulWidget {
 
 class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
   late TabController _tabController;
+  String selectedDate = "Date"; // Default text before any date is selected,
+  DateTime chooseDate = DateTime.now();
+
+  /// Function to show the date picker
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: chooseDate,
+      firstDate: DateTime(2000), // Earliest selectable date
+      lastDate: DateTime(2101), // Latest selectable date
+    );
+    if (picked != null && picked != chooseDate) {
+      setState(() {
+        chooseDate = picked; // Update the selected date
+      });
+    }
+  }
+
 
   @override
   void initState() {
@@ -77,6 +97,8 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
       ),
+
+
       onPressed: onPressed,
       child: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
     );
@@ -87,16 +109,16 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FA), // Soft neutral background
+        backgroundColor: Colors.white,
         appBar: _buildAppBar(),
         body: TabBarView(
           controller: _tabController,
           children: [
             UpdateProjectForm(projectName: widget.projectName),
+            TransactionDetails(),
             Employee(work: widget.work),
             MaterialScreen(projectName: widget.projectName, work: widget.work),
             FileUpload(projectName: widget.projectName),
-            Todo(),
             AllReports(projectName : widget.projectName),
           ],
         ),
@@ -107,7 +129,12 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
   /// Builds the App Bar with a sleek gradient background
   AppBar _buildAppBar() {
     return AppBar(
-      leading: Icon(Icons.arrow_back,color: Colors.white,),
+      backgroundColor: Colors.white,
+      leading: GestureDetector(
+        onTap: (){
+          Get.back();
+        },
+          child: Icon(Icons.arrow_back,color: Colors.white,)),
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -126,6 +153,17 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
         color: Colors.white,
         weight: FontWeight.w600,
       ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: InkWell(
+              onTap: () => _selectDate(context), // Call date picker on tap
+              child: Text(chooseDate != null // Check if selectedDate is null
+    ? DateFormat('dd-MM-yyyy').format(chooseDate!)
+        : 'Select Date',style: GoogleFonts.manrope(textStyle: TextStyle(fontSize: 13.5.sp,fontWeight: FontWeight.w500,color: Colors.white)),
+            ),
+          ),
+          ) ],
       bottom: PreferredSize(
         preferredSize: Size.fromHeight(50.h),
         child: TabBar(
@@ -139,10 +177,10 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
           labelPadding: EdgeInsets.symmetric(horizontal: 12.w),
           tabs: [
             _buildTab("Update Project"),
+            _buildTab("Transaction Details"),
             _buildTab("Employee"),
             _buildTab("Material"),
             _buildTab("Files Upload"),
-            _buildTab("To-Do"),
             _buildTab("Reports"),
           ],
         ),

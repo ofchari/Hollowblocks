@@ -610,40 +610,39 @@ class _EmployeeState extends State<Employee> {
 
   Widget _smallBuildLayout() {
     return Scaffold(
-      backgroundColor: const Color(0xfff1f2f4),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xfff1f2f4),
-        toolbarHeight: 80.h,
-        centerTitle: true,
-        title: Subhead(
-          text: "Employee Attendance",
-          color: Colors.black,
-          weight: FontWeight.w500,
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: InkWell(
-              onTap: () => _selectDate(context), // Call date picker on tap
-              child: MyText(
-                text: chooseDate != null // Check if selectedDate is null
-                    ? DateFormat('dd-MM-yyyy').format(chooseDate!)
-                    : 'Select Date', // Show 'Select Date' if null
-                color: Colors.black,
-                weight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-
-      ),
+      backgroundColor: Colors.white,
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   toolbarHeight: 80.h,
+      //   centerTitle: true,
+      //   title: Subhead(
+      //     text: "Employee Attendance",
+      //     color: Colors.black,
+      //     weight: FontWeight.w500,
+      //   ),
+      //   actions: [
+      //     Padding(
+      //       padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      //       child: InkWell(
+      //         onTap: () => _selectDate(context), // Call date picker on tap
+      //         child: MyText(
+      //           text: chooseDate != null // Check if selectedDate is null
+      //               ? DateFormat('dd-MM-yyyy').format(chooseDate!)
+      //               : 'Select Date', // Show 'Select Date' if null
+      //           color: Colors.black,
+      //           weight: FontWeight.w500,
+      //         ),
+      //       ),
+      //     ),
+      //   ],
+      //
+      // ),
       body: SizedBox(
         width: width.w,
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: 20.h),
+              SizedBox(height: 30.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [

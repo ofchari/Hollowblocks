@@ -269,18 +269,18 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
   // Your existing layout and form fields remain the same
   Widget _smallBuildLayout() {
     return Scaffold(
-      backgroundColor: const Color(0xfff1f2f4),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xfff1f2f4),
-        toolbarHeight: 80.h,
-        centerTitle: true,
-        title: Subhead(
-          text: "Update Project Form",
-          color: Colors.black,
-          weight: FontWeight.w500,
-        ),
-      ),
+      backgroundColor: Colors.white,
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   backgroundColor: Colors.white,
+      //   toolbarHeight: 80.h,
+      //   centerTitle: true,
+      //   title: Subhead(
+      //     text: "Update Project Form",
+      //     color: Colors.black,
+      //     weight: FontWeight.w500,
+      //   ),
+      // ),
       body: SizedBox(
         width: width.w,
         child: SingleChildScrollView(
@@ -292,7 +292,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
             child: IntrinsicHeight(
               child: Column(
                 children: [
-                  SizedBox(height: 10.h),
+                  SizedBox(height: 30.h),
                   Padding(
                     padding:  EdgeInsets.only(left: 12.0),
                     child: Align(

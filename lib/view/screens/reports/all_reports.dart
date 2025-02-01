@@ -45,21 +45,22 @@ class _AllReportsState extends State<AllReports> {
   Widget _smallBuildLayout(){
     return Scaffold(
       backgroundColor: const Color(0xfff1f2f4),
-      appBar: AppBar(
-        backgroundColor: const Color(0xfff1f2f4),
-        toolbarHeight: 80.h,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: Subhead(
-          text: "All Reports",
-          color: Colors.black,
-          weight: FontWeight.w500,
-        ),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: const Color(0xfff1f2f4),
+      //   toolbarHeight: 80.h,
+      //   centerTitle: true,
+      //   automaticallyImplyLeading: false,
+      //   title: Subhead(
+      //     text: "All Reports",
+      //     color: Colors.black,
+      //     weight: FontWeight.w500,
+      //   ),
+      // ),
       body: SizedBox(
         width: width.w,
         child: Column(
           children: [
+            SizedBox(height: 30.h),
             Padding(
             padding:  const EdgeInsets.only(left: 5.0,top: 2.0,right: 5.0),
             child:

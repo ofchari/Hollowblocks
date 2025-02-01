@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -332,34 +333,65 @@ class _DashboardState extends State<Dashboard> {
 
   Widget _smallBuildLayout() {
     return Scaffold(
-      backgroundColor: const Color(0xfff1f2f4),
+      drawer: Drawer( // Adding Drawer
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader( // Header Section
+              decoration: BoxDecoration(
+                image: DecorationImage(image: AssetImage("assets/hollow.jpg"),fit: BoxFit.cover),
+                  ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // CircleAvatar(
+                  //   radius: 30,
+                  //   backgroundColor: Colors.white,
+                  //   child: Icon(Icons.person, size: 40, color: Colors.blue),
+                  // ),
+                  SizedBox(height: 80),
+                  MyText(text: "Vetri", color: Colors.black, weight: FontWeight.w500),
+                  MyText(text: "kbscontruction@gmail.com", color: Colors.black, weight: FontWeight.w500),
+                ],
+              ),
+            ),
+            _drawerItem(icon: Icons.home, text: "Home", onTap: () {
+              Navigator.pop(context);
+            }),
+            _drawerItem(icon: Icons.data_exploration, text: "Reports", onTap: () {
+              Get.to(ReportsCommon());
+            }),
+            _drawerItem(icon: Icons.note_alt_sharp, text: "To Do", onTap: () {
+              Get.to(Todo());
+            }),
+            _drawerItem(icon: Icons.logout, text: "Logout", onTap: () {
+              sessionManager.logout(); // Call the logout method
+            }),
+          ],
+        ),
+      ),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xfff1f2f4),
+        backgroundColor: Colors.white,
         toolbarHeight: 80.h,
         centerTitle: true,
-        leading: GestureDetector(
-          onTap: () {
-            sessionManager.logout(); // Call the logout method
-          },
-          child: const Icon(Icons.logout),
-        ),
         title: Subhead(
           text: "Dashboard",
           color: Colors.black,
           weight: FontWeight.w500,
         ),
         actions: [
-          IconButton(
-            icon: Row(
-              children: [
-                const Icon(Icons.add, color: Colors.blue),
-                MyText(
-                    text: "  Add Project",
-                    color: Colors.blue,
-                    weight: FontWeight.w500),
-              ],
+          Padding(
+            padding:  EdgeInsets.only(right: 12.0),
+            child: IconButton(
+              icon: Row(
+                children: [
+                  const Icon(Icons.add, color: Colors.blue,size: 20,),
+                  Text("Project",style: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 16.5.sp,fontWeight: FontWeight.w500,color: Colors.blue)),)
+                ],
+              ),
+              onPressed: _navigateToProjectForm,
             ),
-            onPressed: _navigateToProjectForm,
           ),
         ],
       ),
@@ -373,49 +405,51 @@ class _DashboardState extends State<Dashboard> {
             child: Column(
               children: [
                 // Action Buttons Row
-            Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildActionButton(
-                  title: "Reports",
-                  color: Colors.brown,
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)], // Deep purple to vibrant purple gradient
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      double buttonWidth = (constraints.maxWidth - 40.w) / 3; // Auto-adjust width
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildActionButton(
+                            title: "Material",
+                            color: Colors.lightGreen.shade700,
+                            icon: Icons.touch_app_rounded,
+                            onTap: () => Get.to(ReportsCommon()),
+                            width: buttonWidth, // Adjusted Width
+                          ),
+                          _buildActionButton(
+                            title: "Reports",
+                            color: Color(0xff947be4),
+                            icon: Icons.insert_chart_outlined,
+                            onTap: () => Get.to(ReportsCommon()),
+                            width: buttonWidth, // Adjusted Width
+                          ),
+                          _buildActionButton(
+                            title: "To Do",
+                            color: Color(0xff01ab9d),
+                            icon: Icons.checklist,
+                            onTap: () => Get.to(Todo()),
+                            width: buttonWidth, // Adjusted Width
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  icon: Icons.insert_chart_outlined,
-                  onTap: () => Get.to(ReportsCommon()),
                 ),
-                _buildActionButton(
-                  title: "To Do",
-                  color: Colors.blueAccent,
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF00B4DB), Color(0xFF0083B0)], // Ocean blue gradient
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  icon: Icons.checklist,
-                  onTap: () => Get.to(Todo()),
-                ),
-              ],
-            ),
-          ),
+
 
                 SizedBox(height: 10.h), // Add spacing if needed
                 Padding(
-                  padding:  EdgeInsets.all(8.0),
-                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  padding: EdgeInsets.symmetric(horizontal: 8.0), // Reduced unnecessary padding
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Heading(text: "   Projects", color: Colors.black, weight: FontWeight.w600),
+                      Heading(text: "   Projects", color: Colors.black, weight: FontWeight.w600), // Removed unnecessary spaces
                       IconButton(
-                        icon: Row(
-                          children: [
-                            const Icon(Icons.filter_list, color: Colors.grey),
-                          ],
-                        ),
+                        icon: Icon(Icons.filter_list, color: Colors.grey), // Removed unnecessary Row
                         onPressed: () {
                           showDialog(
                             context: context,
@@ -424,7 +458,7 @@ class _DashboardState extends State<Dashboard> {
                                 title: Text('Apply Filters'),
                                 content: SingleChildScrollView(
                                   child: Column(
-                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisSize: MainAxisSize.min, // Ensures minimal spacing
                                     children: dropdownData.keys.map((field) {
                                       return _buildFilterDropdown(field);
                                     }).toList(),
@@ -454,98 +488,82 @@ class _DashboardState extends State<Dashboard> {
                           );
                         },
                       ),
-
                     ],
                   ),
                 ),
-                // Project List or Placeholder
+// Project List or Placeholder
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: AlwaysScrollableScrollPhysics(),
-                    child: projectList.isEmpty
-                        ? GestureDetector(
-                      onTap: _navigateToProjectForm,
-                      child: Padding(
-                        padding: EdgeInsets.all(16.w),
-                        child: Container(
-                          height: height / 4.h,
-                          width: width / 1.5.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10.r),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 5,
-                                offset: Offset(2, 4),
-                              )
-                            ],
-                            image: DecorationImage(
-                              image: AssetImage("assets/hollow.jpg"),
-                              fit: BoxFit.cover,
-                            ),
+                  child: projectList.isEmpty
+                      ? GestureDetector(
+                    onTap: _navigateToProjectForm,
+                    child: Padding(
+                      padding: EdgeInsets.all(16), // Used a standard padding
+                      child: Container(
+                        height: height / 4,
+                        width: width / 1.5,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          image: DecorationImage(
+                            image: AssetImage("assets/hollow.jpg"),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                    )
-                        : Column(
-                      children: [
-                        SizedBox(height: 20.h),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: projectList.length,
-                          itemBuilder: (context, index) {
-                            final project = projectList[index];
-                            return _buildProjectCard(project);
-                          },
-                        ),
-                      ],
                     ),
+                  )
+                      : ListView.builder(
+                    padding: EdgeInsets.symmetric(vertical: 3), // Reduce extra spacing
+                    itemCount: projectList.length,
+                    itemBuilder: (context, index) {
+                      final project = projectList[index];
+                      return _buildProjectCard(project);
+                    },
                   ),
                 ),
+
               ],
             ),
           ),
         ),
-
-
     );
   }
+         /// Drawer Help logic method //
+  Widget _drawerItem({required IconData icon, required String text, required VoidCallback onTap}) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.blue                    ),
+      title: Text(text, style: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 16.sp,fontWeight: FontWeight.w500,color: Colors.black))),
+      onTap: onTap,
+    );
+  }
+
   // Method to create action buttons (Reports & To-Do)
   Widget _buildActionButton({
     required String title,
     required Color color,
-    required Gradient gradient,
     required IconData icon,
     required VoidCallback onTap,
+    double? width, // Allow dynamic width
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 140.h,
-        width: 170.w,
+        height: 100.h, // Reduced height to fit better
+        width: width ?? 120.w, // Use dynamic width if provided
         decoration: BoxDecoration(
           color: color,
-          gradient:  gradient,
           borderRadius: BorderRadius.circular(8.r),
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: Colors.black26,
-          //     blurRadius: 4,
-          //     offset: Offset(2, 4),
-          //   )
-          // ],
         ),
-        child: Row(
+        child: Column( // Changed to Column for better layout
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 24),
-            SizedBox(width: 8.w),
+            Icon(icon, color: Colors.white, size: 26.sp),
+            SizedBox(height: 4.h), // Added spacing
             Text(
               title,
+              textAlign: TextAlign.center,
               style: GoogleFonts.figtree(
                 textStyle: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -556,6 +574,7 @@ class _DashboardState extends State<Dashboard> {
       ),
     );
   }
+
 
 // Method to create Project Cards
   Widget _buildProjectCard(Map<String, dynamic> project) {
@@ -568,46 +587,59 @@ class _DashboardState extends State<Dashboard> {
         ));
       },
       child: Container(
+        height: height / 9.h,
         margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: Colors.black26,
-          //     blurRadius: 1,
-          //     offset: Offset(2, 4),
-          //   )
-          // ],
+          border: Border.all(color: Colors.grey.shade300, width: 1),
+          borderRadius: BorderRadius.circular(8.r),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Flexible(
-              child: Text(
-                project['work'],
-                style: GoogleFonts.figtree(
-                  textStyle: TextStyle(
-                    fontSize: 17.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+            /// First Row - Project Name & Options
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                /// Project Work (Make sure it does not overflow)
+                Expanded(
+                  child: Text(
+                    project['work'],
+                    style: GoogleFonts.figtree(
+                      textStyle: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.grey),
-              onPressed: () {
-                MobileDocument(context, project['name']);
-              },
+
+                /// More options (Percentage + Menu Button)
+                Row(
+                  children: [
+                    MyText(text: "0%", color: Colors.black, weight: FontWeight.w300),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.grey),
+                      onPressed: () {
+                        MobileDocument(context, project['name']);
+                      },
+                    ),
+                  ],
+                ),
+                Divider(
+                  color: Colors.black,
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+
 
 }

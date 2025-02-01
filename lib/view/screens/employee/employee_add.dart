@@ -132,9 +132,9 @@ class _EmployeeAddState extends State<EmployeeAdd> {
   }
   Widget _smallBuildLayout(){
     return Scaffold(
-      backgroundColor: const Color(0xfff1f2f4),
+      // backgroundColor: const Color(0xfff1f2f4),
       appBar: AppBar(
-        backgroundColor: const Color(0xfff1f2f4),
+        backgroundColor: Colors.white,
         toolbarHeight: 80.h,
         centerTitle: true,
         title: Subhead(
