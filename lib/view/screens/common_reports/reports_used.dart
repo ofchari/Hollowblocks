@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
 class ReportsUsed extends StatefulWidget {
-  const ReportsUsed({Key? key}) : super(key: key);
+  const ReportsUsed({super.key});
 
   @override
   State<ReportsUsed> createState() => _ReportsUsedState();

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart'as http;
 import 'package:http/io_client.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form.dart';
 import '../../universal_key_api/api_url.dart';

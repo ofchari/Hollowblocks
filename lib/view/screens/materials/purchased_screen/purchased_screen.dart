@@ -265,7 +265,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
         Get.off(
               () => TabsPages(
             projectName: widget.projectName,
-            initialTabIndex: 2, work: widget.work,
+            initialTabIndex: 3, work: widget.work,
           ),
           arguments: {
             'purchased': {

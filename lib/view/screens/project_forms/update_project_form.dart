@@ -6,18 +6,10 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
-import 'package:vetri_hollowblock/view/screens/pdf_view.dart';
-import 'package:vetri_hollowblock/view/screens/project_details.dart';
 import 'package:http/http.dart'as http;
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form_dropdown.dart';
 import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
-import 'package:pdf/widgets.dart' as pw;
 import '../../widgets/buttons.dart';
-import '../../widgets/subhead.dart';
-import '../dashboard.dart';
-import 'package:path_provider/path_provider.dart';
 
 class UpdateProjectForm extends StatefulWidget {
   const UpdateProjectForm({super.key,    required this.projectName,});
@@ -673,7 +665,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
       "29-30"
     ];
 
-    FocusNode _focusNode = FocusNode();
+    FocusNode focusNode = FocusNode();
 
     return Focus(
       onFocusChange: (hasFocus) {
@@ -703,7 +695,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
               alignment: Alignment.center, // Center the text vertically and horizontally
               child: TextFormField(
                 controller: controller,
-                focusNode: _focusNode,
+                focusNode: focusNode,
                 style: GoogleFonts.dmSans(
                   textStyle: TextStyle(
                     fontSize: 16.sp, // Adjust font size for better readability
@@ -738,7 +730,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Select Financial Year", style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Container(
+          content: SizedBox(
             width: 300, // Set a fixed width for the dropdown
             height: 250, // Set a fixed height for the dropdown container
             child: DropdownButton<String>(

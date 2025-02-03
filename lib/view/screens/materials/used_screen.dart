@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:hive/hive.dart';
-import 'package:http/http.dart'as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -15,7 +14,6 @@ import '../../widgets/buttons.dart';
 import '../../widgets/subhead.dart';
 import '../../widgets/text.dart';
 import '../tabs_pages.dart';
-import 'material_details.dart';
 import 'materials_add.dart';
 
 class UsedScreen extends StatefulWidget {
@@ -27,7 +25,7 @@ class UsedScreen extends StatefulWidget {
     super.key,
     this.material, // Make it optional in case you navigate directly to this screen
     required this.projectName,
-    required this.work
+    required this.work,
   });
 
   @override
@@ -175,7 +173,7 @@ class _UsedScreenState extends State<UsedScreen> {
         Get.off(
               () => TabsPages(
             projectName: widget.projectName,
-            initialTabIndex: 2, work: widget.work,
+            initialTabIndex: 3, work: widget.work,
           ),
           arguments: {
             'used': {

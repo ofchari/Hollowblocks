@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart'; // Import the PDF view package
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/widgets/subhead.dart';
 
@@ -11,10 +10,10 @@ class PdfPreviewScreen extends StatefulWidget {
   final String projectName;
 
   const PdfPreviewScreen({
-    Key? key,
+    super.key,
     required this.pdfFile,
     required this.projectName,
-  }) : super(key: key);
+  });
 
   @override
   _PdfPreviewScreenState createState() => _PdfPreviewScreenState();

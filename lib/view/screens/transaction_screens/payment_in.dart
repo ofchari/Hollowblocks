@@ -108,7 +108,7 @@ class _PaymentInState extends State<PaymentIn> {
 
               /// Payment Method Selection
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.h),
+                padding: EdgeInsets.symmetric(vertical: 8.h,horizontal: 8.w),
                 child: Text(
                   "Payment Method",
                   style: GoogleFonts.dmSans(
@@ -153,21 +153,24 @@ class _PaymentInState extends State<PaymentIn> {
 
   /// Common TextField Widget
   Widget _buildTextField(String label, TextEditingController controller, TextInputType type) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: type,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: GoogleFonts.dmSans(
-          textStyle: TextStyle(
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: type,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: GoogleFonts.dmSans(
+            textStyle: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+            ),
           ),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(5),
-          borderSide: const BorderSide(color: Colors.grey),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(5),
+            borderSide: const BorderSide(color: Colors.grey),
+          ),
         ),
       ),
     );

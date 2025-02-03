@@ -4,8 +4,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vetri_hollowblock/view/screens/transaction_screens/payment_in.dart';
 import 'package:vetri_hollowblock/view/screens/transaction_screens/payment_out.dart';
-import 'package:vetri_hollowblock/view/widgets/heading.dart';
-import 'package:vetri_hollowblock/view/widgets/subhead.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
 
 class TransactionDetails extends StatefulWidget {
@@ -102,42 +100,108 @@ class _TransactionDetailsState extends State<TransactionDetails> {
         return Expanded(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 6.h),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: button["color"],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                padding: EdgeInsets.symmetric(vertical: 14.h),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: getGradient(button["text"]),
+                borderRadius: BorderRadius.circular(8.r),
               ),
-              onPressed: () {
-                print("Selected: ${button["text"]}");
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                ),
+                onPressed: () {
+                  print("Selected: ${button["text"]}");
 
-                // **Navigation Based on Button Text**
-                switch (button["text"]) {
-                  case "Payment Out":
-                    Get.to(() => PaymentOut());
-                    break;
-                  case "Payment In":
-                    Get.to(() => PaymentIn());
-                    break;
-                  case "Material Purchase":
-                    Get.to(() =>());
-                    break;
-                  case "Other Expense":
-                    Get.to(() => ());
-                    break;
-                  default:
-                    print("No route defined");
-                }
-              },
-              child: Text(
-                button["text"],
-                style: GoogleFonts.dmSans(textStyle:TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500, color: Colors.white) ),
+                  // Navigation Based on Button Text
+                  switch (button["text"]) {
+                    case "Payment Out":
+                      Get.to(() => PaymentOut());
+                      break;
+                    case "Payment In":
+                      Get.to(() => PaymentIn());
+                      break;
+                    case "Material Purchase":
+                      Get.to(() => ());
+                      break;
+                    case "Other Expense":
+                      Get.to(() => ());
+                      break;
+                    default:
+                      print("No route defined");
+                  }
+                },
+                child: Text(
+                  button["text"],
+                  style: GoogleFonts.dmSans(
+                    textStyle: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         );
       }).toList(),
     );
+  }
+
+// Helper function to get gradient based on button type
+  LinearGradient getGradient(String buttonText) {
+    switch (buttonText) {
+      case "Payment Out":
+        return LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.red.shade300,
+            Colors.red.shade500,
+          ],
+        );
+      case "Payment In":
+        return LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.green.shade400,
+            Colors.green.shade600,
+          ],
+        );
+      case "Material Purchase":
+        return LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purpleAccent.shade200,
+            Colors.purpleAccent.shade400,
+          ],
+        );
+      case "Other Expense":
+        return LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple.shade200,
+            Colors.purple.shade400,
+          ],
+        );
+      default:
+        return LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.grey.shade400,
+            Colors.grey.shade600,
+          ],
+        );
+    }
   }
 
   void _showBottomSheet(BuildContext context) {
@@ -157,14 +221,14 @@ class _TransactionDetailsState extends State<TransactionDetails> {
               children: [
                 _sectionHeading("Payment"),
                 _buildButtonRow([
-                  {"text": "Payment Out", "color": Colors.red},
-                  {"text": "Payment In", "color": Colors.green}
+                  {"text": "Payment Out"},
+                  {"text": "Payment In"}
                 ]),
                 SizedBox(height: 12.h),
                 _sectionHeading("Expenses"),
                 _buildButtonRow([
-                  {"text": "Material Purchase", "color": Colors.purpleAccent},
-                  {"text": "Other Expense", "color": Colors.purple}
+                  {"text": "Material Purchase"},
+                  {"text": "Other Expense"}
                 ]),
               ],
             ),

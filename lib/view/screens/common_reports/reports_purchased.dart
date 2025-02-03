@@ -8,7 +8,7 @@ import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
 class ReportPurchased extends StatefulWidget {
-  const ReportPurchased({Key? key}) : super(key: key);
+  const ReportPurchased({super.key});
 
   @override
   State<ReportPurchased> createState() => _ReportPurchasedState();

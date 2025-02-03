@@ -6,12 +6,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 
 
 class EmployeeReport extends StatefulWidget {
@@ -402,8 +399,8 @@ class _EmployeeReportState extends State<EmployeeReport> {
                         .map(
                           (entry) => DataRow(
                         color:
-                        MaterialStateProperty.resolveWith<Color?>(
-                              (Set<MaterialState> states) {
+                        WidgetStateProperty.resolveWith<Color?>(
+                              (Set<WidgetState> states) {
                             // Alternate row colors: Green for odd, Blue for even
                             return entry.key % 2 == 0
                                 ? Colors.white

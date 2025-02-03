@@ -7,7 +7,6 @@ import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
 import 'package:vetri_hollowblock/view/screens/file_upload.dart';
 import 'package:vetri_hollowblock/view/screens/materials/material_details.dart';
-import 'package:vetri_hollowblock/view/screens/todo.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/update_project_form.dart';
 import 'package:vetri_hollowblock/view/screens/transaction_screens/transaction_details.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
@@ -159,7 +158,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
             child: InkWell(
               onTap: () => _selectDate(context), // Call date picker on tap
               child: Text(chooseDate != null // Check if selectedDate is null
-    ? DateFormat('dd-MM-yyyy').format(chooseDate!)
+    ? DateFormat('dd-MM-yyyy').format(chooseDate)
         : 'Select Date',style: GoogleFonts.manrope(textStyle: TextStyle(fontSize: 13.5.sp,fontWeight: FontWeight.w500,color: Colors.white)),
             ),
           ),

@@ -6,10 +6,6 @@ import 'package:vetri_hollowblock/view/screens/common_reports/reports_employee.d
 import 'package:vetri_hollowblock/view/screens/common_reports/reports_purchased.dart';
 import 'package:vetri_hollowblock/view/screens/common_reports/reports_received.dart';
 import 'package:vetri_hollowblock/view/screens/common_reports/reports_used.dart';
-import 'package:vetri_hollowblock/view/screens/reports/employee_attendance_reports.dart';
-import 'package:vetri_hollowblock/view/screens/reports/purchased_reports.dart';
-import 'package:vetri_hollowblock/view/screens/reports/received_reports.dart';
-import 'package:vetri_hollowblock/view/screens/reports/used_reports.dart';
 import 'dart:math'as math;
 import '../../widgets/subhead.dart';
 

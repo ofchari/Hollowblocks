@@ -9,7 +9,6 @@ import 'package:vetri_hollowblock/view/screens/materials/purchased_screen/purcha
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/used_screen.dart';
 import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
-import '../../widgets/subhead.dart';
 import '../../widgets/text.dart';
 import 'package:http/http.dart'as http;
 
@@ -258,6 +257,135 @@ class _MaterialScreenState extends State<MaterialScreen> {
       rethrow;
     }
   }
+               /// Update API methods ///
+  // First, add these new API methods for updating materials
+  Future<void> updatePurchasedMaterial(Map<String, dynamic> data) async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      final url = '$apiUrl/Material Purchase/${data['name']}';
+
+      final response = await http.put(
+        Uri.parse(url),
+        headers: headers,
+        body: json.encode({
+          "material": data['material'],
+          "quantity": data['quantity'],
+          "party_name": data['party_name'],
+          "date": data['date'],
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        Get.snackbar(
+            'Success',
+            'Material purchase updated successfully',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM
+        );
+        await fetchPurchasedData(); // Refresh data
+      } else {
+        throw Exception('Failed to update purchased material');
+      }
+    } catch (e) {
+      print('Error updating purchased material: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to update material purchase',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+              /// Update Used Material ///
+  Future<void> updateUsedMaterial(Map<String, dynamic> data) async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      final url = '$apiUrl/Material Used/${data['name']}';
+
+      final response = await http.put(
+        Uri.parse(url),
+        headers: headers,
+        body: json.encode({
+          "material": data['material'],
+          "quantity": data['quantity'],
+          "date": data['date'],
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        Get.snackbar(
+            'Success',
+            'Material usage updated successfully',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM
+        );
+        await fetchUsedData(); // Refresh data
+      } else {
+        throw Exception('Failed to update used material');
+      }
+    } catch (e) {
+      print('Error updating used material: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to update material usage',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+                 /// Updae Received material //
+  Future<void> updateReceivedMaterial(Map<String, dynamic> data) async {
+    try {
+      final headers = {
+        'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+        'Content-Type': 'application/json',
+      };
+
+      final url = '$apiUrl/Material Received/${data['name']}';
+
+      final response = await http.put(
+        Uri.parse(url),
+        headers: headers,
+        body: json.encode({
+          "material_name": data['material_name'],
+          "quantity": data['quantity'],
+          "party_name": data['party_name'],
+          "date": data['date'],
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        Get.snackbar(
+            'Success',
+            'Material receipt updated successfully',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM
+        );
+        await fetchReceivedData(); // Refresh data
+      } else {
+        throw Exception('Failed to update received material');
+      }
+    } catch (e) {
+      print('Error updating received material: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to update material receipt',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
 
                   // Delete API methods for Purchased ,Receieved & Used //
   Future<void> deletePurchasedMaterial(String name) async {
@@ -422,18 +550,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
   Widget _smallBuildLayout() {
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: AppBar(
-      //   backgroundColor: Colors.white,
-      //   automaticallyImplyLeading: false,
-      //   toolbarHeight: 80.h,
-      //   centerTitle: true,
-      //   title: Subhead(
-      //     text: "Material",
-      //     color: Colors.black,
-      //     weight: FontWeight.w500,
-      //   ),
-      // ),
-      body: Container(
+      body: SizedBox(
         height: height/1.h,
         width: width.w,
         child: Column(
@@ -459,22 +576,22 @@ class _MaterialScreenState extends State<MaterialScreen> {
               ),
             ),
             SizedBox(height: 10.h),
-            if (_selectedIndex == 0) Container(
+            if (_selectedIndex == 0) SizedBox(
               height: height/1.7.h,
               width: width/1.w,
                 child: _buildInventoryDataContainer()),
             if (_selectedIndex == 1 && purchaseBox.isNotEmpty)
-              Container(
+              SizedBox(
                 height: height/1.7.h,
                 width: width/1.w,
                   child: _buildPurchaseDataContainer()),
             if (_selectedIndex == 2 && usedBox.isNotEmpty)
-              Container(
+              SizedBox(
                 height: height/1.7.h,
                 width: width/1.w,
                   child: _buildUsedDataContainer()),
             if (_selectedIndex == 3 && receivedBox.isNotEmpty)
-              Container(
+              SizedBox(
                 height: height/1.7.h,
                 width: width/1.w,
                   child: _buildReceivedDataContainer()),
@@ -626,8 +743,22 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Stock Details", color: Colors.grey, weight: FontWeight.w500),
+                      // IconButton(
+                      //   icon: Icon(Icons.edit, color: Colors.blue),
+                      //   onPressed: () async {
+                      //     final result = await Get.to(() => ReceivedScreen(
+                      //       material: data,
+                      //       projectName: widget.projectName,
+                      //       work: widget.work,
+                      //       // isEditing: true,
+                      //     ));
+                      //     if (result != null) {
+                      //       await updateReceivedMaterial(result);
+                      //     }
+                      //   },
+                      // ),
                       IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
+                        icon: Icon(Icons.delete, color: Colors.grey),
                           onPressed: () {
                             Get.defaultDialog(
                               title: 'Confirm Deletion',
@@ -723,8 +854,22 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
+                      // IconButton(
+                      //   icon: Icon(Icons.edit, color: Colors.blue),
+                      //   onPressed: () async {
+                      //     final result = await Get.to(() => UsedScreen(
+                      //       material: data,
+                      //       projectName: widget.projectName,
+                      //       work: widget.work,
+                      //       // isEditing: true,
+                      //     ));
+                      //     if (result != null) {
+                      //       await updateUsedMaterial(result);
+                      //     }
+                      //   },
+                      // ),
                       IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
+                        icon: Icon(Icons.delete, color: Colors.grey),
                           onPressed: () {
                             Get.defaultDialog(
                               title: 'Confirm Deletion',
@@ -812,8 +957,22 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Material Purchase Details", color: Colors.grey, weight: FontWeight.w500),
+                      // IconButton(
+                      //   icon: Icon(Icons.edit, color: Colors.blue),
+                      //   onPressed: () async {
+                      //     final result = await Get.to(() => PurchasedScreen(
+                      //       material: data,
+                      //       projectName: widget.projectName,
+                      //       work: widget.work,
+                      //       // isEditing: true,
+                      //     ));
+                      //     if (result != null) {
+                      //       await updatePurchasedMaterial(result);
+                      //     }
+                      //   },
+                      // ),
                       IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
+                        icon: Icon(Icons.delete, color: Colors.grey),
                         onPressed: () {
                           Get.defaultDialog(
                             title: 'Confirm Deletion',
@@ -976,7 +1135,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
   Widget _buildActionButton(String text, Color color) {
     return Container(
       height: height / 17.h,
-      width: width / 3.5.w,
+      width: width / 3.4.w,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
           color: color),

@@ -15,9 +15,7 @@ import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
 import 'package:http/http.dart' as http;
 import '../../../universal_key_api/api_url.dart';
-import '../../../widgets/buttons.dart';
 import '../../../widgets/subhead.dart';
-import '../material_details.dart';
 
 class ReceivedScreen extends StatefulWidget {
    ReceivedScreen({super.key, required this.material,required this.projectName,required this.work});
@@ -177,7 +175,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
         Get.off(
               () => TabsPages(
             projectName: widget.projectName,
-            initialTabIndex: 2, work: widget.work,
+            initialTabIndex: 3, work: widget.work,
           ),
           arguments: {
             'received': {
@@ -304,7 +302,6 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
           child: Column(
             children: [
               SizedBox(height: 10.h),
-
               // Party Name Dropdown
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12.0.w),
