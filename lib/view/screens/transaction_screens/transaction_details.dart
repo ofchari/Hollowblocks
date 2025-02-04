@@ -1,13 +1,18 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:vetri_hollowblock/view/screens/transaction_screens/payment_in.dart';
-import 'package:vetri_hollowblock/view/screens/transaction_screens/payment_out.dart';
-import 'package:vetri_hollowblock/view/widgets/text.dart';
+import 'package:http/http.dart' as http;
+
+import '../../universal_key_api/api_url.dart';
+import 'payment_in.dart';  // Assuming you have these screens defined elsewhere
+import 'payment_out.dart';
 
 class TransactionDetails extends StatefulWidget {
-  const TransactionDetails({super.key});
+  const TransactionDetails({super.key, required this.projectName,required this.work});
+  final String projectName;
+  final String work;
 
   @override
   State<TransactionDetails> createState() => _TransactionDetailsState();
@@ -15,7 +20,102 @@ class TransactionDetails extends StatefulWidget {
 
 class _TransactionDetailsState extends State<TransactionDetails> {
   late double height;
+  List<dynamic> paymentInList = [];
+  List<dynamic> paymentOutList = [];
+
   late double width;
+
+  // Totals and balance
+  double totalIn = 0.0;
+  double totalOut = 0.0;
+  double balance = 0.0;
+  bool isDataLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPaymentData();
+  }
+
+  /// Fetch Payment In and Payment Out data and calculate totals and balance.
+  /// Fetch Payment In and Payment Out data and calculate totals and balance.
+  Future<void> fetchPaymentData() async {
+    setState(() {
+      isDataLoading = true;
+    });
+
+    final String paymentInUrl =
+        "https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_payment_in?name=${widget.projectName}";
+    final String paymentOutUrl =
+        "https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_payment_out?name=${widget.projectName}";
+
+    try {
+      final inResponse = await http.get(
+        Uri.parse(paymentInUrl),
+        headers: {
+          "Authorization": "token $apiKey",
+          "Content-Type": "application/json",
+        },
+      );
+
+      final outResponse = await http.get(
+        Uri.parse(paymentOutUrl),
+        headers: {
+          "Authorization": "token $apiKey",
+          "Content-Type": "application/json",
+        },
+      );
+
+      print("Payment In Response: ${inResponse.body}");
+      print("Payment Out Response: ${outResponse.body}");
+
+      if (inResponse.statusCode == 200 && outResponse.statusCode == 200) {
+        final inData = json.decode(inResponse.body);
+        final outData = json.decode(outResponse.body);
+
+        // ✅ Fix: Access 'message' instead of 'data'
+        List<dynamic> inList = (inData['message'] ?? []) as List<dynamic>;
+        List<dynamic> outList = (outData['message'] ?? []) as List<dynamic>;
+
+        double sumIn = 0.0;
+        for (var item in inList) {
+          double amount = double.tryParse(item['amount_rec'].toString()) ?? 0;
+          sumIn += amount;
+        }
+
+        double sumOut = 0.0;
+        for (var item in outList) {
+          double amount = double.tryParse(item['amount_rec'].toString()) ?? 0;
+          sumOut += amount;
+        }
+
+        setState(() {
+          totalIn = sumIn;
+          totalOut = sumOut;
+          balance = totalIn - totalOut;
+          paymentInList = inList;  // ✅ Store Payment In Data
+          paymentOutList = outList; // ✅ Store Payment Out Data
+        });
+
+
+        print("Total In: $totalIn");
+        print("Total Out: $totalOut");
+        print("Balance: $balance");
+      } else {
+        print("Failed to fetch payment data. Status codes: ${inResponse.statusCode}, ${outResponse.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching payment data: $e");
+    } finally {
+      setState(() {
+        isDataLoading = false;
+      });
+    }
+  }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +144,27 @@ class _TransactionDetailsState extends State<TransactionDetails> {
 
   Widget _smallBuildLayout() {
     return Scaffold(
+      backgroundColor: Colors.white,
+      // Display the summary card at the top of the body.
+      body: Column(
+        children: [
+          isDataLoading
+              ? Padding(
+                  padding: EdgeInsets.all(16.w),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : _buildSummaryCard(),
+          Expanded(
+            child: _buildTransactionDetails(),
+          ),
+        ],
+      ),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.all(16.0.w),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _bottomButton("Payment In", Colors.green,PaymentIn()),
+            _bottomButton("Payment In", Colors.green, PaymentIn(projectName : widget.projectName, work: widget.work,)),
             GestureDetector(
               onTap: () => _showBottomSheet(context),
               child: Container(
@@ -62,24 +177,264 @@ class _TransactionDetailsState extends State<TransactionDetails> {
                 child: Icon(Icons.add, color: Colors.white),
               ),
             ),
-            _bottomButton("Payment Out", Colors.red , PaymentOut()),
+            _bottomButton("Payment Out", Colors.red, PaymentOut(projectName : widget.projectName, work: widget.work,)),
           ],
         ),
       ),
     );
   }
 
+              /// Builds the summary card showing Balance, Total In, and Total Out ///.
+
+  Widget _buildSummaryCard() {
+    return Container(
+      margin: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          /// Balance Column
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Balance",
+                style: GoogleFonts.dmSans(
+                  textStyle: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                "${balance >= 0 ? '+' : '-'} ${balance.abs().toStringAsFixed(2)}",
+                style: GoogleFonts.outfit(
+                  textStyle: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.blue,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          /// Total In Column
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Total In",
+                style: GoogleFonts.dmSans(
+                  textStyle: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                totalIn.toStringAsFixed(2),
+                style: GoogleFonts.outfit(
+                  textStyle: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.green,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          /// Total Out Column
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Total Out",
+                style: GoogleFonts.dmSans(
+                  textStyle: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                totalOut.toStringAsFixed(2),
+                style: GoogleFonts.outfit(
+                  textStyle: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionDetails() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (paymentInList.isNotEmpty) _transactionSection("Payment In", paymentInList, true),
+            if (paymentOutList.isNotEmpty) _transactionSection("Payment Out", paymentOutList, false),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _transactionSection(String title, List<dynamic> transactions, bool isPaymentIn) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 8.h),
+          child: Text(
+            title,
+            style: GoogleFonts.dmSans(
+              textStyle: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+          ),
+        ),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: transactions.length,
+          separatorBuilder: (context, index) => SizedBox(height: 12.h),
+          itemBuilder: (context, index) {
+            var transaction = transactions[index];
+            return _buildTransactionCard(transaction, isPaymentIn);
+          },
+        ),
+        SizedBox(height: 20.h),
+      ],
+    );
+  }
+
+  Widget _buildTransactionCard(Map<String, dynamic> transaction, bool isPaymentIn) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _transactionDetailRow(
+            title: isPaymentIn ? "From" : "To",
+            value: transaction[isPaymentIn ? 'from_party' : 'to_party'] ?? "-",
+            icon: Icons.person,
+          ),
+          SizedBox(height: 6.h),
+          _transactionDetailRow(
+            title: "Amount",
+            value: "₹${transaction['amount_rec'].toStringAsFixed(2)}",
+            icon: Icons.currency_rupee,
+            valueColor: isPaymentIn ? Colors.green : Colors.red,
+          ),
+          SizedBox(height: 6.h),
+          _transactionDetailRow(
+            title: "Date",
+            value: transaction['date'] ?? "-",
+            icon: Icons.calendar_today,
+          ),
+          if (transaction['description'] != null && transaction['description'].toString().isNotEmpty)
+            Padding(
+              padding: EdgeInsets.only(top: 8.h),
+              child: _transactionDetailRow(
+                title: "Description",
+                value: transaction['description'],
+                icon: Icons.description,
+                isMultiline: true,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _transactionDetailRow({
+    required String title,
+    required String value,
+    required IconData icon,
+    Color valueColor = Colors.black87,
+    bool isMultiline = false,
+  }) {
+    return Row(
+      crossAxisAlignment: isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      children: [
+        Icon(icon, size: 18.sp, color: Colors.grey),
+        SizedBox(width: 8.w),
+        Text(
+          "$title:",
+          style: GoogleFonts.dmSans(
+            textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black),
+          ),
+        ),
+        SizedBox(width: 6.w),
+        Expanded(
+          child: Text(
+            value,
+            style: GoogleFonts.dmSans(
+              textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: valueColor),
+            ),
+            maxLines: isMultiline ? null : 1,
+            overflow: isMultiline ? TextOverflow.visible : TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+
+
   Widget _bottomButton(String text, Color color, Widget destinationScreen) {
     return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.r),
         ),
-        onPressed: () {
-          Get.to(destinationScreen);
-        },
-        child: MyText(text: text, color: Colors.white, weight: FontWeight.w500)
+        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+      ),
+      onPressed: () {
+        Get.to(destinationScreen);
+      },
+      child: Text(
+        text,
+        style: GoogleFonts.dmSans(
+          textStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500, color: Colors.white),
+        ),
+      ),
     );
   }
 
@@ -88,7 +443,9 @@ class _TransactionDetailsState extends State<TransactionDetails> {
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Text(
         text,
-        style: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600, color: Colors.black)),
+        style: GoogleFonts.dmSans(
+          textStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600, color: Colors.black),
+        ),
       ),
     );
   }
@@ -116,20 +473,21 @@ class _TransactionDetailsState extends State<TransactionDetails> {
                 ),
                 onPressed: () {
                   print("Selected: ${button["text"]}");
-
                   // Navigation Based on Button Text
                   switch (button["text"]) {
                     case "Payment Out":
-                      Get.to(() => PaymentOut());
+                      Get.to(() => PaymentOut(projectName: widget.projectName, work: widget.work,));
                       break;
                     case "Payment In":
-                      Get.to(() => PaymentIn());
+                      Get.to(() => PaymentIn(projectName: widget.projectName, work: widget.work,));
                       break;
                     case "Material Purchase":
-                      Get.to(() => ());
+                    // Replace with the correct screen
+                      Get.to(() => Container());
                       break;
                     case "Other Expense":
-                      Get.to(() => ());
+                    // Replace with the correct screen
+                      Get.to(() => Container());
                       break;
                     default:
                       print("No route defined");
@@ -153,7 +511,7 @@ class _TransactionDetailsState extends State<TransactionDetails> {
     );
   }
 
-// Helper function to get gradient based on button type
+  // Helper function to get gradient based on button type.
   LinearGradient getGradient(String buttonText) {
     switch (buttonText) {
       case "Payment Out":
@@ -214,7 +572,8 @@ class _TransactionDetailsState extends State<TransactionDetails> {
       builder: (context) {
         return Container(
           padding: EdgeInsets.all(16.w),
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.6),
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

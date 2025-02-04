@@ -114,7 +114,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
           controller: _tabController,
           children: [
             UpdateProjectForm(projectName: widget.projectName),
-            TransactionDetails(),
+            TransactionDetails(projectName : widget.projectName, work: widget.work,),
             Employee(work: widget.work),
             MaterialScreen(projectName: widget.projectName, work: widget.work),
             FileUpload(projectName: widget.projectName),
