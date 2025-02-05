@@ -187,7 +187,7 @@ class _PaymentOutState extends State<PaymentOut> {
 
   @override
   Widget build(BuildContext context) {
-    /// Define Sizes
+              /// Define Sizes ///
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;

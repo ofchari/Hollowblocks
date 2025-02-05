@@ -38,7 +38,6 @@ class _TransactionDetailsState extends State<TransactionDetails> {
   }
 
   /// Fetch Payment In and Payment Out data and calculate totals and balance.
-  /// Fetch Payment In and Payment Out data and calculate totals and balance.
   Future<void> fetchPaymentData() async {
     setState(() {
       isDataLoading = true;
@@ -112,8 +111,47 @@ class _TransactionDetailsState extends State<TransactionDetails> {
       });
     }
   }
+              /// Delete method Api //
+  Future<void> _deleteTransaction(String transactionId, bool isPaymentIn) async {
+    final String type = isPaymentIn ? "Payment%20In" : "Payment%20Out"; // Encode space properly
+    final String deleteUrl = "https://vetri.regenterp.com/api/resource/$type/$transactionId";
+    print("Api "+deleteUrl);
 
+    try {
+      final response = await http.delete(
+        Uri.parse(deleteUrl),
+        headers: {
+          "Authorization": "token $apiKey",
+          "Content-Type": "application/json",
+        },
+      );
 
+      if (response.statusCode == 202) {
+        print("Transaction deleted successfully");
+        // Show success message using GetX Snackbar
+        Get.snackbar(
+          "Success",
+          "Transaction deleted successfully",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: Duration(seconds: 2),
+        );
+        setState(() {
+          if (isPaymentIn) {
+            paymentInList.removeWhere((item) => item['name'] == transactionId);
+          } else {
+            paymentOutList.removeWhere((item) => item['name'] == transactionId);
+          }
+        });
+      } else {
+        print("Failed to delete transaction: ${response.body}");
+      }
+      print(response.statusCode);
+    } catch (e) {
+      print("Error deleting transaction: $e");
+    }
+  }
 
 
 
@@ -377,6 +415,28 @@ class _TransactionDetailsState extends State<TransactionDetails> {
                 isMultiline: true,
               ),
             ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                print("Delete button clicked for: ${transaction['name']}");
+
+                // if (transaction['name'] == null) {
+                //   print("Transaction data: $transaction");  // Print full transaction
+                //   print("Transaction ID is null! Check your data.");
+                // } else {
+                //   String apiUrl = "https://vetri.regenterp.com/api/resource/"
+                //       "${isPaymentIn ? "Payment%20In" : "Payment%20Out"}/${transaction['name']}";
+                //   print("API URL: $apiUrl");
+
+                  _deleteTransaction(transaction['name'], isPaymentIn);
+                // }
+              },
+
+
+            ),
+          ),
         ],
       ),
     );

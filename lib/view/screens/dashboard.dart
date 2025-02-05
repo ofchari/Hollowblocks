@@ -452,35 +452,65 @@ class _DashboardState extends State<Dashboard> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: Text('Apply Filters'),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r), // Smooth rounded corners
+                                ),
+                                title: Center(
+                                  child: Subhead(text: "Apply Filters", color: Colors.black, weight: FontWeight.w500)
+                                ),
                                 content: SingleChildScrollView(
                                   child: Column(
-                                    mainAxisSize: MainAxisSize.min, // Ensures minimal spacing
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start, // Align dropdowns properly
                                     children: dropdownData.keys.map((field) {
-                                      return _buildFilterDropdown(field);
+                                      return Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 6.h), // Better spacing
+                                        child: _buildFilterDropdown(field),
+                                      );
                                     }).toList(),
                                   ),
                                 ),
                                 actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      _loadProjectsFromApi(filters: selectedFilters);
-                                    },
-                                    child: const Text('Apply'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        selectedFilters.clear();
-                                      });
-                                      Navigator.of(context).pop();
-                                      _loadProjectsFromApi();
-                                    },
-                                    child: const Text('Clear'),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      // Clear Button
+                                      ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          foregroundColor: Colors.black,
+                                          backgroundColor: Colors.grey[300], // Subtle color
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedFilters.clear();
+                                          });
+                                          Navigator.of(context).pop();
+                                          _loadProjectsFromApi();
+                                        },
+                                        icon: Icon(Icons.clear, size: 18.sp),
+                                        label: Text("Clear", style: TextStyle(fontSize: 14.sp)),
+                                      ),
+
+                                      // Apply Button
+                                      ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                          backgroundColor: Colors.blue, // Highlight apply button
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          _loadProjectsFromApi(filters: selectedFilters);
+                                        },
+                                        icon: Icon(Icons.check, size: 18.sp),
+                                        label: Text("Apply", style: TextStyle(fontSize: 14.sp)),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               );
+
                             },
                           );
                         },
@@ -573,7 +603,8 @@ class _DashboardState extends State<Dashboard> {
   }
 
 
-// Method to create Project Cards
+
+
   Widget _buildProjectCard(Map<String, dynamic> project) {
     return GestureDetector(
       onTap: () {
@@ -584,7 +615,7 @@ class _DashboardState extends State<Dashboard> {
         ));
       },
       child: Container(
-        height: height / 9.h,
+        height: 100.h,
         margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
@@ -619,16 +650,15 @@ class _DashboardState extends State<Dashboard> {
                 Row(
                   children: [
                     MyText(text: "0%", color: Colors.black, weight: FontWeight.w300),
+
+                    /// Menu Button (Replaces delete icon)
                     IconButton(
-                      icon: Icon(Icons.delete, color: Colors.grey),
+                      icon: Icon(Icons.more_vert, color: Colors.grey),
                       onPressed: () {
-                        MobileDocument(context, project['name']);
+                        _showBottomSheet(project);
                       },
                     ),
                   ],
-                ),
-                Divider(
-                  color: Colors.black,
                 ),
               ],
             ),
@@ -638,5 +668,69 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+  /// Show Bottom Sheet for Delete Option
+  void _showBottomSheet(Map<String, dynamic> project) {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              width: 50.w,
+              height: 5.h,
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
+            SizedBox(height: 12.h),
 
+            // Title
+            Subhead(text: "Project Options", color: Colors.black, weight: FontWeight.w500),
+            Divider(),
+
+            // Project Form Option
+            ListTile(
+              leading: Icon(Icons.article, color: Colors.blue),
+              title: Text("Project Form",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 16.sp,fontWeight: FontWeight.w500,color: Colors.black))),
+              onTap: () {
+                Get.back(); // Close BottomSheet
+                Get.to(() => ProjectForm()); // Navigate to Project Form
+              },
+            ),
+
+            // Project Settings Option
+            ListTile(
+              leading: Icon(Icons.settings, color: Colors.green),
+              title: Text("Project Settings",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 16.sp,fontWeight: FontWeight.w500,color: Colors.black))),
+              onTap: () {
+                Get.back(); // Close BottomSheet
+                // Get.to(() => ProjectSettingsPage(project: project)); // Navigate to Project Settings
+              },
+            ),
+
+            // Delete Project Option (Highlighted)
+            ListTile(
+              leading: Icon(Icons.delete, color: Colors.red),
+              title: Text("Delete Project",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 16.sp,fontWeight: FontWeight.w500,color: Colors.black))),
+              onTap: () {
+                Get.back(); // Close BottomSheet
+                MobileDocument(Get.context!, project['name']); // Call delete function
+              },
+            ),
+
+            SizedBox(height: 10.h),
+          ],
+        ),
+      ),
+      isScrollControlled: true, // Allows it to take proper height
+      backgroundColor: Colors.transparent, // Removes default background
+    );
+  }
 }

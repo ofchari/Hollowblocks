@@ -230,6 +230,37 @@ class _FileUploadState extends State<FileUpload> {
       ),
     );
   }
+  Future<void> _takePhoto(String folder) async {
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+        preferredCameraDevice: CameraDevice.rear,
+      );
+
+      if (photo != null) {
+        // Generate a unique filename with timestamp
+        String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+        String originalFileName = path.basename(photo.path);
+        String extension = path.extension(originalFileName);
+        String newFileName = 'IMG_$timestamp$extension';
+
+        // Create a new file with the generated filename
+        File photoFile = File(photo.path);
+
+        await _uploadAndSave(photoFile.path, folder);
+      }
+    } catch (e) {
+      print('Error taking photo: $e');
+      Get.snackbar(
+        "Error",
+        "Failed to take photo: $e",
+        colorText: Colors.white,
+        backgroundColor: Colors.red,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
 
   void _showBottomSheet(String folder) {
     showModalBottomSheet(
@@ -255,9 +286,20 @@ class _FileUploadState extends State<FileUpload> {
                 ),
               ),
               SizedBox(height: 20.h),
-              ElevatedButton(
-                onPressed: () => _pickFiles(folder),
-                child: Text("Attach Documents / Images"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => _pickFiles(folder),
+                    icon: Icon(Icons.file_present),
+                    label: Text("Documents"),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => _takePhoto(folder),
+                    icon: Icon(Icons.camera_alt),
+                    label: Text("Camera"),
+                  ),
+                ],
               ),
               SizedBox(height: 20.h),
               Expanded(
@@ -529,6 +571,4 @@ class _FileUploadState extends State<FileUpload> {
         return Colors.blueGrey.shade400;
     }
   }
-
-
 }
