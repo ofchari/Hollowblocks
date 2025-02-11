@@ -99,6 +99,8 @@ class _ReportsEmployeeState extends State<ReportsEmployee> {
 
         // Filter for date
         if (selectedDate.isNotEmpty &&
+
+
             !(data['date']?.toString() ?? "").contains(selectedDate)) {
           matches = false;
         }
