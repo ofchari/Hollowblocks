@@ -623,7 +623,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
           ),
         ),
         child: Center(
-          child: Text(text,style: GoogleFonts.figtree(textStyle: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w500,color: _selectedIndex == index ? Colors.white : Colors.black)
+          child: Text(text,style: GoogleFonts.figtree(textStyle: TextStyle(fontSize: 13.sp,fontWeight: FontWeight.w700,color: _selectedIndex == index ? Colors.white : Colors.black)
           // MyText(
           //   text: text,
           //   color: _selectedIndex == index ? Colors.white : Colors.black,

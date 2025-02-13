@@ -111,7 +111,7 @@ class _TransactionDetailsState extends State<TransactionDetails> {
       });
     }
   }
-              /// Delete method Api //
+                      /// Delete method Api //
   Future<void> _deleteTransaction(String transactionId, bool isPaymentIn) async {
     final String type = isPaymentIn ? "Payment%20In" : "Payment%20Out"; // Encode space properly
     final String deleteUrl = "https://vetri.regenterp.com/api/resource/$type/$transactionId";
@@ -559,7 +559,7 @@ class _TransactionDetailsState extends State<TransactionDetails> {
                     textStyle: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                      color: Color(0xffa58ee7),
                     ),
                   ),
                 ),
@@ -579,8 +579,8 @@ class _TransactionDetailsState extends State<TransactionDetails> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.red.shade300,
-            Colors.red.shade500,
+            Color(0xffffdce8),
+            Color(0xffffdce8),
           ],
         );
       case "Payment In":
@@ -588,8 +588,8 @@ class _TransactionDetailsState extends State<TransactionDetails> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.green.shade400,
-            Colors.green.shade600,
+            Color(0xffeafff6),
+            Color(0xffeafff6),
           ],
         );
       case "Material Purchase":
@@ -597,8 +597,8 @@ class _TransactionDetailsState extends State<TransactionDetails> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.purpleAccent.shade200,
-            Colors.purpleAccent.shade400,
+            Color(0xfff0eaff),
+            Color(0xfff0eaff),
           ],
         );
       case "Other Expense":
@@ -606,8 +606,8 @@ class _TransactionDetailsState extends State<TransactionDetails> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.purple.shade200,
-            Colors.purple.shade400,
+            Color(0xfff0eaff),
+            Color(0xfff0eaff),
           ],
         );
       default:

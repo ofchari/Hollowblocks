@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
+import 'package:intl/intl.dart';
+import 'package:vetri_hollowblock/view/screens/masters_all/master_all.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form.dart';
 import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
@@ -29,6 +32,7 @@ class _DashboardState extends State<Dashboard> {
   List<Map<String, dynamic>> projectList = [];
   Map<String, dynamic> selectedFilters = {};
   Map<String, List<String>> dropdownData = {};
+  Map<String, Map<String, dynamic>> projectAmounts = {};
   final SessionManager sessionManager = SessionManager();
 
   @override
@@ -72,6 +76,73 @@ class _DashboardState extends State<Dashboard> {
       print('Error: $e');
     }
   }
+
+  // Add new method to fetch in/out amounts
+  Future<void> _fetchProjectAmounts(String projectName) async {
+    try {
+      HttpClient client = HttpClient();
+      client.badCertificateCallback =
+      ((X509Certificate cert, String host, int port) => true);
+      IOClient ioClient = IOClient(client);
+
+      final response = await ioClient.get(
+        Uri.parse('https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_in_out_amt?name=$projectName'),
+        headers: {
+          'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print("Response for $projectName:");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+
+        if (responseData.containsKey('message') && responseData['message'] is List && responseData['message'].isNotEmpty) {
+          // Get the first item from the array
+          final data = responseData['message'][0];
+
+          if (mounted) {
+            setState(() {
+              projectAmounts[projectName] = {
+                'in_amount': (data['in_amount'] ?? 0.0).toStringAsFixed(2),
+                'out_amount': (data['out_amount'] ?? 0.0).toStringAsFixed(2),
+              };
+            });
+            print("Updated amounts for $projectName: ${projectAmounts[projectName]}");
+          }
+        } else {
+          print('Invalid response format for $projectName: $responseData');
+          // Set default values if the response format is invalid
+          if (mounted) {
+            setState(() {
+              projectAmounts[projectName] = {
+                'in_amount': '0.00',
+                'out_amount': '0.00',
+              };
+            });
+          }
+        }
+      } else {
+        print('Error fetching amounts for $projectName: ${response.statusCode}');
+      }
+    } catch (e, stackTrace) {
+      print('Error fetching amounts for $projectName: $e');
+      print('Stack trace: $stackTrace');
+      // Set default values in case of error
+      if (mounted) {
+        setState(() {
+          projectAmounts[projectName] = {
+            'in_amount': '0.00',
+            'out_amount': '0.00',
+          };
+        });
+      }
+    }
+  }
+
 
   Future<void> MobileDocument(BuildContext context, String projectName) async {
     HttpClient client = HttpClient();
@@ -222,9 +293,9 @@ class _DashboardState extends State<Dashboard> {
         },
       );
 
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print('API Response: ${response.body}'); // Debug log
 
         if (data.containsKey('data') && data['data'] is List) {
           final List<dynamic> projectListData = data['data'];
@@ -236,6 +307,11 @@ class _DashboardState extends State<Dashboard> {
                   "work": project['work'] ?? ""
                 };
               }).toList();
+
+              // Fetch amounts for each project
+              for (var project in projectList) {
+                _fetchProjectAmounts(project['name']);
+              }
             });
           }
         }
@@ -311,6 +387,7 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -367,16 +444,17 @@ class _DashboardState extends State<Dashboard> {
           ],
         ),
       ),
+
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         toolbarHeight: 80.h,
         centerTitle: true,
-        title: Subhead(
-          text: "Dashboard",
-          color: Colors.black,
-          weight: FontWeight.w500,
-        ),
+        // title: Subhead(
+        //   text: "Dashboard",
+        //   color: Colors.black,
+        //   weight: FontWeight.w500,
+        // ),
         actions: [
           Padding(
             padding:  EdgeInsets.only(right: 12.0),
@@ -436,7 +514,6 @@ class _DashboardState extends State<Dashboard> {
                     },
                   ),
                 ),
-
 
                 SizedBox(height: 10.h), // Add spacing if needed
                 Padding(
@@ -602,10 +679,16 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-
-
-
+  // Update _buildProjectCard to display the amounts
   Widget _buildProjectCard(Map<String, dynamic> project) {
+    final amounts = projectAmounts[project['name']] ?? {'in_amount': '0.00', 'out_amount': '0.00'};
+
+    print("Building card for ${project['name']} with amounts: $amounts");
+
+    // Format the amounts to include commas for thousands
+    final formattedInAmount = NumberFormat('#,##,##0.00').format(double.parse(amounts['in_amount']!));
+    final formattedOutAmount = NumberFormat('#,##,##0.00').format(double.parse(amounts['out_amount']!));
+
     return GestureDetector(
       onTap: () {
         print("Navigating with project name: ${project['name']}");
@@ -615,7 +698,7 @@ class _DashboardState extends State<Dashboard> {
         ));
       },
       child: Container(
-        height: 100.h,
+        height: 120.h,
         margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
@@ -626,14 +709,12 @@ class _DashboardState extends State<Dashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// First Row - Project Name & Options
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                /// Project Work (Make sure it does not overflow)
                 Expanded(
                   child: Text(
-                    project['work'],
+                    project['work'] ?? '',
                     style: GoogleFonts.figtree(
                       textStyle: TextStyle(
                         fontSize: 17.sp,
@@ -645,30 +726,64 @@ class _DashboardState extends State<Dashboard> {
                     maxLines: 1,
                   ),
                 ),
-
-                /// More options (Percentage + Menu Button)
-                Row(
-                  children: [
-                    MyText(text: "0%", color: Colors.black, weight: FontWeight.w300),
-
-                    /// Menu Button (Replaces delete icon)
-                    IconButton(
-                      icon: Icon(Icons.more_vert, color: Colors.grey),
-                      onPressed: () {
-                        _showBottomSheet(project);
-                      },
-                    ),
-                  ],
+                IconButton(
+                  icon: Icon(Icons.more_vert, color: Colors.grey),
+                  onPressed: () {
+                    _showBottomSheet(project);
+                  },
                 ),
               ],
             ),
+            Divider(
+              color: Colors.grey.shade200,
+            ),
+            SizedBox(height: 4.3.h,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.arrow_downward, color: Colors.green, size: 24),
+                      SizedBox(width: 6.w),
+                      MyText(
+                        text: "In ₹$formattedInAmount",
+                        color: Colors.green,
+                        weight: FontWeight.w600,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 24,
+                  width: 1.5,
+                  color: Colors.grey[400], // Adds a subtle divider
+                ),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.arrow_upward, color: Colors.red, size: 24),
+                      SizedBox(width: 6.w),
+                      MyText(
+                        text: "Out ₹$formattedOutAmount",
+                        color: Colors.red,
+                        weight: FontWeight.w600,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+
           ],
         ),
       ),
     );
   }
 
-  /// Show Bottom Sheet for Delete Option
+             /// Show Bottom Sheet for Delete Option ///
   void _showBottomSheet(Map<String, dynamic> project) {
     Get.bottomSheet(
       Container(
