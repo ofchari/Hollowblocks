@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           home:
-            MasterAll()
+            Dashboard()
           // AnimatedSplashScreen(
           //   backgroundColor: Colors.white,
           //     splash: Image.asset("assets/KBSCo.jpg"),

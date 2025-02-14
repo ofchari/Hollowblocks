@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:vetri_hollowblock/view/screens/masters_all/update_employee.dart';
+import 'package:vetri_hollowblock/view/screens/masters_all/update_material.dart';
+import 'package:vetri_hollowblock/view/screens/masters_all/update_party.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
 import 'package:vetri_hollowblock/view/widgets/text.dart';
 import '../../widgets/subhead.dart';
@@ -50,7 +52,7 @@ class _MasterAllState extends State<MasterAll> {
           onPressed: () => Get.back(),
         ),
         title: Subhead(
-          text: "Update Masters",
+          text: "   Update Masters",
           color: Colors.black,
           weight: FontWeight.w600,
         ),
@@ -66,9 +68,14 @@ class _MasterAllState extends State<MasterAll> {
                 Get.to(() => const UpdateEmployee(), transition: Transition.fade);
               }),
               SizedBox(height: 20.h),
-              _buildButton("Material Library Update", Icons.inventory, () {}),
+              _buildButton("Material Library Update", Icons.inventory, () {
+                Get.to(() => const UpdateMaterial(), transition: Transition.fade);
+
+              }),
               SizedBox(height: 20.h),
-              _buildButton("Party Update", Icons.groups, () {}),
+              _buildButton("Party Update", Icons.groups, () {
+                Get.to(() => const UpdateParty(), transition: Transition.fade);
+              }),
             ],
           ),
         ),

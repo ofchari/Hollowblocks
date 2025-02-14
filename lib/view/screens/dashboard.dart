@@ -239,8 +239,8 @@ class _DashboardState extends State<Dashboard> {
           Map<String, Set<String>> tempDropdownData = {
             'work': {},
             'work_type': {},
-            // 'scheme_name': {},
-            // 'scheme_group': {},
+            'scheme_name': {},
+            'scheme_group': {},
             // 'work_group': {},
             // 'agency_name': {},
           };
@@ -283,7 +283,7 @@ class _DashboardState extends State<Dashboard> {
 
       // Updated URL construction with proper filter format
       final url =
-          Uri.parse('$apiUrl/Project Form?fields=["name","work"]$filterString');
+          Uri.parse('$apiUrl/Project Form?fields=["name","work","scheme_name","scheme_group","work_group","agency_name"]$filterString');
       print('Request URL: $url'); // Debug log
 
       final response = await http.get(
@@ -304,7 +304,11 @@ class _DashboardState extends State<Dashboard> {
               projectList = projectListData.map((project) {
                 return {
                   "name": project['name'] ?? "",
-                  "work": project['work'] ?? ""
+                  "work": project['work'] ?? "",
+                  "scheme_name": project['scheme_name'] ?? "",
+                  "scheme_group": project['scheme_group'] ?? "",
+                  "work_group": project['work_group'] ?? "",
+                  "agency_name": project['agency_name'] ?? "",
                 };
               }).toList();
 
