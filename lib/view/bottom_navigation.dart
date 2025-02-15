@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:vetri_hollowblock/view/screens/common_reports/reports_all.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/masters_all/master_all.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
@@ -12,10 +13,10 @@ class BottomNavigation extends StatefulWidget {
 }
 
 class _BottomNavigationState extends State<BottomNavigation> {
-  int selectedIndex = 0;
+  int selectedIndex = 1;
 
   final  List<Widget> _screens = [
-    Todo(),
+    ReportsCommon(),
     Dashboard(),
     MasterAll(),
   ];
@@ -68,8 +69,8 @@ class _BottomNavigationState extends State<BottomNavigation> {
             },
             tabs: [
               GButton(
-                icon: Icons.today_outlined,
-                text: 'Todo',
+                icon: Icons.inventory_outlined,
+                text: 'Reports',
               ),
               GButton(
                 icon: Icons.home_work_outlined,

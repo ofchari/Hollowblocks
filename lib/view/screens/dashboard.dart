@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
-import 'package:vetri_hollowblock/view/screens/masters_all/master_all.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form.dart';
 import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
 import 'package:vetri_hollowblock/view/screens/todo.dart';
@@ -221,7 +219,7 @@ class _DashboardState extends State<Dashboard> {
     try {
       final response = await http.get(
         Uri.parse(
-            '$apiUrl/Project Form?fields=["work","work_type","scheme_name","scheme_group","work_group","agency_name"]'),
+            '$apiUrl/Project Form?fields=["work","work_type","scheme_name","scheme_group","work_group","agency_name","district","block","village"]'),
         headers: {
           'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
         },
@@ -241,8 +239,12 @@ class _DashboardState extends State<Dashboard> {
             'work_type': {},
             'scheme_name': {},
             'scheme_group': {},
-            // 'work_group': {},
-            // 'agency_name': {},
+            'work_group': {},
+            'agency_name': {},
+            'district': {},
+            'block': {},
+            'village': {},
+            // 'Construction Status': {},
           };
 
           for (var item in filterData) {
@@ -283,7 +285,7 @@ class _DashboardState extends State<Dashboard> {
 
       // Updated URL construction with proper filter format
       final url =
-          Uri.parse('$apiUrl/Project Form?fields=["name","work","scheme_name","scheme_group","work_group","agency_name"]$filterString');
+          Uri.parse('$apiUrl/Project Form?fields=["name","work","scheme_name","scheme_group","work_group","agency_name","district","block","village"]$filterString');
       print('Request URL: $url'); // Debug log
 
       final response = await http.get(
@@ -309,6 +311,10 @@ class _DashboardState extends State<Dashboard> {
                   "scheme_group": project['scheme_group'] ?? "",
                   "work_group": project['work_group'] ?? "",
                   "agency_name": project['agency_name'] ?? "",
+                  "district": project['district'] ?? "",
+                  "block": project['block'] ?? "",
+                  "village": project['village'] ?? "",
+                  // "Construction Status": project['Construction Status'] ?? "",
                 };
               }).toList();
 
@@ -353,39 +359,41 @@ class _DashboardState extends State<Dashboard> {
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
         width: double.infinity,
-        child: DropdownButtonFormField<String>(
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Select ${fieldName.replaceAll('_', ' ').capitalize}',
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-          ),
-          value: selectedFilters[fieldName],
-          items: [
-            DropdownMenuItem<String>(
-              value: null,
-              child: Text('All ${fieldName.replaceAll('_', ' ').capitalize}'),
+        child: SingleChildScrollView(
+          child: DropdownButtonFormField<String>(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Select ${fieldName.replaceAll('_', ' ').capitalize}',
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
             ),
-            ...?dropdownData[fieldName]?.map((value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              );
-            }),
-          ],
-          onChanged: (value) {
-            setState(() {
-              if (value == null) {
-                selectedFilters.remove(fieldName);
-              } else {
-                selectedFilters[fieldName] = value;
-              }
-            });
-          },
+            value: selectedFilters[fieldName],
+            items: [
+              DropdownMenuItem<String>(
+                value: null,
+                child: Text('All ${fieldName.replaceAll('_', ' ').capitalize}'),
+              ),
+              ...?dropdownData[fieldName]?.map((value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    value,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                );
+              }),
+            ],
+            onChanged: (value) {
+              setState(() {
+                if (value == null) {
+                  selectedFilters.remove(fieldName);
+                } else {
+                  selectedFilters[fieldName] = value;
+                }
+              });
+            },
+          ),
         ),
       ),
     );

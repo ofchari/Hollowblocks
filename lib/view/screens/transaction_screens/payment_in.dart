@@ -3,14 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/snackbar/snackbar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:vetri_hollowblock/view/screens/tabs_pages.dart';
-import 'package:vetri_hollowblock/view/screens/transaction_screens/transaction_details.dart';
 
 import '../../universal_key_api/api_url.dart';
 import '../../widgets/buttons.dart';

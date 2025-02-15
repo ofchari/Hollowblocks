@@ -601,7 +601,6 @@ class _ProjectFormState extends State<ProjectForm> {
 
   }
 
-
   /// Dropdown field //
 
   Widget _buildDropdownField({

@@ -1,4 +1,3 @@
-import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,8 +15,6 @@ import 'package:vetri_hollowblock/view/screens/Form_types/village_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/work_group_screen.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/work_type_screen.dart';
-import 'package:vetri_hollowblock/view/screens/login.dart';
-import 'package:vetri_hollowblock/view/screens/masters_all/master_all.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter(); // Initialize Hive
@@ -58,7 +55,7 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           home:
-            Dashboard()
+            BottomNavigation()
           // AnimatedSplashScreen(
           //   backgroundColor: Colors.white,
           //     splash: Image.asset("assets/KBSCo.jpg"),

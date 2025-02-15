@@ -115,7 +115,7 @@ class _TransactionDetailsState extends State<TransactionDetails> {
   Future<void> _deleteTransaction(String transactionId, bool isPaymentIn) async {
     final String type = isPaymentIn ? "Payment%20In" : "Payment%20Out"; // Encode space properly
     final String deleteUrl = "https://vetri.regenterp.com/api/resource/$type/$transactionId";
-    print("Api "+deleteUrl);
+    print("Api $deleteUrl");
 
     try {
       final response = await http.delete(

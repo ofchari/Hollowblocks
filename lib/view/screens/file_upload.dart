@@ -12,7 +12,6 @@ import 'package:path/path.dart' as path;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
 import 'package:vetri_hollowblock/view/widgets/subhead.dart';
-import 'package:vetri_hollowblock/view/widgets/text.dart';
 
 // Define your Hive model and adapter
 @HiveType(typeId: 1)

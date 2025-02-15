@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:vetri_hollowblock/view/bottom_navigation.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/employee/employee.dart';
 import 'package:vetri_hollowblock/view/screens/file_upload.dart';
@@ -78,7 +79,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           _buildDialogButton("Yes", Colors.red, () {
-            Get.offAll(() => const Dashboard());
+            Get.offAll(() => const BottomNavigation());
           }),
           _buildDialogButton("No", Colors.green, () {
             Navigator.pop(context);
