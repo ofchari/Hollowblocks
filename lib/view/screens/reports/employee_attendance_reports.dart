@@ -332,15 +332,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
                     columnSpacing: 17, // Reduce column spacing
                     columns: [
                       DataColumn(
-                          label: Text("Attendance",
-                              style: GoogleFonts.dmSans(
-                                textStyle: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                ),
-                              ))),
-                      DataColumn(
                           label: Text("Date",
                               style: GoogleFonts.outfit(
                                 textStyle: TextStyle(
@@ -349,6 +340,16 @@ class _EmployeeReportState extends State<EmployeeReport> {
                                   color: Colors.black,
                                 ),
                               ))),
+                      DataColumn(
+                          label: Text("Attendance",
+                              style: GoogleFonts.dmSans(
+                                textStyle: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                              ))),
+
                       DataColumn(
                           label: Text("Employee",
                               style: GoogleFonts.outfit(

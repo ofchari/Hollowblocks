@@ -480,6 +480,19 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Cancel Button (Top Right)
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                            icon: Icon(Icons.cancel, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                widget.material.clear(); // Clear the selected material
+                              });
+                            },
+                          ),
+                        ),
+
                         // Material Name and GST Dropdown
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,6 +629,7 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
                     ),
                   ),
                 ),
+
               SizedBox(height: 15.h,),
               GestureDetector(
                 onTap: () {

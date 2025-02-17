@@ -99,41 +99,22 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
 
 
 
-  void filterData() {
-    setState(() {
-      filteredData = materialData.where((data) {
-        bool matches = true;
-
-        searchControllers.forEach((key, controller) {
-          final searchValue = controller.text.toLowerCase();
-          final dataValue = data[key]?.toString().toLowerCase() ?? '';
-          if (searchValue.isNotEmpty && !dataValue.contains(searchValue)) {
-            matches = false;
-          }
-        });
-
-        return matches;
-      }).toList()
-        ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
-    });
-  }
-
-  Future<void> selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        selectedDate =
-        "${picked.day.toString().padLeft(2, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.year}";
-        filterData();
-      });
-    }
-
-  }
+  // Future<void> selectDate() async {
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(2100),
+  //   );
+  //   if (picked != null) {
+  //     setState(() {
+  //       selectedDate =
+  //       "${picked.day.toString().padLeft(2, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.year}";
+  //       filterData();
+  //     });
+  //   }
+  //
+  // }
 
   Future<void> _downloadExcelFile(List<Map<String, dynamic>> data) async {
     try {
@@ -179,6 +160,81 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
     }
   }
 
+  void filterData() {
+    setState(() {
+      filteredData = materialData.where((data) {
+        bool matches = true;
+
+        // Handle text-based filters
+        searchControllers.forEach((key, controller) {
+          final searchValue = controller.text.toLowerCase();
+          final dataValue = data[key]?.toString().toLowerCase() ?? '';
+          if (searchValue.isNotEmpty && !dataValue.contains(searchValue)) {
+            matches = false;
+          }
+        });
+
+        // Handle date filter
+        if (dateController.text.isNotEmpty) {
+          try {
+            final filterDate = dateController.text; // in yyyy-MM-dd format
+            final dataDate = data['date']?.toString().split(' ')[0] ?? ''; // Get only the date part
+
+            if (dataDate != filterDate) {
+              matches = false;
+            }
+          } catch (e) {
+            print('Error comparing dates: $e');
+            matches = false;
+          }
+        }
+
+        return matches;
+      }).toList()
+        ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
+    });
+  }
+
+  // Update the build method's date filter field
+  Widget buildDateFilter() {
+    return SizedBox(
+      width: 200,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: TextField(
+          controller: dateController,
+          readOnly: true,
+          decoration: InputDecoration(
+            labelText: 'Select Date',
+            labelStyle: GoogleFonts.outfit(
+              textStyle: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+            border: const OutlineInputBorder(),
+            suffixIcon: const Icon(Icons.calendar_today),
+          ),
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+            );
+
+            if (pickedDate != null) {
+              setState(() {
+                dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                filterData(); // Call filterData immediately when date is selected
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
       //// Date format change method //
   String formatDate(String dateString) {
     try {
@@ -192,6 +248,7 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
     }
   }
 
+final dateController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -231,10 +288,10 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
+                buildDateFilter(),
                 filterField('party_name'),
                 filterField('material_name'),
-                filterField('quantity'),
-                filterField('date'),
+                // filterField('quantity'),
               ],
             ),
           ),
@@ -249,6 +306,12 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
                     dataRowHeight: 40, // Reduce row height
                     columnSpacing: 17, // Reduce column spacing
                     columns: [
+                      DataColumn(label: Text("Date",style: GoogleFonts.dmSans(
+                        textStyle: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),))),
                       DataColumn(label: Text("Party Name",style: GoogleFonts.dmSans(
                         textStyle: TextStyle(
                           fontSize: 16.sp,
@@ -267,16 +330,19 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
                           fontWeight: FontWeight.w500,
                           color: Colors.black,
                         ),))),
-                      DataColumn(label: Text("Date",style: GoogleFonts.dmSans(
-                        textStyle: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                        ),))),
+
                     ],
                     rows: filteredData
                         .map((data) => DataRow(
                       cells: [
+                        DataCell(Text( formatDate(data['date'] ?? ''),textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(
+                            textStyle: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                            ),
+                          ),)),
                         DataCell(Text(data['party_name'] ?? '',textAlign: TextAlign.center,
                           style: GoogleFonts.outfit(
                             textStyle: TextStyle(
@@ -303,14 +369,7 @@ class _MaterialReceivedReportState extends State<MaterialReceivedReport> {
                               color: Colors.black,
                             ),
                           ),)),
-                        DataCell(Text( formatDate(data['date'] ?? ''),textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(
-                            textStyle: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.black,
-                            ),
-                          ),)),
+
                       ],
                     ))
                         .toList(),

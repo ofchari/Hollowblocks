@@ -23,6 +23,7 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
   List<Map<String, dynamic>> materialData = [];
   List<Map<String, dynamic>> filteredData = [];
   bool isLoading = true;
+  final dateController = TextEditingController();
 
   final Map<String, TextEditingController> searchControllers = {
     'material': TextEditingController(),
@@ -94,11 +95,13 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
     }
   }
 
+
   void filterData() {
     setState(() {
       filteredData = materialData.where((data) {
         bool matches = true;
 
+        // Handle text-based filters
         searchControllers.forEach((key, controller) {
           final searchValue = controller.text.toLowerCase();
           final dataValue = data[key]?.toString().toLowerCase() ?? '';
@@ -107,26 +110,66 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
           }
         });
 
+        // Handle date filter
+        if (dateController.text.isNotEmpty) {
+          try {
+            final filterDate = dateController.text; // in yyyy-MM-dd format
+            final dataDate = data['date']?.toString().split(' ')[0] ?? ''; // Get only the date part
+
+            if (dataDate != filterDate) {
+              matches = false;
+            }
+          } catch (e) {
+            print('Error comparing dates: $e');
+            matches = false;
+          }
+        }
+
         return matches;
       }).toList()
         ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
     });
   }
 
-  Future<void> selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+  // Update the build method's date filter field
+  Widget buildDateFilter() {
+    return SizedBox(
+      width: 200,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: TextField(
+          controller: dateController,
+          readOnly: true,
+          decoration: InputDecoration(
+            labelText: 'Select Date',
+            labelStyle: GoogleFonts.outfit(
+              textStyle: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+            border: const OutlineInputBorder(),
+            suffixIcon: const Icon(Icons.calendar_today),
+          ),
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+            );
+
+            if (pickedDate != null) {
+              setState(() {
+                dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                filterData(); // Call filterData immediately when date is selected
+              });
+            }
+          },
+        ),
+      ),
     );
-    if (picked != null) {
-      setState(() {
-        selectedDate =
-        "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-        filterData();
-      });
-    }
   }
 
   Future<void> _downloadExcelFile(List<Map<String, dynamic>> data) async {
@@ -221,9 +264,10 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
+                buildDateFilter(),
                 filterField('material'),
                 filterField('quantity'),
-                filterField('date'),
+
               ],
             ),
           ),
@@ -238,6 +282,18 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
                     dataRowHeight: 40,
                     columnSpacing: 17,
                     columns: [
+                      DataColumn(
+                        label: Text(
+                          "Date",
+                          style: GoogleFonts.dmSans(
+                            textStyle: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
                       DataColumn(
                         label: Text(
                           "Material",
@@ -262,23 +318,25 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
                           ),
                         ),
                       ),
-                      DataColumn(
-                        label: Text(
-                          "Date",
-                          style: GoogleFonts.dmSans(
-                            textStyle: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
+
                     ],
                     rows: filteredData
                         .map(
                           (data) => DataRow(
                         cells: [
+                          DataCell(
+                            Text(
+                              formatDate(data['date'] ?? ''),
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.outfit(
+                                textStyle: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
                           DataCell(
                             Text(
                               data['material'] ?? '',
@@ -305,19 +363,7 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
                               ),
                             ),
                           ),
-                          DataCell(
-                            Text(
-                              formatDate(data['date'] ?? ''),
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(
-                                textStyle: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ),
+
                         ],
                       ),
                     )

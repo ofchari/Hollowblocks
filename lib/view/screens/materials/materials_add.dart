@@ -340,11 +340,11 @@ class _MaterialsAddState extends State<MaterialsAdd> {
                       return GestureDetector(
                         onTap: () {
                           if (widget.routeType == 'used') {
-                            Get.to(() => UsedScreen(material: material, projectName: widget.projectName, work: widget.work,));
+                            Get.off(() => UsedScreen(material: material, projectName: widget.projectName, work: widget.work,));
                           } else if (widget.routeType == 'received') {
-                            Get.to(() => ReceivedScreen(material: material, projectName: widget.projectName, work: widget.work,));
+                            Get.off(() => ReceivedScreen(material: material, projectName: widget.projectName, work: widget.work,));
                           } else if (widget.routeType == 'purchased') {
-                            Get.to(() => PurchasedScreen(material: material, projectName: widget.projectName, work: widget.work,));
+                            Get.off(() => PurchasedScreen(material: material, projectName: widget.projectName, work: widget.work,));
                           }
                         },
 

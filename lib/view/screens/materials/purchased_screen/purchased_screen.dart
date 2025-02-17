@@ -481,6 +481,19 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Cancel Button (Top Right)
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                            icon: Icon(Icons.cancel, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                widget.material.clear(); // Clear the selected material
+                              });
+                            },
+                          ),
+                        ),
+
                         // Material Name and GST Dropdown
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

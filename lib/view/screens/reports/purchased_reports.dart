@@ -12,7 +12,6 @@ class MaterialPurchaseReport extends StatefulWidget {
   const MaterialPurchaseReport({super.key,required this.projectName});
   final String projectName;
 
-
   @override
   State<MaterialPurchaseReport> createState() => _MaterialPurchaseReportState();
 }
@@ -35,21 +34,7 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
 
   String selectedDate = "";
 
-  Future<void> selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (picked != null) {
-      setState(() {
-        selectedDate = DateFormat('dd-MM-yyyy').format(picked); // Store in dd-MM-yyyy format
-        filterData(); // Trigger filter after date selection
-      });
-    }
-  }
+  final dateController = TextEditingController();
 
   @override
   void initState() {
@@ -66,60 +51,57 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
   }
 
   Future<void> fetchMaterialData() async {
-    // ✅ URL for fetching material data
     final encodedProjectName = Uri.encodeComponent(widget.projectName);
-    final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_purchased?name=$encodedProjectName';
-
-    // ✅ Authentication Token
+    final url =
+        'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_purchased?name=$encodedProjectName';
     final token = "f1178cbff3f9a07:f1d2a24b5a005b7";
 
-    print('Fetching purchased data from: $url'); // Debug log
-
     try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {'Authorization': 'token $token'},
-      );
+      final response = await http.get(Uri.parse(url), headers: {'Authorization': 'token $token'});
 
       if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        final List data;
-        print(response.body);
+        final Map<String, dynamic> responseData = json.decode(response.body);
 
-        // ✅ Handling response structure
-        data = decodedResponse['message'] ?? [];
+        // Safely extract 'message' field and handle null case
+        if (responseData.containsKey('message') && responseData['message'] != null) {
+          final List<dynamic> data = responseData['message'];
 
-        setState(() {
-          materialData = data.cast<Map<String, dynamic>>();
-          filteredData = List.from(materialData)
-            ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
-          isLoading = false;
-        });
-
-        if (data.isEmpty) {
-          print('⚠️ No data found for the current query.');
+          setState(() {
+            materialData = data.cast<Map<String, dynamic>>();
+            filteredData = List.from(materialData)
+              ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
+            isLoading = false;
+          });
+        } else {
+          // Handle case when message is null
+          setState(() {
+            materialData = [];
+            filteredData = [];
+            isLoading = false;
+          });
+          print("Error: API response 'message' is null or missing.");
         }
       } else {
         setState(() {
           isLoading = false;
         });
-        print("❌ Error: ${response.statusCode} - ${response.reasonPhrase}");
+        print("Error: ${response.statusCode} - ${response.reasonPhrase}");
       }
     } catch (e) {
-      print("❌ Error fetching data: $e");
+      print("Error fetching data: $e");
       setState(() {
         isLoading = false;
       });
     }
-  }
 
+  }
 
   void filterData() {
     setState(() {
       filteredData = materialData.where((data) {
         bool matches = true;
 
-        // Apply text search filters
+        // Handle text-based filters
         searchControllers.forEach((key, controller) {
           final searchValue = controller.text.toLowerCase();
           final dataValue = data[key]?.toString().toLowerCase() ?? '';
@@ -128,18 +110,17 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
           }
         });
 
-        // Apply date filter with correct formatting
-        if (selectedDate.isNotEmpty) {
-          String formattedDataDate = "";
-          if (data['date'] != null) {
-            try {
-              formattedDataDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date']));
-            } catch (e) {
-              print("Error parsing date: $e");
-            }
-          }
+        // Handle date filter
+        if (dateController.text.isNotEmpty) {
+          try {
+            final filterDate = dateController.text; // in yyyy-MM-dd format
+            final dataDate = data['date']?.toString().split(' ')[0] ?? ''; // Get only the date part
 
-          if (formattedDataDate != selectedDate) {
+            if (dataDate != filterDate) {
+              matches = false;
+            }
+          } catch (e) {
+            print('Error comparing dates: $e');
             matches = false;
           }
         }
@@ -148,6 +129,47 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
       }).toList()
         ..sort((a, b) => (b['date'] ?? "").compareTo(a['date'] ?? ""));
     });
+  }
+
+  // Update the build method's date filter field
+  Widget buildDateFilter() {
+    return SizedBox(
+      width: 200,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: TextField(
+          controller: dateController,
+          readOnly: true,
+          decoration: InputDecoration(
+            labelText: 'Select Date',
+            labelStyle: GoogleFonts.outfit(
+              textStyle: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+            border: const OutlineInputBorder(),
+            suffixIcon: const Icon(Icons.calendar_today),
+          ),
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+            );
+
+            if (pickedDate != null) {
+              setState(() {
+                dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                filterData(); // Call filterData immediately when date is selected
+              });
+            }
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _downloadExcelFile(List<Map<String, dynamic>> data) async {
@@ -206,6 +228,20 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
     }
   }
 
+  /// Date format change methods //
+  //// Date format change method //
+  String formatDate(String dateString) {
+    try {
+      // Parse the date string to a DateTime object
+      DateTime date = DateTime.parse(dateString);
+      // Format the date as 'dd-MM-yyyy'
+      return DateFormat('dd-MM-yyyy').format(date);
+    } catch (e) {
+      // If there's an error parsing the date, return an empty string
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -244,11 +280,12 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
+                buildDateFilter(),
                 filterField('party_name'),
                 filterField('material'),
                 filterField('reference_no'),
                 filterField('quantity'),
-                filterField('date'),
+
               ],
             ),
           ),
@@ -276,6 +313,7 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
 
   List<DataColumn> _buildDataColumns() {
     final columns = [
+      "Date",
       "Party Name",
       "Material",
       "Reference No",
@@ -285,7 +323,7 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
       "Add. Discount",
       "Sub Total",
       "Total",
-      "Date"
+
     ];
 
     return columns.map((column) => DataColumn(
@@ -303,16 +341,8 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
   }
 
   DataRow _buildDataRow(Map<String, dynamic> data) {
-    String formattedDate = "";
-    if (data['date'] != null) {
-      try {
-        formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date']));
-      } catch (e) {
-        print("Error parsing date: $e");
-      }
-    }
-
     final cells = [
+      formatDate(data['date'] ?? ''),
       data['party_name'] ?? '',
       data['material'] ?? '',
       data['reference_no'] ?? '',
@@ -322,7 +352,7 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
       data['additional_discount']?.toString() ?? '',
       data['sub_total']?.toString() ?? '',
       data['total']?.toString() ?? '',
-      formattedDate, // Display date in dd-MM-yyyy format
+
     ];
 
     return DataRow(
@@ -350,8 +380,6 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
         child: TextField(
           controller: searchControllers[label],
           onChanged: (value) => filterData(),
-          readOnly: label == "date", // Prevents manual text input for date filter
-          onTap: label == "date" ? selectDate : null, // Opens calendar on tap
           decoration: InputDecoration(
             labelText: label.replaceAll('_', ' ').capitalize(),
             labelStyle: GoogleFonts.outfit(
