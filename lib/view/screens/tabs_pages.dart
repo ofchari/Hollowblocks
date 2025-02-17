@@ -79,7 +79,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           _buildDialogButton("Yes", Colors.red, () {
-            Get.offAll(() => const BottomNavigation());
+            Get.offAll(() =>  BottomNavigation());
           }),
           _buildDialogButton("No", Colors.green, () {
             Navigator.pop(context);
@@ -116,7 +116,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
           children: [
             UpdateProjectForm(projectName: widget.projectName),
             TransactionDetails(projectName : widget.projectName, work: widget.work,),
-            Employee(work: widget.work),
+            Employee(projectName : widget.projectName,work: widget.work),
             MaterialScreen(projectName: widget.projectName, work: widget.work),
             FileUpload(projectName: widget.projectName),
             AllReports(projectName : widget.projectName),
@@ -132,7 +132,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
       backgroundColor: Colors.white,
       leading: GestureDetector(
         onTap: (){
-          Get.back();
+          _onWillPop();
         },
           child: Icon(Icons.arrow_back,color: Colors.white,)),
       flexibleSpace: Container(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
@@ -154,6 +155,20 @@ class _ReportPurchasedState extends State<ReportPurchased> {
     }
   }
 
+  /// Date format change methods //
+  //// Date format change method //
+  String formatDate(String dateString) {
+    try {
+      // Parse the date string to a DateTime object
+      DateTime date = DateTime.parse(dateString);
+      // Format the date as 'dd-MM-yyyy'
+      return DateFormat('dd-MM-yyyy').format(date);
+    } catch (e) {
+      // If there's an error parsing the date, return an empty string
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -261,7 +276,7 @@ class _ReportPurchasedState extends State<ReportPurchased> {
       data['additional_discount']?.toString() ?? '',
       data['sub_total']?.toString() ?? '',
       data['total']?.toString() ?? '',
-      data['date'] ?? '',
+      formatDate(data['date'] ?? '')
     ];
 
     return DataRow(

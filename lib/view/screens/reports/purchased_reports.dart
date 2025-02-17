@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
@@ -33,6 +34,22 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
   };
 
   String selectedDate = "";
+
+  Future<void> selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      setState(() {
+        selectedDate = DateFormat('dd-MM-yyyy').format(picked); // Store in dd-MM-yyyy format
+        filterData(); // Trigger filter after date selection
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -102,6 +119,7 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
       filteredData = materialData.where((data) {
         bool matches = true;
 
+        // Apply text search filters
         searchControllers.forEach((key, controller) {
           final searchValue = controller.text.toLowerCase();
           final dataValue = data[key]?.toString().toLowerCase() ?? '';
@@ -109,6 +127,22 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
             matches = false;
           }
         });
+
+        // Apply date filter with correct formatting
+        if (selectedDate.isNotEmpty) {
+          String formattedDataDate = "";
+          if (data['date'] != null) {
+            try {
+              formattedDataDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date']));
+            } catch (e) {
+              print("Error parsing date: $e");
+            }
+          }
+
+          if (formattedDataDate != selectedDate) {
+            matches = false;
+          }
+        }
 
         return matches;
       }).toList()
@@ -269,6 +303,15 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
   }
 
   DataRow _buildDataRow(Map<String, dynamic> data) {
+    String formattedDate = "";
+    if (data['date'] != null) {
+      try {
+        formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date']));
+      } catch (e) {
+        print("Error parsing date: $e");
+      }
+    }
+
     final cells = [
       data['party_name'] ?? '',
       data['material'] ?? '',
@@ -279,7 +322,7 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
       data['additional_discount']?.toString() ?? '',
       data['sub_total']?.toString() ?? '',
       data['total']?.toString() ?? '',
-      data['date'] ?? '',
+      formattedDate, // Display date in dd-MM-yyyy format
     ];
 
     return DataRow(
@@ -307,6 +350,8 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
         child: TextField(
           controller: searchControllers[label],
           onChanged: (value) => filterData(),
+          readOnly: label == "date", // Prevents manual text input for date filter
+          onTap: label == "date" ? selectDate : null, // Opens calendar on tap
           decoration: InputDecoration(
             labelText: label.replaceAll('_', ' ').capitalize(),
             labelStyle: GoogleFonts.outfit(

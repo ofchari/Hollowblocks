@@ -1106,12 +1106,12 @@ class _MaterialScreenState extends State<MaterialScreen> {
               ),
               SizedBox(height: 16.h),
               SizedBox(height: 12.h),
-              _buildBottomSheetButton(context, "Purchase", Colors.pink, () async {
-                final result = await Get.to(() => PurchasedScreen(material: {}, projectName: widget.projectName, work: widget.work,));
-                if (result != null) {
-                  _addPurchasedData(result);
-                }
-              }),
+              // _buildBottomSheetButton(context, "Purchase", Colors.pink, () async {
+              //   final result = await Get.to(() => PurchasedScreen(material: {}, projectName: widget.projectName, work: widget.work,));
+              //   if (result != null) {
+              //     _addPurchasedData(result);
+              //   }
+              // }),
               SizedBox(height: 12.h),
               _buildBottomSheetButton(context, "Stock", Colors.blue, () async {
                 final result = await Get.to(() => ReceivedScreen(material: {}, projectName: widget.projectName, work: widget.work,));

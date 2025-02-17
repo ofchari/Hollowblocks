@@ -14,7 +14,8 @@ import '../../universal_key_api/api_url.dart';
 import '../../widgets/text.dart';
 
 class Employee extends StatefulWidget {
-  const Employee({super.key ,required this.work});
+  const Employee({super.key ,required this.work, required this.projectName});
+  final String projectName;
   final String work; //
 
   @override
@@ -484,6 +485,7 @@ class _EmployeeState extends State<Employee> {
       'in_time': inTimeController.text.trim(),
       'out_time': outTimeController.text.trim(),
       'day_salary': daySalaryController.text.trim(),
+      'project_form': widget.projectName,
     };
 
     final url = '$apiUrl/Employee Attendance';

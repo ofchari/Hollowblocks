@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
@@ -155,7 +156,7 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
 
-      final directory = Directory('/storage/emulated/0/Download/Material Used Report');
+      final directory = Directory('/storage/emulated/0/Download/Material Used');
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
@@ -167,6 +168,18 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
       await Share.shareXFiles([XFile(path)], text: "Material Used Report");
     } catch (e) {
       debugPrint("Error generating or sharing Excel file: $e");
+    }
+  }
+      /// Date Format changes //
+  String formatDate(String dateString) {
+    try {
+      // Parse the date string to a DateTime object
+      DateTime date = DateTime.parse(dateString);
+      // Format the date as 'dd-MM-yyyy'
+      return DateFormat('dd-MM-yyyy').format(date);
+    } catch (e) {
+      // If there's an error parsing the date, return an empty string
+      return '';
     }
   }
 
@@ -294,7 +307,7 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
                           ),
                           DataCell(
                             Text(
-                              data['date'] ?? '',
+                              formatDate(data['date'] ?? ''),
                               textAlign: TextAlign.center,
                               style: GoogleFonts.outfit(
                                 textStyle: TextStyle(

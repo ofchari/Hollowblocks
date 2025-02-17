@@ -11,6 +11,7 @@ import 'package:vetri_hollowblock/view/screens/pdf_view.dart';
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form_dropdown.dart';
 import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 import 'package:pdf/widgets.dart' as pw;
+import '../../bottom_navigation.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/subhead.dart';
 import '../dashboard.dart';
@@ -191,7 +192,7 @@ class _ProjectFormState extends State<ProjectForm> {
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
         );
-        return; // Just return without navigation
+        return Get.to(BottomNavigation()); // Just return without navigation
       } else {
         String message = 'Request failed with status: ${response.statusCode}';
         if (response.statusCode == 417) {
@@ -506,76 +507,54 @@ class _ProjectFormState extends State<ProjectForm> {
               SizedBox(height: 10.h),
               // Button for generating and previewing PDF
               GestureDetector(
-                onTap: () async {
-                  if (Nameoftheworkr.text.isEmpty) {
-                    Get.snackbar(
-                      "Validation Error",
-                      "Name of Work is required.",
-                      colorText: Colors.white,
-                      backgroundColor: Colors.red,
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                    return;
-                  }
+                  onTap: () async {
+                    if (Nameoftheworkr.text.isEmpty) {
+                      Get.snackbar("Validation Error", "Name of Work is required.", colorText: Colors.white, backgroundColor: Colors.red, snackPosition: SnackPosition.BOTTOM);
+                      return;
+                    }
 
-                  try {
-                    final pdfFile = await generateProfessionalPdf();
+                    try {
+                      final pdfFile = await generateProfessionalPdf();
 
-                    // Show PDF preview and wait for confirmation
-                    final confirmed = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PdfPreviewScreen(
-                          pdfFile: pdfFile,
-                          projectName: Nameoftheworkr.text,
+                      final confirmed = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PdfPreviewScreen(pdfFile: pdfFile, projectName: Nameoftheworkr.text),
                         ),
-                      ),
-                    );
+                      );
 
-                    // If user confirmed, submit the document
-                    if (confirmed == true) {
-                      try {
-                        await MobileDocument(context);
+                      if (confirmed == true) {
+                        try {
+                          await MobileDocument(context);
 
-                        // Clear navigation stack and go to Dashboard
-                        Get.offAll(() => Dashboard(), transition: Transition.noTransition);
+                          // Instead of Get.offAll(Dashboard()), update BottomNavigation index
+                          final navController = Get.find<BottomNavigationController>();
+                          navController.updateIndex(1); // Move to Dashboard tab
 
-                        Get.snackbar(
-                          "Success",
-                          "Project added successfully",
-                          colorText: Colors.white,
-                          backgroundColor: Colors.green,
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      } catch (e) {
-                        Get.snackbar(
-                          "Error",
-                          "Failed to add project: $e",
-                          colorText: Colors.white,
-                          backgroundColor: Colors.red,
-                          snackPosition: SnackPosition.BOTTOM,
+                          Get.snackbar("Success", "Project added successfully", colorText: Colors.white, backgroundColor: Colors.green, snackPosition: SnackPosition.BOTTOM);
+                        } catch (e) {
+                          Get.snackbar("Error", "Failed to add project: $e", colorText: Colors.white, backgroundColor: Colors.red, snackPosition: SnackPosition.BOTTOM);
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Error'),
+                            content: Text('An error occurred: $e'),
+                            actions: [
+                              ElevatedButton(
+                                child: const Text('OK'),
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                            ],
+                          ),
                         );
                       }
                     }
-                  } catch (e) {
-                    // Show error dialog only if we're not in the middle of navigation
-                    if (context.mounted) {
-                      await showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Error'),
-                          content: Text('An error occurred: $e'),
-                          actions: [
-                            ElevatedButton(
-                              child: Text('OK'),
-                              onPressed: () => Navigator.of(context).pop(),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  }
-                },
+                  },
+
                 child: Buttons(
                   height: height / 20.h,
                   width: width / 2.5.w,

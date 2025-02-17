@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/widgets/subhead.dart';
 
+import '../bottom_navigation.dart';
+
 class PdfPreviewScreen extends StatefulWidget {
   final File pdfFile;
   final String projectName;
@@ -67,11 +69,12 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              // Return to previous screen with success indicator
+              // // Return to previous screen with success indicator
               Navigator.of(context).pop(true);
 
-              // Force refresh the dashboard
-              Get.off(() => Dashboard(), transition: Transition.noTransition);
+              // Instead of Get.offAll(Dashboard()), update BottomNavigation index
+              final navController = Get.find<BottomNavigationController>();
+              navController.updateIndex(1); // Move to Dashboard tab
             },
             child: Text("Confirm and Submit"),
           ),

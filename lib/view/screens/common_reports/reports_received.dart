@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
@@ -159,6 +160,18 @@ class _ReportsReceivedState extends State<ReportsReceived> {
     }
   }
 
+  //// Date format change method //
+  String formatDate(String dateString) {
+    try {
+      // Parse the date string to a DateTime object
+      DateTime date = DateTime.parse(dateString);
+      // Format the date as 'dd-MM-yyyy'
+      return DateFormat('dd-MM-yyyy').format(date);
+    } catch (e) {
+      // If there's an error parsing the date, return an empty string
+      return '';
+    }
+  }
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -269,14 +282,19 @@ class _ReportsReceivedState extends State<ReportsReceived> {
                               color: Colors.black,
                             ),
                           ),)),
-                        DataCell(Text(data['date'] ?? '',textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(
-                            textStyle: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.black,
+                        DataCell(
+                          Text(
+                            formatDate(data['date'] ?? ''),
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.outfit(
+                              textStyle: TextStyle(
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black,
+                              ),
                             ),
-                          ),)),
+                          ),
+                        ),
                       ],
                     ))
                         .toList(),

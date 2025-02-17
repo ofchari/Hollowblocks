@@ -19,6 +19,7 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter(); // Initialize Hive
   await GetStorage.init();
+  Get.put(BottomNavigationController()); //
   // await Hive.openBox('userBox'); // Open a box to store user data
   runApp(const MyApp());
 }

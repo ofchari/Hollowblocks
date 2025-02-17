@@ -54,14 +54,15 @@ class _EmployeeReportState extends State<EmployeeReport> {
 
   Future<void> fetchAttendanceData() async {
     final encodedProjectName = Uri.encodeComponent(widget.projectName);
-    final url =
-        'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_employee_attendance?name=$encodedProjectName'; // New API URL
+    final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_employee_attendance?name=$encodedProjectName';
     final token = "f1178cbff3f9a07:f1d2a24b5a005b7";
 
     try {
+      print("API Request URL: $url");
+
       final response = await http.get(
         Uri.parse(url),
-        headers: {'Authorization': 'token $token'}, // Corrected headers
+        headers: {'Authorization': 'token $token'},
       );
 
       print("Response Status Code: ${response.statusCode}");
@@ -69,11 +70,11 @@ class _EmployeeReportState extends State<EmployeeReport> {
 
       if (response.statusCode == 200) {
         final decodedResponse = json.decode(response.body);
-        print(decodedResponse); // Log the entire decoded JSON to inspect the structure
+        print("Decoded Response: $decodedResponse");
 
         final List data = decodedResponse['message'] ?? [];
         if (data.isEmpty) {
-          print("No attendance data found for this project.");
+          print("⚠️ No attendance data found for project: ${widget.projectName}");
         }
 
         setState(() {
@@ -86,15 +87,16 @@ class _EmployeeReportState extends State<EmployeeReport> {
         setState(() {
           isLoading = false;
         });
-        print("Error: ${response.statusCode} - ${response.reasonPhrase}");
+        print("❌ API Error: ${response.statusCode} - ${response.reasonPhrase}");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("❌ Error fetching data: $e");
       setState(() {
         isLoading = false;
       });
     }
   }
+
 
 
 
