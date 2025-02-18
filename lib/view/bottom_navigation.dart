@@ -5,7 +5,15 @@ import 'package:vetri_hollowblock/view/screens/common_reports/reports_all.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/masters_all/master_all.dart';
 
-class BottomNavigation extends StatelessWidget {
+class BottomNavigation extends StatefulWidget {
+
+   const BottomNavigation({super.key});
+
+  @override
+  State<BottomNavigation> createState() => _BottomNavigationState();
+}
+
+class _BottomNavigationState extends State<BottomNavigation> {
   final List<Widget> _screens = [
     ReportsCommon(),
     Dashboard(),

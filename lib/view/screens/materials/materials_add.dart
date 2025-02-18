@@ -34,6 +34,9 @@ class _MaterialsAddState extends State<MaterialsAdd> {
   List<String> gstPercent = []; // List to hold GST percentages
   String? selectedGst;
   bool isLoading = false;
+  // Add new variables for selection
+  Map<int, bool> selectedMaterials = {};
+  bool selectAll = false;
 
   /// Textediting controllers
   final materialName = TextEditingController();
@@ -371,7 +374,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       MyText(
-                                        text: material['material_name'] ?? "No Name",
+                                        text: material['material_name']?.trim() ?? "No Name",
                                         color: Colors.black,
                                         weight: FontWeight.bold,
                                       ),
@@ -410,10 +413,8 @@ class _MaterialsAddState extends State<MaterialsAdd> {
               ],
             ),
           )
-
         ],
       ),
-
     );
   }
 

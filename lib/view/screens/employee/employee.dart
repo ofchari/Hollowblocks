@@ -48,6 +48,9 @@ class _EmployeeState extends State<Employee> {
   final outTimeController = TextEditingController();
   final daySalaryController = TextEditingController();
 
+
+  String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
   /// Function to show the date picker
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -166,9 +169,8 @@ class _EmployeeState extends State<Employee> {
   Future<void> fetchAttendanceData() async {
     if (!_mounted) return; // Check if the widget is still mounted
 
-    final String url =
-        "$apiUrl/Employee%20Attendance?fields=[%22attendance%22,%22employee%22,%22date%22]";
     final String today = DateTime.now().toIso8601String().substring(0, 10); // Get today's date in YYYY-MM-DD format
+    final String url = "https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_employee_attendance?name=${widget.projectName}&date=$today";
 
     try {
       final response = await http.get(
@@ -180,29 +182,46 @@ class _EmployeeState extends State<Employee> {
       );
 
       if (response.statusCode == 200 && _mounted) {
-        final data = json.decode(response.body);
-        setState(() {
-          // Filter attendance data for today
-          final todayAttendance = (data['data'] as List)
-              .where((attendance) => attendance['date'] == today)
-              .toList();
+        final Map<String, dynamic> data = json.decode(response.body);
+        print(response.body);
+        print(response.statusCode);
 
-          attendanceList = todayAttendance;
+        // Check if 'message' exists and is a list
+        if (data.containsKey('message') && data['message'] is List) {
+          final List<dynamic> attendanceData = data['message'];
 
-          // Update present employees list and count
-          presentEmployees = todayAttendance
-              .where((attendance) => attendance['attendance'] == 'Present')
-              .map((attendance) => attendance['employee'].toString())
-              .toList();
-          presentCount = presentEmployees.length;
+          setState(() {
+            // Filter attendance data for today
+            final todayAttendance = attendanceData
+                .where((attendance) => attendance['date'] == today)
+                .toList();
 
-          // Update absent employees list and count
-          absentEmployees = todayAttendance
-              .where((attendance) => attendance['attendance'] == 'Absent')
-              .map((attendance) => attendance['employee'].toString())
-              .toList();
-          absentCount = absentEmployees.length;
-        });
+            attendanceList = todayAttendance;
+
+            // Update present employees list and count
+            presentEmployees = todayAttendance
+                .where((attendance) => attendance['attendance'] == 'Present')
+                .map((attendance) => attendance['employee'].toString())
+                .toList();
+            presentCount = presentEmployees.length;
+
+            // Update absent employees list and count
+            absentEmployees = todayAttendance
+                .where((attendance) => attendance['attendance'] == 'Absent')
+                .map((attendance) => attendance['employee'].toString())
+                .toList();
+            absentCount = absentEmployees.length;
+          });
+        } else {
+          print("Attendance data is empty or not in the expected format.");
+          setState(() {
+            attendanceList = [];
+            presentEmployees = [];
+            absentEmployees = [];
+            presentCount = 0;
+            absentCount = 0;
+          });
+        }
       } else {
         print("Failed to fetch attendance data. Status: ${response.statusCode}");
       }
@@ -210,7 +229,6 @@ class _EmployeeState extends State<Employee> {
       print("Error fetching attendance data: $e");
     }
   }
-
 
 
   void showEmployeeList(BuildContext context, List<dynamic> employees, String status) {
@@ -934,9 +952,10 @@ class _EmployeeState extends State<Employee> {
                   child: Center(
                     child: TextField(
                       controller: daySalaryController,
-                      enabled: false, // Make it read-only
+                      readOnly: true,
+                      // enabled: false, // Make it read-only
                       decoration: InputDecoration(
-                        hintText: "                         Day Salary",
+                        hintText:    "          Day Salary",
                         hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
                         border: InputBorder.none,
                       ),
@@ -949,80 +968,98 @@ class _EmployeeState extends State<Employee> {
                 ),
               ),
               SizedBox(height: 20.h,),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    onTap: () async {
-                      // Show the time picker
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (pickedTime != null) {
-                        // If a time is selected, set it to the controller and update the UI
-                        setState(() {
-                          inTimeController.text = pickedTime.format(context); // Update the controller
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w),
-                      height: height / 15.h,
-                      width: width / 2.9.w,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(7.r),
-                      ),
-                      child: Center(
-                        child: MyText(
-                          text: inTimeController.text.isEmpty
-                              ? "In Time" // Default text when no time is selected
-                              : inTimeController.text, // Display selected time
-                          color: Colors.black,
-                          weight: FontWeight.w500,
-                        ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    // Show the time picker for inTime
+                    TimeOfDay? pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (pickedTime != null) {
+                      // If a time is selected, set it to the controller and update the UI
+                      setState(() {
+                        inTimeController.text = pickedTime.format(context); // Update the controller
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    height: height / 15.h,
+                    width: width / 2.9.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(7.r),
+                    ),
+                    child: Center(
+                      child: MyText(
+                        text: inTimeController.text.isEmpty
+                            ? "In Time" // Default text when no time is selected
+                            : inTimeController.text, // Display selected time
+                        color: Colors.black,
+                        weight: FontWeight.w500,
                       ),
                     ),
                   ),
-          
-                  GestureDetector(
-                    onTap: () async {
-                      // Show the time picker
-                      // Show the time picker
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (pickedTime != null) {
-                        // If a time is selected, set it to the controller and update the UI
-                        setState(() {
-                          outTimeController.text = pickedTime.format(context); // Update the controller
-                        });
+                ),
+
+                GestureDetector(
+                  onTap: () async {
+                    // Show the time picker for outTime
+                    TimeOfDay? pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (pickedTime != null) {
+                      // Parse the inTime and outTime to compare them
+                      final inTime = _parseTimeOfDay(inTimeController.text);
+                      final outTime = pickedTime;
+
+                      if (inTime != null) {
+                        if (outTime.hour < inTime.hour ||
+                            (outTime.hour == inTime.hour && outTime.minute <= inTime.minute)) {
+                          // Show error SnackBar if outTime is less than or equal to inTime
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Out Time cannot be less than or equal to In Time"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        } else {
+                          // If valid, update the outTimeController
+                          setState(() {
+                            outTimeController.text = pickedTime.format(context); // Update the controller
+                          });
+                        }
                       }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w),
-                      height: height / 15.h,
-                      width: width / 2.9.w,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(7.r),
-                      ),
-                      child: Center(
-                        child: MyText(
-                          text: outTimeController.text.isEmpty
-                              ? "Out Time" // Default text when no time is selected
-                              : outTimeController.text, // Display selected time // Show the selected shift or default text //
-                          color: Colors.black,
-                          weight: FontWeight.w500,
-                        ),
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    height: height / 15.h,
+                    width: width / 2.9.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(7.r),
+                    ),
+                    child: Center(
+                      child: MyText(
+                        text: outTimeController.text.isEmpty
+                            ? "Out Time" // Default text when no time is selected
+                            : outTimeController.text, // Display selected time
+                        color: Colors.black,
+                        weight: FontWeight.w500,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
+
               SizedBox(height: 20.h,),
               GestureDetector(
                 onTap: () {
@@ -1057,5 +1094,23 @@ class _EmployeeState extends State<Employee> {
         )
       ),
     );
+  }
+  TimeOfDay? _parseTimeOfDay(String timeString) {
+    try {
+      final parts = timeString.split(RegExp(r'[: ]'));
+      if (parts.length == 3) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        final period = parts[2].toLowerCase();
+        return TimeOfDay(
+          hour: period == 'pm' && hour != 12 ? hour + 12 : hour,
+          minute: minute,
+        );
+      }
+    } catch (e) {
+      // Handle parsing errors gracefully
+      return null;
+    }
+    return null;
   }
 }

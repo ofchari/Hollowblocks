@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart'; // Import the PDF view package
 import 'package:get/get.dart';
-import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/widgets/subhead.dart';
 
 import '../bottom_navigation.dart';

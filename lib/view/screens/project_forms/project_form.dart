@@ -14,7 +14,6 @@ import 'package:pdf/widgets.dart' as pw;
 import '../../bottom_navigation.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/subhead.dart';
-import '../dashboard.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ProjectForm extends StatefulWidget {

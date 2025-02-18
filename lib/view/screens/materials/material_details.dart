@@ -214,6 +214,8 @@ class _MaterialScreenState extends State<MaterialScreen> {
         setState(() {
           usedMaterialData = List<Map<String, dynamic>>.from(data['message'] ?? []);
         });
+        print(response.body);
+        print(response.statusCode);
       } else {
         print('Used Error Status: ${response.statusCode}'); // Debug log
         throw Exception('Failed to load used data');
@@ -854,20 +856,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
-                      // IconButton(
-                      //   icon: Icon(Icons.edit, color: Colors.blue),
-                      //   onPressed: () async {
-                      //     final result = await Get.to(() => UsedScreen(
-                      //       material: data,
-                      //       projectName: widget.projectName,
-                      //       work: widget.work,
-                      //       // isEditing: true,
-                      //     ));
-                      //     if (result != null) {
-                      //       await updateUsedMaterial(result);
-                      //     }
-                      //   },
-                      // ),
+
                       IconButton(
                         icon: Icon(Icons.delete, color: Colors.grey),
                           onPressed: () {

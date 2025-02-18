@@ -52,9 +52,11 @@ class _EmployeeReportState extends State<EmployeeReport> {
     super.dispose();
   }
 
+  final String today = DateTime.now().toIso8601String().substring(0, 10);
+
   Future<void> fetchAttendanceData() async {
     final encodedProjectName = Uri.encodeComponent(widget.projectName);
-    final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_employee_attendance?name=$encodedProjectName';
+    final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_employee_attendance?name=$encodedProjectName&date=$today';
     final token = "f1178cbff3f9a07:f1d2a24b5a005b7";
 
     try {
@@ -341,16 +343,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
                                 ),
                               ))),
                       DataColumn(
-                          label: Text("Attendance",
-                              style: GoogleFonts.dmSans(
-                                textStyle: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                ),
-                              ))),
-
-                      DataColumn(
                           label: Text("Employee",
                               style: GoogleFonts.outfit(
                                 textStyle: TextStyle(
@@ -360,17 +352,8 @@ class _EmployeeReportState extends State<EmployeeReport> {
                                 ),
                               ))),
                       DataColumn(
-                          label: Text("Shift",
-                              style: GoogleFonts.outfit(
-                                textStyle: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                ),
-                              ))),
-                      DataColumn(
-                          label: Text(" Salary",
-                              style: GoogleFonts.outfit(
+                          label: Text("Attendance",
+                              style: GoogleFonts.dmSans(
                                 textStyle: TextStyle(
                                   fontSize: 16.sp,
                                   fontWeight: FontWeight.w500,
@@ -388,6 +371,25 @@ class _EmployeeReportState extends State<EmployeeReport> {
                               ))),
                       DataColumn(
                           label: Text("Out Time",
+                              style: GoogleFonts.outfit(
+                                textStyle: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                              ))),
+
+                      DataColumn(
+                          label: Text("Shift",
+                              style: GoogleFonts.outfit(
+                                textStyle: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                              ))),
+                      DataColumn(
+                          label: Text(" Salary",
                               style: GoogleFonts.outfit(
                                 textStyle: TextStyle(
                                   fontSize: 16.sp,

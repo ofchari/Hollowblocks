@@ -48,8 +48,6 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
   final TextEditingController remarksController = TextEditingController();
 
 
-
-
  /// Fetch project details from the API
   Future<void> _fetchProjectData() async {
     try {
@@ -438,7 +436,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                     padding:  EdgeInsets.only(left: 12.0),
                     child: Align(
                         alignment: Alignment.topLeft,
-                        child: Text("  Finanaical Year :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                        child: Text("  Financial Year :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
                   ),
                   SizedBox(height: 9.5.h,),
                   _buildFinancialYearDropdown(

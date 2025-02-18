@@ -5,23 +5,22 @@ import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:http/io_client.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../universal_key_api/api_url.dart';
-import '../../widgets/buttons.dart';
 import '../../widgets/subhead.dart';
 import '../../widgets/text.dart';
 import '../tabs_pages.dart';
 import 'materials_add.dart';
+import 'package:http/http.dart'as http;
 
 class UsedScreen extends StatefulWidget {
   final Map<String, dynamic>? material; // Add this parameter
   late  String projectName;
   late String work; //
 
-   UsedScreen({
+  UsedScreen({
     super.key,
     this.material, // Make it optional in case you navigate directly to this screen
     required this.projectName,
@@ -39,6 +38,7 @@ class _UsedScreenState extends State<UsedScreen> {
   late TextEditingController materialController;
   late TextEditingController quantityController;
   Map<String, dynamic>? selectedMaterial;
+  double fetchedQty = 0.0; // Default value
 
   @override
   void initState() {
@@ -49,6 +49,7 @@ class _UsedScreenState extends State<UsedScreen> {
         text: widget.material?['material_name'] ?? ''
     );
     quantityController = TextEditingController();
+    fetchMaterialStock();
   }
 
   @override
@@ -74,17 +75,88 @@ class _UsedScreenState extends State<UsedScreen> {
 
   // Add this method to handle material selection
   void _selectMaterial() async {
-    final result = await Get.to(() => MaterialsAdd(routeType: 'used', projectName: widget.projectName, work: widget.work,));
+    final result = await Get.to(() => MaterialsAdd(
+      routeType: 'used',
+      projectName: widget.projectName,
+      work: widget.work,
+    ));
+
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
         selectedMaterial = result;
         materialController.text = result['material_name'] ?? '';
+        print("Selected Material: $selectedMaterial");
       });
+
+      print("Selected Material: $selectedMaterial");
+
+      // Fetch stock for selected material
+      fetchMaterialStock();  // Now this will only happen after selecting material
     }
   }
-           /// Post method for material Used //
+
+  /// Api's method for validation to post the data in used ///
+  Future<double> fetchMaterialStock() async {
+    final String materialName = selectedMaterial?['material_name'] ?? '';
+    print("Fetching stock for material: $materialName");
+
+    final String url =
+        "https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_stock_material?pname=${widget.projectName}&material=${materialController.text.trim()}";
+
+    print("API Request URL: $url");
+    print("Material Name Passed: $materialName");
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'token f1178cbff3f9a07:f1d2a24b5a005b7',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        print("API Response: ${response.body}");
+        print("Response Status Code: ${response.statusCode}");
+
+        if (data.containsKey("message") &&
+            data["message"] is List &&
+            data["message"].isNotEmpty) {
+          final double qty = data["message"][0]["qty"]?.toDouble() ?? 0.0;
+          setState(() {
+            fetchedQty = qty; // Store the fetched quantity
+          });
+          return qty;
+        }
+      } else {
+        print("Failed to fetch stock data. Status Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching material stock: $e");
+    }
+
+    return 0.0; // Return 0 if data is not found or an error occurs
+  }
+
+
+              /// Post method for material Used ///
   Future<void> MobileDocument(BuildContext context) async {
-    // Store project name in local storage for persistence
+    // Validate quantity against fetchedQty
+    final enteredQuantity = double.tryParse(quantityController.text.trim()) ?? 0.0;
+
+    if (enteredQuantity > fetchedQty) {
+      Get.snackbar(
+        "Error",
+        "Entered quantity exceeds available stock ($fetchedQty)",
+        colorText: Colors.white,
+        backgroundColor: Colors.red,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return; // Stop further execution
+    }
+
+    // Proceed with the rest of the logic if validation passes
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('lastProjectName', widget.projectName);
 
@@ -92,7 +164,6 @@ class _UsedScreenState extends State<UsedScreen> {
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
     IOClient ioClient = IOClient(client);
 
-    // Check if project name is available
     if (widget.projectName.isEmpty) {
       final lastProjectName = prefs.getString('lastProjectName');
       if (lastProjectName == null) {
@@ -105,7 +176,6 @@ class _UsedScreenState extends State<UsedScreen> {
         );
         return;
       }
-      // Restore project name from storage
       setState(() {
         widget.projectName = lastProjectName;
       });
@@ -117,7 +187,6 @@ class _UsedScreenState extends State<UsedScreen> {
     };
 
     try {
-      // Validate required fields before making the request
       if (materialController.text.isEmpty || quantityController.text.isEmpty) {
         throw Exception('Please fill in all required fields');
       }
@@ -152,7 +221,6 @@ class _UsedScreenState extends State<UsedScreen> {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        // Store successful material usage data locally
         final usageBox = await Hive.openBox('usedMaterialData');
         await usageBox.add({
           'material': materialController.text,
@@ -169,11 +237,11 @@ class _UsedScreenState extends State<UsedScreen> {
           snackPosition: SnackPosition.BOTTOM,
         );
 
-        // Navigate with preserved project name
         Get.off(
               () => TabsPages(
             projectName: widget.projectName,
-            initialTabIndex: 3, work: widget.work,
+            initialTabIndex: 3,
+            work: widget.work,
           ),
           arguments: {
             'used': {
@@ -216,6 +284,7 @@ class _UsedScreenState extends State<UsedScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -274,39 +343,23 @@ class _UsedScreenState extends State<UsedScreen> {
               ),
             ),
             SizedBox(height: 20.h,),
+
             _buildTextField("Quantity", quantityController, TextInputType.number),
             SizedBox(height: 20.h,),
-            // GestureDetector(
-            //   onTap: _selectMaterial,  // Use the same method for consistency
-            //   child: Align(
-            //     alignment: Alignment.centerRight,
-            //     child: Padding(
-            //       padding: const EdgeInsets.only(right: 15.0),
-            //       child: MyText(
-            //           text: selectedMaterial == null ? "+ Add Material" : "Change Material",
-            //           color: Colors.blue,
-            //           weight: FontWeight.w500),
-            //     ),
-            //   ),
-            // ),
             SizedBox(height: 20.h),
             GestureDetector(
-              onTap: (){
-                MobileDocument(context);
-                // Handle save logic here
-                if (materialController.text.isNotEmpty && quantityController.text.isNotEmpty) {
-                  // TODO: Implement your save logic
-                  print('Material: ${materialController.text}');
-                  print('Quantity: ${quantityController.text}');
-                  print('Date: ${DateFormat('dd-MM-yyyy').format(selectedDate)}');
-                }
+              onTap: () {
+                // Fetch material stock before submitting
+                fetchMaterialStock().then((_) {
+                  // Call MobileDocument after fetching stock
+                  MobileDocument(context);
+                });
               },
-              child: Buttons(
-                height: height / 20.h,
-                width: width / 2.5.w,
-                radius: BorderRadius.circular(10.r),
-                color: Colors.blue,
-                text: "Save",
+              child: MaterialButton(
+                onPressed: () {
+                  MobileDocument(context);
+                },
+                child: const Text("Submit"),
               ),
             ),
           ],
@@ -314,28 +367,29 @@ class _UsedScreenState extends State<UsedScreen> {
       ),
     );
   }
-  Widget _buildTextField(String label , TextEditingController controller, TextInputType type){
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12.0.w),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: type,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: GoogleFonts.dmSans(
-            textStyle: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
+
+  Widget _buildTextField(String label, TextEditingController controller, TextInputType keyboardType) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 10.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.r),
+        color: Colors.white,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MyText(text: label, color: Colors.black, weight: FontWeight.w500,),
+          TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            decoration: InputDecoration(
+              hintText: 'Enter $label',
+              hintStyle: TextStyle(color: Colors.grey, fontSize: 12.sp),
+              border: InputBorder.none,
             ),
           ),
-          suffixIcon: label == "Material" ? const Icon(Icons.arrow_drop_down_sharp, color: Colors.black) : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(5),
-            borderSide: const BorderSide(color: Colors.grey),
-
-          ),
-        ),
+        ],
       ),
     );
   }
