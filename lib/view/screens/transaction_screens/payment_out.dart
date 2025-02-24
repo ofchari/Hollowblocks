@@ -29,6 +29,11 @@ class _PaymentOutState extends State<PaymentOut> {
   late double width;
 
   List<String> partyName = []; // List to hold party names
+  List<Map<String, dynamic>> purchasedMaterials = [];
+  List<String> selectedMaterials = [];
+  Map<String, double> materialBalances = {}; // To store balance values per material
+
+
   String? selectedName; // Selected party name
   bool isLoading = false;
 
@@ -40,7 +45,7 @@ class _PaymentOutState extends State<PaymentOut> {
 
   String? selectedPaymentMethod; // Initially null
 
-  /// Formated date logic //
+                     /// Formated date logic //
   String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   @override
@@ -63,8 +68,35 @@ class _PaymentOutState extends State<PaymentOut> {
       });
     }
   }
+                    /// Purchased Get Api's ///
+  Future<void> fetchPurchasedMaterials() async {
+    final String url =
+        "https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_purchased?name=${widget.projectName}";
 
-  /// Get Api for party name
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'token $apiKey',
+        'Content-Type': 'application/json',
+      });
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print(response.body);
+        print(response.statusCode);
+        setState(() {
+          purchasedMaterials = List<Map<String, dynamic>>.from(
+              data['message'].where((item) => item['party_name'] == selectedName));
+        });
+      } else {
+        print("Failed to fetch purchased materials. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching purchased materials: $e");
+    }
+  }
+
+
+                       /// Get Api for party name ///
   Future<void> fetchPartyName() async {
     final String url =
         "$apiUrl/Party?fields=[%22party_name%22]&limit_page_length=50000";
@@ -95,7 +127,8 @@ class _PaymentOutState extends State<PaymentOut> {
       setState(() => isLoading = false);
     }
   }
-             /// Post method for payment out //
+
+                 /// Post method for payment out //
   Future<void> MobileDocument(BuildContext context) async {
     HttpClient client = HttpClient();
     client.badCertificateCallback =
@@ -107,10 +140,24 @@ class _PaymentOutState extends State<PaymentOut> {
       'Content-Type': 'application/json',
     };
 
-    // Determine which payment method is selected:
     final int cashValue = (selectedPaymentMethod == "Cash") ? 1 : 0;
     final int bankTransferValue = (selectedPaymentMethod == "Bank Transfer") ? 1 : 0;
     final int chequeValue = (selectedPaymentMethod == "Cheque") ? 1 : 0;
+
+    // Extract selected material details
+    String selectedMaterialName = "";
+    double selectedBalanceAmount = 0.0;
+
+    if (selectedMaterials.isNotEmpty) {
+      final selectedMaterial = purchasedMaterials
+          .firstWhere((material) => material['name'] == selectedMaterials.first, orElse: () => {});
+
+      selectedMaterialName = selectedMaterial['material'] ?? "";
+      selectedBalanceAmount = materialBalances[selectedMaterials.first] ?? 0.0;
+    }
+
+    print(selectedBalanceAmount);
+    print(selectedMaterialName);
 
     final data = {
       'doctype': 'Payment Out',
@@ -122,22 +169,20 @@ class _PaymentOutState extends State<PaymentOut> {
       'bank_transfer': bankTransferValue,
       'cheque': chequeValue,
       'bank_detail': bankDetailsController.text,
+      'bal': selectedBalanceAmount, // Pass balance here
+      'material_name': selectedMaterialName,
       'project_form': widget.projectName
     };
 
-    final url = '$apiUrl/Payment Out'; // Replace with your actual API URL
+    final url = '$apiUrl/Payment Out';
     final body = jsonEncode(data);
-    print(data);
 
     try {
-      final response =
-      await ioClient.post(Uri.parse(url), headers: headers, body: body);
-      print('Response Status: ${response.statusCode}');
-
+      final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
       if (response.statusCode == 200) {
         Get.snackbar(
           "Payment Out Created",
-          " and Posted Successfully",
+          "Posted Successfully",
           colorText: Colors.white,
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
@@ -165,7 +210,6 @@ class _PaymentOutState extends State<PaymentOut> {
         );
       }
     } catch (e) {
-      print('Error: $e');
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -182,9 +226,11 @@ class _PaymentOutState extends State<PaymentOut> {
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-              /// Define Sizes ///
+                  /// Define Sizes ///
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
@@ -245,44 +291,47 @@ class _PaymentOutState extends State<PaymentOut> {
                 padding: const EdgeInsets.all(8.0),
                 child: isLoading
                     ? Center(child: CircularProgressIndicator())
-                    : DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: "To Party",
-                          labelStyle: GoogleFonts.dmSans(
-                            textStyle: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(color: Colors.grey),
+                    :
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: "To Party",
+                    labelStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: const BorderSide(color: Colors.grey),
+                    ),
+                  ),
+                  value: selectedName,
+                  items: partyName.map((String party) {
+                    return DropdownMenuItem<String>(
+                      value: party,
+                      child: Text(
+                        party,
+                        style: GoogleFonts.dmSans(
+                          textStyle: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
                           ),
                         ),
-                        value: selectedName,
-                        items: partyName.map((String party) {
-                          return DropdownMenuItem<String>(
-                            value: party,
-                            child: Text(
-                              party,
-                              style: GoogleFonts.dmSans(
-                                textStyle: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            selectedName = newValue;
-                          });
-                        },
-                        hint: const Text("Select a Party"),
-                ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedName = newValue;
+                      fetchPurchasedMaterials(); // Fetch data when a party is selected
+                    });
+                  },
+                  hint: const Text("Select a Party"),
+                )
+
               ),
               SizedBox(height: 22.h),
               _buildTextField("Amount Received", amountReceivedController,
@@ -306,6 +355,102 @@ class _PaymentOutState extends State<PaymentOut> {
                   ),
                 ),
               ),
+              SizedBox(height: 20.h),
+              if (purchasedMaterials.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w),
+                      child: Text(
+                        "Purchased Materials",
+                        style: GoogleFonts.dmSans(
+                          textStyle: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    ...purchasedMaterials.map((material) {
+                    double subtotal = material['sub_total']?.toDouble() ?? 0;
+                    double amountGiven = selectedMaterials.contains(material['name'])
+                    ? (double.tryParse(amountReceivedController.text) ?? 0)
+                        : 0; // Only update for selected material
+                    double balance = amountGiven - subtotal;
+
+                    // Store the latest balance for each selected material
+                    if (selectedMaterials.contains(material['name'])) {
+                    materialBalances[material['name']] = balance;
+                    }
+
+                    return Container(
+                    margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+                    padding: EdgeInsets.all(10.w),
+                    decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                    BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                    offset: Offset(0, 2),
+                    ),
+                    ],
+                    ),
+                    child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                    Row(
+                    children: [
+                    Checkbox(
+                    value: selectedMaterials.contains(material['name']),
+                    onChanged: (bool? value) {
+                    setState(() {
+                    if (value == true) {
+                    selectedMaterials.add(material['name']);
+                    } else {
+                    selectedMaterials.remove(material['name']);
+                    materialBalances.remove(material['name']); // Remove balance if unchecked
+                    }
+                    });
+                    },
+                    ),
+                    Text(
+                    material['material'],
+                    style: GoogleFonts.dmSans(
+                    textStyle: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                    ),
+                    ),
+                    ),
+                    ],
+                    ),
+                    _buildInfoRow("Material", material['material'].toString()),
+                    _buildInfoRow("Total", material['total'].toString()),
+                    _buildInfoRow("Subtotal", subtotal.toString()),
+                    _buildInfoRow(
+                    "Balance",
+                    selectedMaterials.contains(material['name'])
+                    ? balance.toString()
+                        : "-",
+                    balance < 0 ? Colors.red : Colors.green,
+                    ),
+                    ],
+                    ),
+                    );
+                    }).toList(),
+
+                  ],
+                ),
+
+
+
 
               Row(
                 children: [
@@ -344,7 +489,7 @@ class _PaymentOutState extends State<PaymentOut> {
     );
   }
 
-  /// Common TextField Widget
+           ///  Common TextField Widget ///
   Widget _buildTextField(
       String label, TextEditingController controller, TextInputType type) {
     return Padding(
@@ -369,6 +514,8 @@ class _PaymentOutState extends State<PaymentOut> {
       ),
     );
   }
+
+
 
   /// Radio Button Widget (No Default Selection)
   Widget _buildRadioButton(String value) {
@@ -395,6 +542,48 @@ class _PaymentOutState extends State<PaymentOut> {
           ),
         ),
       ],
+    );
+  }
+
+            /// Row for Purchased Materials (More Professional) ///
+  Widget _buildInfoRow(String title, String value, [Color? color]) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 8.w),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              title,
+              style: GoogleFonts.dmSans(
+                textStyle: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                value,
+                style: GoogleFonts.dmSans(
+                  textStyle: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: color ?? Colors.black,
+                  ),
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

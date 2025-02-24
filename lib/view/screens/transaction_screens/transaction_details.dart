@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:vetri_hollowblock/view/screens/transaction_screens/other_expense.dart';
 
 import '../../universal_key_api/api_url.dart';
 import 'payment_in.dart';  // Assuming you have these screens defined elsewhere
@@ -399,6 +400,12 @@ class _TransactionDetailsState extends State<TransactionDetails> {
             icon: Icons.currency_rupee,
             valueColor: isPaymentIn ? Colors.green : Colors.red,
           ),
+          _transactionDetailRow(
+            title: "Balance",
+            value: "₹${transaction['bal']}",
+            icon: Icons.currency_rupee,
+            valueColor: isPaymentIn ? Colors.green : Colors.red,
+          ),
           SizedBox(height: 6.h),
           _transactionDetailRow(
             title: "Date",
@@ -547,7 +554,7 @@ class _TransactionDetailsState extends State<TransactionDetails> {
                       break;
                     case "Other Expense":
                     // Replace with the correct screen
-                      Get.to(() => Container());
+                      Get.to(() => OtherExpense());
                       break;
                     default:
                       print("No route defined");

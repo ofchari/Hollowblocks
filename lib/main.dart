@@ -57,13 +57,13 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           home:
-            // BottomNavigation()
-          AnimatedSplashScreen(
-            backgroundColor: Colors.white,
-              splash: Image.asset("assets/KBSCo.jpg"),
-              splashIconSize: 500,
-              duration: 2000,
-              nextScreen: const Login())
+            BottomNavigation()
+          // AnimatedSplashScreen(
+          //   backgroundColor: Colors.white,
+          //     splash: Image.asset("assets/KBSCo.jpg"),
+          //     splashIconSize: 500,
+          //     duration: 2000,
+          //     nextScreen: const Login())
         );
       },
     );
