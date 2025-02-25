@@ -163,7 +163,7 @@ class _EmployeeState extends State<Employee> {
   }
 
 
-  // Modify onChanged in the employee dropdown
+               // Modify onChanged in the employee dropdown ///
 
   // Updated fetchAttendanceData with mounted check
   Future<void> fetchAttendanceData() async {
@@ -370,7 +370,7 @@ class _EmployeeState extends State<Employee> {
     );
   }
 
-  /// Dropdown logic for shifts ///
+                   /// Dropdown logic for shifts ///
   void _showShiftDropdown(BuildContext context) {
     showDialog(
       context: context,
@@ -431,21 +431,15 @@ class _EmployeeState extends State<Employee> {
     );
   }
 
-  /// Post method for Employee
+               /// Post method for Employee ///
   Future<void> MobileDocument(BuildContext context) async {
-    // Add validation function
-    // Add validation function
     bool validateFields() {
-      // Special validation for Absent status
       if (attendanceStatus == "Absent") {
         if (selectedEmployee == null ||
             selectedEmployee!.isEmpty ||
             attendanceStatus == "Mark Attendance" ||
             selectedDate == "Date" ||
-            // selectedShift == null ||
-            // selectedShift!.isEmpty ||
-            daySalaryController.text.isEmpty
-        ) {
+            daySalaryController.text.isEmpty) {
           Get.snackbar(
             "Validation Error",
             "Please fill all the required fields",
@@ -456,16 +450,13 @@ class _EmployeeState extends State<Employee> {
           return false;
         }
       } else {
-        // Normal validation for other attendance statuses
         if (selectedEmployee == null ||
             selectedEmployee!.isEmpty ||
             attendanceStatus == "Mark Attendance" ||
             selectedDate == "Date" ||
             selectedShift == null ||
             selectedShift!.isEmpty ||
-            daySalaryController.text.isEmpty ||
-            inTimeController.text.isEmpty ||
-            outTimeController.text.isEmpty) {
+            daySalaryController.text.isEmpty) {
           Get.snackbar(
             "Validation Error",
             "Please fill all the required fields",
@@ -479,14 +470,52 @@ class _EmployeeState extends State<Employee> {
       return true;
     }
 
-    // Validate fields before proceeding
     if (!validateFields()) {
       return;
     }
 
+    // Ensure attendance list is populated before checking for duplicates
+    if (attendanceList.isEmpty) {
+      await fetchAttendanceData();
+    }
+
+    // Ensure date format consistency
+    String formattedDate = DateTime.parse(selectedDate).toIso8601String();
+
+    // Check if the submission already exists
+    var existingRecord = attendanceList.firstWhere(
+          (record) =>
+      record['employee'] == selectedEmployee &&
+          DateTime.parse(record['date']).toIso8601String() == formattedDate,
+      orElse: () => null,
+    );
+
+    if (existingRecord != null) {
+      print("Existing Record Found: $existingRecord");
+
+      if (existingRecord['attendance'] == "Absent") {
+        Get.snackbar(
+          "Duplicate Entry",
+          "Attendance for this employee on this date is already marked as 'Absent'.",
+          colorText: Colors.white,
+          backgroundColor: Colors.orange,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      } else if (existingRecord['attendance'] == "Present") {
+        Get.snackbar(
+          "Update Required",
+          "Attendance already marked as 'Present'. Please update manually.",
+          colorText: Colors.white,
+          backgroundColor: Colors.blue,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+    }
+
     HttpClient client = HttpClient();
-    client.badCertificateCallback =
-    ((X509Certificate cert, String host, int port) => true);
+    client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
     IOClient ioClient = IOClient(client);
 
     final headers = {
@@ -498,7 +527,7 @@ class _EmployeeState extends State<Employee> {
       'doctype': 'Employee Attendance',
       'employee': selectedEmployee?.trim(),
       'attendance': attendanceStatus,
-      'date': DateTime.parse(selectedDate).toIso8601String(),
+      'date': formattedDate,
       'shift': selectedShift,
       'in_time': inTimeController.text.trim(),
       'out_time': outTimeController.text.trim(),
@@ -510,62 +539,27 @@ class _EmployeeState extends State<Employee> {
     final body = jsonEncode(data);
     print(data);
 
-    // Open Hive box for storing submission data
-    var box = await Hive.openBox('submissionBox');
-    String? lastSubmission = box.get('lastSubmission');
-
-    if (lastSubmission != null) {
-      final lastSubmissionData = jsonDecode(lastSubmission);
-      final storedEmployee = lastSubmissionData['employee']?.trim();
-      final storedDate = lastSubmissionData['date'];
-
-      // Normalize current input
-      final normalizedEmployee = selectedEmployee?.trim();
-      final normalizedDate = DateTime.parse(selectedDate).toIso8601String();
-
-      if (storedEmployee == normalizedEmployee && storedDate == normalizedDate) {
-        Get.snackbar(
-          "Duplicate Entry",
-          "This data has already been submitted.",
-          colorText: Colors.white,
-          backgroundColor: Colors.orange,
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return;
-      }
-    }
-
     try {
-      final response =
-      await ioClient.post(Uri.parse(url), headers: headers, body: body);
+      final response = await ioClient.post(Uri.parse(url), headers: headers, body: body);
 
       if (response.statusCode == 200) {
-        // Save current submission as the last submission
-        await box.put(
-          'lastSubmission',
-          jsonEncode({
-            'employee': selectedEmployee?.trim(),
-            'date': DateTime.parse(selectedDate).toIso8601String(),
-          }),
-        );
-
-        await fetchAttendanceData();
-
         Get.snackbar(
-          "Employee",
-          "Document Posted Successfully",
+          "Success",
+          "Attendance recorded successfully",
           colorText: Colors.white,
           backgroundColor: Colors.green,
           snackPosition: SnackPosition.BOTTOM,
         );
 
-        // Reset the form
+        await fetchAttendanceData();
+
         setState(() {
           selectedEmployee = null;
           attendanceStatus = "Mark Attendance";
           selectedDate = "Date";
           selectedShift = null;
         });
+
         inTimeController.clear();
         outTimeController.clear();
         daySalaryController.clear();
@@ -607,9 +601,212 @@ class _EmployeeState extends State<Employee> {
   }
 
 
+
+
+
+                 ///  Update Employee ///
+  Future<void> updateEmployeeAttendance(BuildContext context) async {
+    bool validateFields() {
+      if (attendanceStatus == "Absent") {
+        if (selectedEmployee == null ||
+            selectedEmployee!.isEmpty ||
+            attendanceStatus == "Mark Attendance" ||
+            selectedDate == "Date" ||
+            daySalaryController.text.isEmpty) {
+          Get.snackbar(
+            "Validation Error",
+            "Please fill all the required fields",
+            colorText: Colors.white,
+            backgroundColor: Colors.red,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return false;
+        }
+      } else {
+        if (selectedEmployee == null ||
+            selectedEmployee!.isEmpty ||
+            attendanceStatus == "Mark Attendance" ||
+            selectedDate == "Date" ||
+            selectedShift == null ||
+            selectedShift!.isEmpty ||
+            daySalaryController.text.isEmpty) {
+          Get.snackbar(
+            "Validation Error",
+            "Please fill all the required fields",
+            colorText: Colors.white,
+            backgroundColor: Colors.red,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (!validateFields()) {
+      return;
+    }
+
+    // Debug: Print all attendance list records to check the structure
+    print("Attendance List: $attendanceList");
+
+    // Find the existing attendance record that matches the current selection
+    var existingRecord;
+    for (var record in attendanceList) {
+      print("Checking record: ${record['employee']} vs $selectedEmployee, ${record['date']} vs $selectedDate");
+      if (record['employee'] == selectedEmployee && record['date'] == selectedDate) {
+        existingRecord = record;
+        break;
+      }
+    }
+
+                      /// If no existing record is found, create a new one
+    if (existingRecord == null) {
+      print("No existing record found, creating new one");
+      MobileDocument(context);
+      return;
+    }
+
+    // Print the entire record to debug
+    print("Found existing record: $existingRecord");
+
+    // Get the name field (usually 'name' or something similar in Frappe)
+    String recordName = '';
+    if (existingRecord.containsKey('name')) {
+      recordName = existingRecord['name'];
+
+
+    } else {
+      // Try alternate keys that might contain the ID
+      final possibleIdKeys = ['id', 'docname', 'doc_name', 'attendance_id', 'key',];
+      for (var key in possibleIdKeys) {
+        if (existingRecord.containsKey(key) && existingRecord[key] != null && existingRecord[key].toString().isNotEmpty) {
+          recordName = existingRecord[key].toString();
+          print("Found ID in alternate key: $key = $recordName");
+          break;
+        }
+      }
+    }
+
+
+    if (recordName.isEmpty) {
+      // As a fallback, try to construct a unique identifier
+      if (existingRecord.containsKey('employee') && existingRecord.containsKey('date')) {
+        // Some APIs use compound keys like "employee-date" for updates
+        recordName = "${existingRecord['employee']}-${existingRecord['date']}";
+        print("Created compound key: $recordName");
+      } else {
+        Get.snackbar(
+          "Update Error",
+          "Cannot find the record ID for update",
+          colorText: Colors.white,
+          backgroundColor: Colors.red,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+    }
+
+    HttpClient client = HttpClient();
+    client.badCertificateCallback =
+    ((X509Certificate cert, String host, int port) => true);
+    IOClient ioClient = IOClient(client);
+
+    final headers = {
+      'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
+      'Content-Type': 'application/json',
+    };
+
+    final data = {
+      'doctype' : 'Employee Attendance',
+      'attendance': attendanceStatus,
+      'employee' : selectedEmployee,
+      'shift': selectedShift,
+      'in_time': inTimeController.text.trim(),
+      'out_time': outTimeController.text.trim(),
+      'day_salary': daySalaryController.text.trim(),
+    };
+
+    // Here is the specific PUT logic for updating the record
+    final url = '$apiUrl/Employee Attendance/$recordName';
+    final body = jsonEncode(data);
+    print(data);
+    print("Updating record: $recordName");
+    print("Update URL: $url");
+    print("Update data: $data");
+
+    try {
+      // This is the PUT request to update the existing record
+      final response = await ioClient.put(
+          Uri.parse(url),
+          headers: headers,
+          body: body
+      );
+
+      print("Update response status: ${response.statusCode}");
+      print("Update response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        await fetchAttendanceData();
+
+        Get.snackbar(
+          "Employee",
+          "Attendance Updated Successfully",
+          colorText: Colors.white,
+          backgroundColor: Colors.green,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+
+        setState(() {
+          selectedEmployee = null;
+          attendanceStatus = "Mark Attendance";
+          selectedDate = "Date";
+          selectedShift = null;
+        });
+        inTimeController.clear();
+        outTimeController.clear();
+        daySalaryController.clear();
+      } else {
+        String message = 'Update failed with status: ${response.statusCode}';
+        if (response.statusCode == 417) {
+          final serverMessages = json.decode(response.body)['_server_messages'];
+          message = serverMessages ?? message;
+        }
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(response.statusCode == 417 ? 'Message' : 'Error'),
+            content: Text(message),
+            actions: [
+              ElevatedButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('An error occurred: $e'),
+          actions: [
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    /// Define Sizes //
+                /// Define Sizes //
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
@@ -818,7 +1015,7 @@ class _EmployeeState extends State<Employee> {
                       onChanged: (value) {
                         if (value == "add_employee") {
                           // Navigate to Add Employee page
-                          Get.to(EmployeeAdd(work: '',));
+                          Get.to(EmployeeAdd(work: widget.work,projectName: widget.projectName));
                         } else {
                           setState(() {
                             selectedEmployee = value;
@@ -1075,8 +1272,30 @@ class _EmployeeState extends State<Employee> {
                       ),
                     );
                   } else {
-                    // Proceed with submission if validation passes
-                    MobileDocument(context);
+                    // Print debug data to help identify issues
+                    print("Selected Employee: $selectedEmployee");
+                    print("Selected Date: $selectedDate");
+                    print("Attendance List Count: ${attendanceList.length}");
+
+                    // Check if this entry exists in the attendance list
+                    bool recordExists = false;
+                    for (var record in attendanceList) {
+                      if (record['employee'] == selectedEmployee && record['date'] == selectedDate) {
+                        recordExists = true;
+                        print("Found existing record: $record");
+                        break;
+                      }
+                    }
+
+                    if (recordExists) {
+                      // This is an update
+                      print("Updating existing record");
+                      updateEmployeeAttendance(context);
+                    } else {
+                      // This is a new entry
+                      print("Creating new record");
+                      MobileDocument(context);
+                    }
                   }
                 },
                 child: Buttons(
@@ -1084,7 +1303,7 @@ class _EmployeeState extends State<Employee> {
                   width: width / 1.5,
                   radius: BorderRadius.circular(10.r),
                   color: Colors.blue,
-                  text: "Submit",
+                  text: "Save & Submit",
                 ),
               ),
               SizedBox(height: 20.h,),

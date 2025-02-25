@@ -11,8 +11,9 @@ import '../../widgets/subhead.dart';
 import '../tabs_pages.dart';
 
 class EmployeeAdd extends StatefulWidget {
-  const EmployeeAdd({super.key, required this.work});
+  const EmployeeAdd({super.key, required this.work, required this.projectName});
   final String work; //
+  final String projectName; //
 
   @override
   State<EmployeeAdd> createState() => _EmployeeAddState();
@@ -68,8 +69,8 @@ class _EmployeeAddState extends State<EmployeeAdd> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => TabsPages(
-              projectName: 'Employee', // Pass your actual project name
-              initialTabIndex: 1, work: widget.work,  // Pass the inital index
+              projectName: widget.projectName, // Pass your actual project name
+              initialTabIndex: 2, work: widget.work,  // Pass the inital index
             ),
           ),
         );

@@ -102,7 +102,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
   }
 
 
-  /// Get API for Unit
+            /// Get API for Unit ///
   Future<void> fetchUnit() async {
     final String url = "$apiUrl/Material%20Units?limit_page_length=50000";
     setState(() => isLoading = true);
@@ -164,7 +164,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
     }
   }
 
-  /// Post API for material
+                /// Post API for material ///
   Future<void> addMaterial(BuildContext context) async {
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
@@ -177,6 +177,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
 
     final data = {
       'doctype': 'Material',
+      'project_form': widget.projectName,
       'material_name': materialName.text,
       'unit': selectedUnit,
       'cost_code': costCode.text,
