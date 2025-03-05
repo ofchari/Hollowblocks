@@ -18,12 +18,13 @@ class ReportsCommon extends StatefulWidget {
 State<ReportsCommon> createState() => _ReportsCommonState();
 }
 
+
 class _ReportsCommonState extends State<ReportsCommon> {
   late double height;
   late double width;
   @override
   Widget build(BuildContext context) {
-    /// Define Sizes //
+                /// Define Sizes //
     var size = MediaQuery.of(context).size;
     height = size.height;
     width = size.width;
@@ -63,7 +64,6 @@ class _ReportsCommonState extends State<ReportsCommon> {
                   GestureDetector(
                     onTap: (){
                       Get.to(ReportsEmployee());
-
                     },
                     child: Container(
                       height: height/6.h,

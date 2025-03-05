@@ -129,7 +129,7 @@ class _EmployeeState extends State<Employee> {
   }
 
 
-  // Method to calculate salary based on shift
+                 /// Method to calculate salary based on shift ///
   void calculateSalary() {
     if (selectedEmployee == null || selectedShift == null) return;
 
@@ -164,8 +164,7 @@ class _EmployeeState extends State<Employee> {
 
 
                // Modify onChanged in the employee dropdown ///
-
-  // Updated fetchAttendanceData with mounted check
+               /// Updated fetchAttendanceData with mounted check
   Future<void> fetchAttendanceData() async {
     if (!_mounted) return; // Check if the widget is still mounted
 
@@ -229,7 +228,6 @@ class _EmployeeState extends State<Employee> {
       print("Error fetching attendance data: $e");
     }
   }
-
 
   void showEmployeeList(BuildContext context, List<dynamic> employees, String status) {
     if (!mounted) return;
@@ -370,7 +368,7 @@ class _EmployeeState extends State<Employee> {
     );
   }
 
-                   /// Dropdown logic for shifts ///
+                        ///  Dropdown logic for shifts ///
   void _showShiftDropdown(BuildContext context) {
     showDialog(
       context: context,
@@ -600,10 +598,6 @@ class _EmployeeState extends State<Employee> {
     }
   }
 
-
-
-
-
                  ///  Update Employee ///
   Future<void> updateEmployeeAttendance(BuildContext context) async {
     bool validateFields() {
@@ -824,8 +818,10 @@ class _EmployeeState extends State<Employee> {
     );
   }
 
+
   Widget _smallBuildLayout() {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       // appBar: AppBar(
       //   automaticallyImplyLeading: false,
@@ -1149,10 +1145,10 @@ class _EmployeeState extends State<Employee> {
                   child: Center(
                     child: TextField(
                       controller: daySalaryController,
-                      readOnly: true,
+                      // readOnly: true,
                       // enabled: false, // Make it read-only
                       decoration: InputDecoration(
-                        hintText:    "          Day Salary",
+                        hintText:    "                          Day Salary",
                         hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
                         border: InputBorder.none,
                       ),

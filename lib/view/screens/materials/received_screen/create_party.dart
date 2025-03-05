@@ -47,7 +47,7 @@ class _CreatePartyState extends State<CreateParty> {
   TextEditingController partyWillPayController = TextEditingController();
   TextEditingController partyWillReceiveController = TextEditingController();
 
-       /// Get Api's for Party Type //
+                /// Get Api's for Party Type //
   /// Get API for Party Types
   Future<void> fetchPartyType() async {
     final String url = "$apiUrl/Party%20Type?limit_page_length=50000";
@@ -78,7 +78,7 @@ class _CreatePartyState extends State<CreateParty> {
     }
   }
 
-         /// Post method for Party ///
+                   /// Post method for Party ///
   Future<void> MobileDocument(BuildContext context, {required String sourceScreen}) async {
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
@@ -318,7 +318,7 @@ class _CreatePartyState extends State<CreateParty> {
       ),
     );
   }
-     /// Show dropdown for Party Type //
+           /// Show dropdown for Party Type //
   /// Dropdown Widget for Party Type
   Widget _buildDropdownField(String label) {
     return Padding(

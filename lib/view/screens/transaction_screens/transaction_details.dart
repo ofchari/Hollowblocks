@@ -224,7 +224,6 @@ class _TransactionDetailsState extends State<TransactionDetails> {
   }
 
               /// Builds the summary card showing Balance, Total In, and Total Out ///.
-
   Widget _buildSummaryCard() {
     return Container(
       margin: EdgeInsets.all(16.w),
@@ -373,93 +372,135 @@ class _TransactionDetailsState extends State<TransactionDetails> {
 
   Widget _buildTransactionCard(Map<String, dynamic> transaction, bool isPaymentIn) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.w),
+      margin: EdgeInsets.symmetric(vertical: 6.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(8.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
-            blurRadius: 6,
-            offset: Offset(0, 3),
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _transactionDetailRow(
-            title: isPaymentIn ? "From" : "To",
-            value: transaction[isPaymentIn ? 'from_party' : 'to_party'] ?? "-",
-            icon: Icons.person,
+          // Top Row: Payment Type & Delete Button
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  isPaymentIn ? "Payment In" : "Payment Out",
+                  style: GoogleFonts.dmSans(
+                    textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red, size: 18.sp),
+                  onPressed: () {
+                    print("Delete button clicked for: ${transaction['name']}");
+                    _deleteTransaction(transaction['name'], isPaymentIn);
+                  },
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 6.h),
-          _transactionDetailRow(
-            title: "Amount",
-            value: "₹${transaction['amount_rec'].toStringAsFixed(2)}",
-            icon: Icons.currency_rupee,
-            valueColor: isPaymentIn ? Colors.green : Colors.red,
+
+          Divider(),
+
+          // First Row: From/To and Amount
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _transactionDetailRow(
+                    title: isPaymentIn ? "From" : "To",
+                    value: transaction[isPaymentIn ? 'from_party' : 'to_party'] ?? "-",
+                  ),
+                ),
+                VerticalDivider(
+                  indent: 3.0,
+                  endIndent: 3.0,
+                  thickness: 1,
+                  color: Colors.grey,
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: _transactionDetailRow(
+                    title: "Amount",
+                    value: "₹${transaction['amount_rec'].toStringAsFixed(2)}",
+                    valueColor: isPaymentIn ? Colors.green : Colors.red,
+                  ),
+                ),
+              ],
+            ),
           ),
-          _transactionDetailRow(
-            title: "Balance",
-            value: "₹${transaction['bal']}",
-            icon: Icons.currency_rupee,
-            valueColor: isPaymentIn ? Colors.green : Colors.red,
+
+          Divider(),
+
+          // Second Row: Balance and Date
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _transactionDetailRow(
+                    title: "Balance",
+                    value: "₹${transaction['bal']}",
+                    valueColor: isPaymentIn ? Colors.green : Colors.red,
+                  ),
+                ),
+                VerticalDivider(
+                  indent: 3.0,
+                  endIndent: 3.0,
+                  thickness: 1,
+                  color: Colors.grey,
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: _transactionDetailRow(
+                    title: "Date",
+                    value: transaction['date'] ?? "-",
+                  ),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 6.h),
-          _transactionDetailRow(
-            title: "Date",
-            value: transaction['date'] ?? "-",
-            icon: Icons.calendar_today,
-          ),
+
+          Divider(),
+
+          // Optional Description
           if (transaction['description'] != null && transaction['description'].toString().isNotEmpty)
             Padding(
-              padding: EdgeInsets.only(top: 8.h),
+              padding: EdgeInsets.only(top: 6.h),
               child: _transactionDetailRow(
                 title: "Description",
                 value: transaction['description'],
-                icon: Icons.description,
                 isMultiline: true,
               ),
             ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                print("Delete button clicked for: ${transaction['name']}");
-
-                // if (transaction['name'] == null) {
-                //   print("Transaction data: $transaction");  // Print full transaction
-                //   print("Transaction ID is null! Check your data.");
-                // } else {
-                //   String apiUrl = "https://vetri.regenterp.com/api/resource/"
-                //       "${isPaymentIn ? "Payment%20In" : "Payment%20Out"}/${transaction['name']}";
-                //   print("API URL: $apiUrl");
-
-                  _deleteTransaction(transaction['name'], isPaymentIn);
-                // }
-              },
-
-
-            ),
-          ),
         ],
       ),
     );
   }
 
+
+
+
   Widget _transactionDetailRow({
     required String title,
     required String value,
-    required IconData icon,
+    // required IconData icon,
     Color valueColor = Colors.black87,
     bool isMultiline = false,
   }) {
     return Row(
       crossAxisAlignment: isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 18.sp, color: Colors.grey),
+        // Icon(icon, size: 18.sp, color: Colors.grey),
         SizedBox(width: 8.w),
         Text(
           "$title:",
@@ -481,7 +522,6 @@ class _TransactionDetailsState extends State<TransactionDetails> {
       ],
     );
   }
-
 
 
   Widget _bottomButton(String text, Color color, Widget destinationScreen) {

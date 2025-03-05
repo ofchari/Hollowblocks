@@ -6,7 +6,6 @@ import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/screens/masters_all/master_all.dart';
 
 class BottomNavigation extends StatefulWidget {
-
    const BottomNavigation({super.key});
 
   @override
@@ -19,6 +18,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
     Dashboard(),
     MasterAll(),
   ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +68,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
     ));
   }
 }
+
 
 class BottomNavigationController extends GetxController {
   var selectedIndex = 1.obs; // Default index (Dashboard)

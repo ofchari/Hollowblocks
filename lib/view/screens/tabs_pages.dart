@@ -108,6 +108,7 @@ class _TabsPagesState extends State<TabsPages> with TickerProviderStateMixin {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
         appBar: _buildAppBar(),
         body: TabBarView(

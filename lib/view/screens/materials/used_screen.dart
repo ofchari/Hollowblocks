@@ -95,7 +95,7 @@ class _UsedScreenState extends State<UsedScreen> {
     }
   }
 
-  /// Api's method for validation to post the data in used ///
+               /// Api's method for validation to post the data in used ///
   Future<double> fetchMaterialStock() async {
     final String materialName = selectedMaterial?['material_name'] ?? '';
     print("Fetching stock for material: $materialName");

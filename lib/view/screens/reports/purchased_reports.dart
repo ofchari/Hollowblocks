@@ -284,7 +284,7 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
                 filterField('party_name'),
                 filterField('material'),
                 filterField('reference_no'),
-                filterField('quantity'),
+                // filterField('quantity'),
 
               ],
             ),
@@ -318,12 +318,11 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
       "Material",
       "Reference No",
       "Quantity",
+      "Total",
       "Unit Rate",
       "GST",
       "Add. Discount",
       "Sub Total",
-      "Total",
-
     ];
 
     return columns.map((column) => DataColumn(
@@ -347,11 +346,12 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
       data['material'] ?? '',
       data['reference_no'] ?? '',
       data['quantity']?.toString() ?? '',
+      data['total']?.toString() ?? '',
       data['unit_rate']?.toString() ?? '',
       data['gst']?.toString() ?? '',
       data['additional_discount']?.toString() ?? '',
       data['sub_total']?.toString() ?? '',
-      data['total']?.toString() ?? '',
+
 
     ];
 

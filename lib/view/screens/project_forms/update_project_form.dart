@@ -12,7 +12,7 @@ import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 import '../../widgets/buttons.dart';
 
 class UpdateProjectForm extends StatefulWidget {
-  const UpdateProjectForm({super.key,    required this.projectName,});
+  const UpdateProjectForm({super.key, required this.projectName,});
   final String projectName;
 
 
@@ -210,6 +210,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
     }
   }
 
+
   @override
   void initState() {
     // TODO: implement initState
@@ -229,7 +230,15 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
     _vsDateController.dispose();
     super.dispose();
   }
+  // Toggle edit mode
+  bool _isEditMode = false;
 
+  // Toggle edit mode function
+  void _toggleEditMode() {
+    setState(() {
+      _isEditMode = !_isEditMode;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -259,6 +268,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
   // Your existing layout and form fields remain the same
   Widget _smallBuildLayout() {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       // appBar: AppBar(
       //   automaticallyImplyLeading: false,
@@ -806,46 +816,58 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
           color: Colors.grey.shade500,
         ),
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-        child: TextFormField(
-          controller: controller,
-          style: GoogleFonts.dmSans(
-            textStyle: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.only(left: 20.0),
-            prefixIconConstraints: BoxConstraints(
-                minWidth: 24,minHeight: 24
-            ),
-            prefixIcon: Icon(icon, size: 16), // Icon size adjusted to 16
-            hintText: hintText,
-            hintStyle: GoogleFonts.sora(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-            border: InputBorder.none,
-          ),
-          onTap: isDateField
-              ? () async {
-            DateTime? pickedDate = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-            );
-            if (pickedDate != null) {
-              controller?.text = DateFormat('yyyy-MM-dd').format(pickedDate);
-            }
-          }
+      child: Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              controller: controller,
+              readOnly: !_isEditMode,
+              style: GoogleFonts.dmSans(
+                textStyle: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w500,
+                  color: _isEditMode ? Colors.black : Colors.grey.shade700,
+                ),
+              ),
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.only(left: 20.0),
+                prefixIconConstraints: BoxConstraints(
+                    minWidth: 24,minHeight: 24
+                ),
+                prefixIcon: Icon(icon, size: 16), // Icon size adjusted to 16
+                hintText: hintText,
+                hintStyle: GoogleFonts.sora(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+                border: InputBorder.none,
+              ),
+              onTap: isDateField
+                  ? () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (pickedDate != null) {
+                  controller?.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                }
+              }
               : null,
-        ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              _isEditMode ? Icons.check : Icons.edit,
+              color: _isEditMode ? Colors.green : Colors.blue,
+            ),
+            onPressed: _toggleEditMode,
+          ),
+        ],
       ),
+      
     );
   }
 

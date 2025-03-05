@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:vetri_hollowblock/view/screens/materials/purchased_screen/purchased_screen.dart';
 import 'package:vetri_hollowblock/view/screens/materials/received_screen/received_screen.dart';
@@ -798,8 +799,12 @@ class _MaterialScreenState extends State<MaterialScreen> {
                   _buildDetailsRow("Material", data['material_name']?.toString()),
                   _buildDetailsRow("Quantity", data['quantity']?.toString()),
                   _buildDetailsRow("Party Name", data['party_name']?.toString()),
-                  _buildDetailsRow("Date", data['date']?.toString()),
-                ],
+              _buildDetailsRow(
+                "Date",
+                DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),
+              )
+
+              ],
               ),
             ),
           );
@@ -895,7 +900,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                   _buildDetailsRow("Material", material?.toString()),
                   _buildDetailsRow("Quantity", usedQuantity.toStringAsFixed(2)),
                   _buildDetailsRow("Balance Stock", balanceStock.toStringAsFixed(2)),
-                  _buildDetailsRow("Date", data['date']?.toString()),
+                  _buildDetailsRow("Date",DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),),
                 ],
               ),
             ),
@@ -998,7 +1003,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                   _buildDetailsRow("Material", data['material']?.toString()),
                   _buildDetailsRow("Quantity", data['quantity']?.toString()),
                   _buildDetailsRow("Party Name", data['party_name']?.toString()),
-                  _buildDetailsRow("Date", data['date']?.toString()),
+                  _buildDetailsRow("Date",DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),),
                 ],
               ),
             ),

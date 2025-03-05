@@ -266,7 +266,7 @@ class _MaterialUsedReportState extends State<MaterialUsedReport> {
               children: [
                 buildDateFilter(),
                 filterField('material'),
-                filterField('quantity'),
+                // filterField('quantity'),
 
               ],
             ),

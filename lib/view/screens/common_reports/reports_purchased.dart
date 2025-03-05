@@ -155,8 +155,9 @@ class _ReportPurchasedState extends State<ReportPurchased> {
     }
   }
 
-  /// Date format change methods //
-  //// Date format change method //
+
+                     //// Date format change method ///
+
   String formatDate(String dateString) {
     try {
       // Parse the date string to a DateTime object
