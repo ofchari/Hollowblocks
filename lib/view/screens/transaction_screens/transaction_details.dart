@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:vetri_hollowblock/view/screens/transaction_screens/other_expense.dart';
 
 import '../../universal_key_api/api_url.dart';
@@ -463,7 +464,9 @@ class _TransactionDetailsState extends State<TransactionDetails> {
                 Expanded(
                   child: _transactionDetailRow(
                     title: "Date",
-                    value: transaction['date'] ?? "-",
+                    value: transaction['date'] != null
+                        ? DateFormat('dd-MM-yyyy').format(DateTime.parse(transaction['date']))
+                        : "-",
                   ),
                 ),
               ],

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
@@ -172,29 +173,23 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
     );
   }
 
+
   Future<void> _downloadExcelFile(List<Map<String, dynamic>> data) async {
     try {
       final xlsio.Workbook workbook = xlsio.Workbook();
       final xlsio.Worksheet sheet = workbook.worksheets[0];
 
+      // Add Headers
       const List<String> headers = [
-        "Party Name",
-        "Material",
-        "Reference No",
-        "Quantity",
-        "Unit Rate",
-        "GST",
-        "Additional Discount",
-        "Sub Total",
-        "Total",
-        "Date",
-        "Additional Notes"
+        "Party Name", "Material", "Reference No", "Quantity", "Unit Rate", "GST",
+        "Additional Discount", "Sub Total", "Total", "Date", "Additional Notes"
       ];
 
       for (int i = 0; i < headers.length; i++) {
         sheet.getRangeByIndex(1, i + 1).setText(headers[i]);
       }
 
+      // Add Data Rows
       for (int i = 0; i < data.length; i++) {
         final row = data[i];
         sheet.getRangeByIndex(i + 2, 1).setText(row["party_name"] ?? "");
@@ -210,23 +205,25 @@ class _MaterialPurchaseReportState extends State<MaterialPurchaseReport> {
         sheet.getRangeByIndex(i + 2, 11).setText(row["add_notes"] ?? "");
       }
 
+      // Save the Excel file
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
 
-      final directory = Directory('/storage/emulated/0/Download/Material Purchase Report');
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
-      }
+      // ✅ Save to app-specific directory
+      final Directory? directory = await getExternalStorageDirectory();
+      if (directory == null) throw Exception("Storage directory not found");
 
       final String path = '${directory.path}/MaterialPurchaseReport.xlsx';
       final File file = File(path);
       await file.writeAsBytes(bytes, flush: true);
 
+      // ✅ Share the file
       await Share.shareXFiles([XFile(path)], text: "Material Purchase Report");
     } catch (e) {
       debugPrint("Error generating or sharing Excel file: $e");
     }
   }
+
 
   /// Date format change methods //
   //// Date format change method //

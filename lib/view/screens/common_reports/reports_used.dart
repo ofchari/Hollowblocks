@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 
@@ -131,25 +132,31 @@ class _ReportsUsedState extends State<ReportsUsed> {
       for (int i = 0; i < data.length; i++) {
         final row = data[i];
         sheet.getRangeByIndex(i + 2, 1).setText(row["material"] ?? "");
-        sheet
-            .getRangeByIndex(i + 2, 2)
-            .setNumber(double.tryParse(row["quantity"].toString()) ?? 0.0);
+        sheet.getRangeByIndex(i + 2, 2).setNumber(double.tryParse(row["quantity"].toString()) ?? 0.0);
         sheet.getRangeByIndex(i + 2, 3).setText(row["date"] ?? "");
       }
 
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
 
-      final directory = Directory('/storage/emulated/0/Download/Material Used Report');
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
+      // ✅ Get App-Specific Storage Directory
+      final Directory? directory = await getExternalStorageDirectory();
+      if (directory == null) throw Exception("Storage directory not found");
+
+      // ✅ Ensure directory exists
+      final String folderPath = '${directory.path}/Material_Reports';
+      final Directory newDir = Directory(folderPath);
+      if (!await newDir.exists()) {
+        await newDir.create(recursive: true);
       }
 
-      final String path = '${directory.path}/MaterialUsedReport.xlsx';
-      final File file = File(path);
+      // ✅ Save the file inside the app’s allowed storage
+      final String filePath = '$folderPath/MaterialUsedReport.xlsx';
+      final File file = File(filePath);
       await file.writeAsBytes(bytes, flush: true);
 
-      await Share.shareXFiles([XFile(path)], text: "Material Used Report");
+      // ✅ Share the file
+      await Share.shareXFiles([XFile(filePath)], text: "Material Used Report");
     } catch (e) {
       debugPrint("Error generating or sharing Excel file: $e");
     }

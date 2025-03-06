@@ -63,7 +63,7 @@ class _PaymentInState extends State<PaymentIn> {
     }
   }
 
-  /// Get Api for party name
+                  /// Get Api for party name ///
   Future<void> fetchPartyName() async {
     final String url =
         "$apiUrl/Party?fields=[%22party_name%22]&limit_page_length=50000";
@@ -157,7 +157,7 @@ class _PaymentInState extends State<PaymentIn> {
             actions: [
               ElevatedButton(
                 child: Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => 8
               ),
             ],
           ),

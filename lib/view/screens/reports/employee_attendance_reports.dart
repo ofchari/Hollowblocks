@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
@@ -160,8 +161,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
   }
 
 
-
-
   Future<void> _downloadExcelFile(List<Map<String, dynamic>> data) async {
     try {
       // Step 1: Create an Excel Workbook
@@ -190,9 +189,7 @@ class _EmployeeReportState extends State<EmployeeReport> {
         sheet.getRangeByIndex(i + 2, 2).setText(row["date"] ?? "");
         sheet.getRangeByIndex(i + 2, 3).setText(row["employee"] ?? "");
         sheet.getRangeByIndex(i + 2, 4).setText(row["shift"] ?? "");
-        sheet
-            .getRangeByIndex(i + 2, 5)
-            .setNumber(row["day_salary"] != null ? double.parse(row["day_salary"].toString()) : 0.0);
+        sheet.getRangeByIndex(i + 2, 5).setNumber(row["day_salary"] != null ? double.parse(row["day_salary"].toString()) : 0.0);
         sheet.getRangeByIndex(i + 2, 6).setText(row["in_time"] ?? "");
         sheet.getRangeByIndex(i + 2, 7).setText(row["out_time"] ?? "");
       }
@@ -201,11 +198,9 @@ class _EmployeeReportState extends State<EmployeeReport> {
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
 
-      // Create directory if it doesn't exist
-      final directory = Directory('/storage/emulated/0/Download/Employee Attendance Report');
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
-      }
+      // ✅ Get app-specific directory (this works for Android 10+)
+      final Directory? directory = await getExternalStorageDirectory();
+      if (directory == null) throw Exception("Storage directory not found");
 
       final String path = '${directory.path}/EmployeeAttendanceReport.xlsx';
       final File file = File(path);
@@ -217,6 +212,7 @@ class _EmployeeReportState extends State<EmployeeReport> {
       debugPrint("Error generating or sharing Excel file: $e");
     }
   }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -414,6 +410,32 @@ class _EmployeeReportState extends State<EmployeeReport> {
                         ),
                         cells: [
                           DataCell(
+                            Text(
+                              entry.value["date"] != null
+                                  ? DateFormat('dd-MM-yyyy').format(
+                                  DateTime.parse(
+                                      entry.value["date"]))
+                                  : "",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.outfit(
+                                textStyle: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          DataCell(Text(entry.value["employee"] ?? "",
+                              style: GoogleFonts.dmSans(
+                                textStyle: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black,
+                                ),
+                              ))),
+                          DataCell(
                             Row(
                               children: [
                                 CircleAvatar(
@@ -434,32 +456,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
                               ],
                             ),
                           ),
-
-                          DataCell(
-                            Text(
-                              entry.value["date"] != null
-                                  ? DateFormat('dd-MM-yyyy').format(
-                                  DateTime.parse(
-                                      entry.value["date"]))
-                                  : "",
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(
-                                textStyle: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ),
-                          DataCell(Text(entry.value["employee"] ?? "",
-                              style: GoogleFonts.dmSans(
-                                textStyle: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                ),
-                              ))),
                           DataCell(
                               Text(entry.value["shift"] ?? "",
                                   style: GoogleFonts.dmSans(

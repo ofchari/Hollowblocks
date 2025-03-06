@@ -15,7 +15,7 @@ import '../../universal_key_api/api_url.dart';
 import '../../widgets/subhead.dart';
 
 class MaterialsAdd extends StatefulWidget {
-  const MaterialsAdd({super.key, required this.routeType,required this.projectName, required this.work});
+  const MaterialsAdd({super.key, required this.routeType, required this.projectName, required this.work});
   final String routeType;
   final String projectName;
   final String work;
@@ -34,9 +34,10 @@ class _MaterialsAddState extends State<MaterialsAdd> {
   List<String> gstPercent = []; // List to hold GST percentages
   String? selectedGst;
   bool isLoading = false;
-  // Add new variables for selection
+  // Variables for multi-selection
   Map<int, bool> selectedMaterials = {};
   bool selectAll = false;
+  List<dynamic> selectedMaterialsList = [];
 
   /// Textediting controllers
   final materialName = TextEditingController();
@@ -55,6 +56,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
       filterMaterials(searchController.text);
     });
   }
+
   /// Filter materials based on search query
   void filterMaterials(String query) {
     if (query.isEmpty) {
@@ -71,7 +73,8 @@ class _MaterialsAddState extends State<MaterialsAdd> {
       });
     }
   }
-  /// Get API for materials
+
+               /// Get API for materials
   Future<void> fetchMaterials() async {
     final String url = "$apiUrl/Material?fields=[%22material_name%22,%22unit%22,%22cost_code%22,%22gst_per%22,%22description%22]&limit_page_length=50000";
     setState(() => isLoading = true);
@@ -90,6 +93,10 @@ class _MaterialsAddState extends State<MaterialsAdd> {
         setState(() {
           materials = data['data'];
           filteredMaterials = materials;  // Update the filtered list immediately
+          // Initialize selection map
+          for (int i = 0; i < materials.length; i++) {
+            selectedMaterials[i] = false;
+          }
         });
       } else {
         print("Failed to fetch materials. Status: ${response.statusCode}");
@@ -101,8 +108,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
     }
   }
 
-
-            /// Get API for Unit ///
+  /// Get API for Unit
   Future<void> fetchUnit() async {
     final String url = "$apiUrl/Material%20Units?limit_page_length=50000";
     setState(() => isLoading = true);
@@ -164,7 +170,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
     }
   }
 
-                    /// Post API for material ///
+  /// Post API for material
   Future<void> addMaterial(BuildContext context) async {
     HttpClient client = HttpClient();
     client.badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
@@ -237,6 +243,82 @@ class _MaterialsAddState extends State<MaterialsAdd> {
     }
   }
 
+  // Toggle selection for a single material
+  void toggleMaterialSelection(int index) {
+    setState(() {
+      selectedMaterials[index] = !selectedMaterials[index]!;
+      // Update selectAll checkbox status based on all items being selected
+      selectAll = selectedMaterials.values.every((selected) => selected);
+    });
+  }
+
+  // Toggle selection for all materials
+  void toggleSelectAll() {
+    setState(() {
+      selectAll = !selectAll;
+      for (int i = 0; i < filteredMaterials.length; i++) {
+        selectedMaterials[filteredMaterials.indexOf(filteredMaterials[i])] = selectAll;
+      }
+    });
+  }
+
+  // Get selected materials
+  List<dynamic> getSelectedMaterials() {
+    List<dynamic> selected = [];
+    selectedMaterials.forEach((index, isSelected) {
+      if (isSelected && index < materials.length) {
+        selected.add(materials[index]);
+      }
+    });
+    return selected;
+  }
+
+  // Navigate to appropriate screen with selected materials
+// Navigate to appropriate screen with selected materials
+  void navigateWithSelectedMaterials() {
+    selectedMaterialsList = getSelectedMaterials();
+
+    if (selectedMaterialsList.isEmpty) {
+      Get.snackbar(
+        "No Selection",
+        "Please select at least one material",
+        colorText: Colors.white,
+        backgroundColor: Colors.red,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    if (widget.routeType == 'used') {
+      Get.off(() => UsedScreen(
+        material: selectedMaterialsList.first,
+        projectName: widget.projectName,
+        work: widget.work,
+      ),
+        // arguments: {'selectedMaterials': selectedMaterialsList},
+      );
+    } else if (widget.routeType == 'received') {
+      Get.off(() => ReceivedScreen(
+        material: {},
+        projectName: widget.projectName,
+        work: widget.work,
+      ),
+        arguments: {'selectedMaterials': selectedMaterialsList},
+      );
+    } else if (widget.routeType == 'purchased') {
+      // Pass the list as part of the arguments instead of the material parameter
+      Get.off(
+            () => PurchasedScreen(
+          material: {}, // Pass an empty map to match the parameter type
+          projectName: widget.projectName,
+          work: widget.work,
+        ),
+        arguments: {'selectedMaterials': selectedMaterialsList},
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -281,7 +363,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
           ? const Center(child: CircularProgressIndicator()) // Show loading initially
           : Column(
         children: [
-          SizedBox(height: 10.h,),
+          SizedBox(height: 10.h),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 12.0.w),
             child: TextFormField(
@@ -303,117 +385,152 @@ class _MaterialsAddState extends State<MaterialsAdd> {
               ),
             ),
           ),
-          SizedBox(height: 20.h), // Added extra spacing for better alignment
-          Expanded(
-            child: Column(
+          SizedBox(height: 20.h),
+
+          // Select All Row
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.0.w),
+            child: Row(
               children: [
-                // This will show the "Add Material" button if no materials are found
-                if (materials.isEmpty)
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.0.w),
-                    child: GestureDetector(
-                      onTap: () => _showAddMaterialBottomSheet(context),
-                      child: Container(
-                        height: height / 15.h,
-                        width: width / 2.5.w,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.blue),
-                          borderRadius: BorderRadius.circular(7.r),
-                        ),
-                        child: Center(
-                          child: MyText(
-                            text: "Add Material",
-                            color: Colors.black,
-                            weight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
+                Checkbox(
+                  value: selectAll,
+                  onChanged: (value) {
+                    toggleSelectAll();
+                  },
+                ),
+                MyText(
+                  text: "Select All",
+                  color: Colors.black,
+                  weight: FontWeight.w500,
+                ),
+                const Spacer(),
+                // Add button to confirm selection
+                ElevatedButton(
+                  onPressed: navigateWithSelectedMaterials,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                   ),
-                SizedBox(height: 20.h), // Added extra spacing for better alignment
-
-                // Display materials when they are available
-                Expanded(
-                  child: filteredMaterials.isEmpty
-                      ? Center(child: Text("No materials found"))
-                      : ListView.builder(
-                    itemCount: filteredMaterials.length,
-                    itemBuilder: (context, index) {
-                      final material = filteredMaterials[index];
-                      return GestureDetector(
-                        onTap: () {
-                          if (widget.routeType == 'used') {
-                            Get.off(() => UsedScreen(material: material, projectName: widget.projectName, work: widget.work,));
-                          } else if (widget.routeType == 'received') {
-                            Get.off(() => ReceivedScreen(material: material, projectName: widget.projectName, work: widget.work,));
-                          } else if (widget.routeType == 'purchased') {
-                            Get.off(() => PurchasedScreen(material: material, projectName: widget.projectName, work: widget.work,));
-                          }
-                        },
-
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10.r),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.3),
-                                  blurRadius: 5,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      MyText(
-                                        text: material['material_name']?.trim() ?? "No Name",
-                                        color: Colors.black,
-                                        weight: FontWeight.bold,
-                                      ),
-                                      MyText(
-                                        text: "Cost Code: ${material['cost_code'] ?? '--'}",
-                                        color: Colors.grey.shade600,
-                                        weight: FontWeight.w500,
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 8.h),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      MyText(
-                                        text: "Unit: ${material['unit'] ?? '--'}",
-                                        color: Colors.grey.shade600,
-                                        weight: FontWeight.w500,
-                                      ),
-                                      MyText(
-                                        text: "GST: ${material['gst_per'] ?? '--'}%",
-                                        color: Colors.blue,
-                                        weight: FontWeight.w500,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                  child: MyText(
+                    text: "Confirm Selection",
+                    color: Colors.white,
+                    weight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
-          )
+          ),
+          SizedBox(height: 10.h),
+
+          // This will show the "Add Material" button if no materials are found
+          if (materials.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.0.w),
+              child: GestureDetector(
+                onTap: () => _showAddMaterialBottomSheet(context),
+                child: Container(
+                  height: height / 15.h,
+                  width: width / 2.5.w,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.blue),
+                    borderRadius: BorderRadius.circular(7.r),
+                  ),
+                  child: Center(
+                    child: MyText(
+                      text: "Add Material",
+                      color: Colors.black,
+                      weight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          SizedBox(height: 10.h),
+
+          // Display materials when they are available
+          Expanded(
+            child: filteredMaterials.isEmpty
+                ? Center(child: Text("No materials found"))
+                : ListView.builder(
+              itemCount: filteredMaterials.length,
+              itemBuilder: (context, index) {
+                final material = filteredMaterials[index];
+                final originalIndex = materials.indexOf(material);
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        // Checkbox for selection
+                        Checkbox(
+                          value: selectedMaterials[originalIndex] ?? false,
+                          onChanged: (value) {
+                            toggleMaterialSelection(originalIndex);
+                          },
+                        ),
+                        // Material details
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    MyText(
+                                      text: material['material_name']?.trim() ?? "No Name",
+                                      color: Colors.black,
+                                      weight: FontWeight.bold,
+                                    ),
+                                    MyText(
+                                      text: "Cost Code: ${material['cost_code'] ?? '--'}",
+                                      color: Colors.grey.shade600,
+                                      weight: FontWeight.w500,
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8.h),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    MyText(
+                                      text: "Unit: ${material['unit'] ?? '--'}",
+                                      color: Colors.grey.shade600,
+                                      weight: FontWeight.w500,
+                                    ),
+                                    MyText(
+                                      text: "GST: ${material['gst_per'] ?? '--'}%",
+                                      color: Colors.blue,
+                                      weight: FontWeight.w500,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

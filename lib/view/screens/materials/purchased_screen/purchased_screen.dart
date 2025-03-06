@@ -37,6 +37,7 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
   String? selectedName; // Selected party name
   bool isLoading = false;
   final TextEditingController qtyController = TextEditingController();
+  List<dynamic> selectedMaterials = [];
 
   double baseAmount = 0.0; // User-provided base amount
   double additionalCharges = 0.0; // Additional charges
@@ -88,33 +89,45 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
   ]; // Dropdown GST options
 
   // Method to calculate the total and GST
+// 3. Update your _calculateTotal method to calculate for all materials
+// Add these variables to your state
+  double grandTotal = 0.0;
+  double grandSubTotal = 0.0;
+  double finalTotal = 0.0;
+
+// Modify your _calculateTotal method
   void _calculateTotal() {
     setState(() {
-      // Parse quantity and unit rate
-      double quantity = double.tryParse(qtyController.text) ?? 0.0;
-      double unitRate = double.tryParse(unitRateController.text) ?? 0.0;
+      // Reset grand totals
+      grandTotal = 0.0;
+      grandSubTotal = 0.0;
 
-      // Step 1: Calculate Base Total (Quantity × Unit Rate)
-      total = quantity * unitRate;
+      // Calculate for each material
+      for (var material in selectedMaterials) {
+        final String materialId = material['id'] ?? material['material_name'];
+        final controllers = materialControllers[materialId]!;
 
-      // Step 2: Calculate GST Amount (GST % of Base Total)
-      double gstPercentage = double.tryParse(selectedGST?.replaceAll("%", "") ?? "0") ?? 0.0;
-      gstAmount = total * (gstPercentage / 100);
+        double quantity = double.tryParse(controllers['qty']!.text) ?? 0.0;
+        double unitRate = double.tryParse(controllers['rate']!.text) ?? 0.0;
 
-      // Step 3: Add GST and Additional Charges to get Subtotal
-      double amountWithCharges = total + gstAmount + additionalCharges;
+        // Calculate for this material
+        double materialTotal = quantity * unitRate;
+        double gstPercentage = double.tryParse(material['selectedGST']?.replaceAll("%", "") ?? "0") ?? 0.0;
+        double materialGst = materialTotal * (gstPercentage / 100);
+        double materialSubTotal = materialTotal + materialGst;
 
-      // Step 4: Subtract Discount (fixed discount amount)
-      double discountAmount = discount; // Treat `discount` as a fixed amount, not a percentage
+        // Store in the material object
+        material['total'] = materialTotal;
+        material['subtotal'] = materialSubTotal;
 
-      // Step 5: Calculate Final Subtotal
-      subTotal = (amountWithCharges - discountAmount).clamp(0, double.infinity);
+        // Add to grand totals
+        grandTotal += materialTotal;
+        grandSubTotal += materialSubTotal;
+      }
 
-      print("Base Total: $total");
-      print("GST Amount: $gstAmount");
-      print("Subtotal with Charges: $amountWithCharges");
-      print("Discount Amount: $discountAmount");
-      print("Final Subtotal: $subTotal");
+      // Calculate final total with additional charges and discount
+      double totalBeforeDiscount = grandSubTotal + additionalCharges;
+      finalTotal = totalBeforeDiscount - discount;
     });
   }
 
@@ -163,6 +176,91 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
     }
   }
                  /// Post method for Material Received //
+  Future<void> postSingleMaterial(
+      Map<String, dynamic> material,
+      Map<String, TextEditingController> controllers,
+      BuildContext context,
+      IOClient ioClient,
+      Map<String, String> headers,
+      ) async {
+    final String materialId = material['id'] ?? material['material_name'];
+    final qtyController = controllers['qty']!;
+    final rateController = controllers['rate']!;
+
+    // Validate required fields for this material
+    if (selectedName!.isEmpty ||
+        qtyController.text.isEmpty ||
+        material['material_name'] == null) {
+      throw Exception('Please fill in all required fields for material: ${material['material_name']}');
+    }
+
+    // Calculate GST, total, and subtotal for this material
+    double quantity = double.tryParse(qtyController.text) ?? 0.0;
+    double unitRate = double.tryParse(rateController.text) ?? 0.0;
+    double materialTotal = quantity * unitRate;
+    double gstPercentage = double.tryParse(material['selectedGST']?.replaceAll("%", "") ?? "0") ?? 0.0;
+    double materialGst = materialTotal * (gstPercentage / 100);
+    double materialSubTotal = materialTotal + materialGst;
+
+    final data = {
+      'doctype': 'Material Purchase',
+      'party_name': selectedName,
+      'material': material['material_name'],
+      'quantity': qtyController.text,
+      'additional_discount': additionalChargesController.text,
+      'add_discount': discountController.text,
+      'add_notes': notesController.text,
+      'reference_no': referenceController.text,
+      'unit_rate': rateController.text,
+      'gst': materialGst.toString(),
+      'total': materialTotal.toString(),
+      'sub_total': materialSubTotal.toString(),
+      'project_form': widget.projectName,
+      'name': '',
+      'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+    };
+
+    print('Sending purchase request for material: ${material['material_name']}');
+    print('Request payload: $data');
+
+    final url = '$apiUrl/Material Purchase';
+    final body = jsonEncode(data);
+
+    final response = await ioClient.post(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    ).timeout(
+      const Duration(seconds: 30),
+      onTimeout: () {
+        throw TimeoutException('Request timed out for material: ${material['material_name']}');
+      },
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      // Store successful purchase data locally
+      final purchaseBox = await Hive.openBox('purchasedMaterialData');
+      await purchaseBox.add({
+        'material': material['material_name'],
+        'quantity': qtyController.text,
+        'party_name': selectedName,
+        'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+        'project_name': widget.projectName,
+      });
+    } else {
+      String errorMessage = 'Request failed with status: ${response.statusCode}';
+      if (response.statusCode == 417) {
+        final serverMessages = json.decode(response.body)['_server_messages'];
+        errorMessage = serverMessages ?? errorMessage;
+      }
+      throw Exception('Error posting material ${material['material_name']}: $errorMessage');
+    }
+  }
+
+
   Future<void> MobileDocument(BuildContext context) async {
     // Store project name in local storage for persistence
     final prefs = await SharedPreferences.getInstance();
@@ -197,94 +295,44 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
     };
 
     try {
-      // Validate required fields before making the request
-      if (selectedName!.isEmpty ||
-          qtyController.text.isEmpty ||
-          widget.material['material_name'] == null) {
-        throw Exception('Please fill in all required fields');
+      // Post each material sequentially
+      for (var material in selectedMaterials) {
+        final String materialId = material['id'] ?? material['material_name'];
+        final controllers = materialControllers[materialId]!;
+        await postSingleMaterial(material, controllers, context, ioClient, headers);
       }
 
-      final data = {
-        'doctype': 'Material Purchase',
-        'party_name': selectedName,
-        'material': widget.material['material_name'],
-        'quantity': qtyController.text,
-        'additional_discount': additionalChargesController.text,
-        'add_discount': discountController.text,
-        'add_notes': notesController.text,
-        'reference_no': referenceController.text,
-        'unit_rate': unitRateController.text,
-        'gst': gstAmount,
-        'total': total,
-        'sub_total': subTotal,
-        'project_form': widget.projectName,
-        'name': '',
-        'date': DateFormat('yyyy-MM-dd').format(selectedDate),
-      };
-
-      print('Sending purchase request for project: ${widget.projectName}');
-      print('Request payload: $data');
-
-      final url = '$apiUrl/Material Purchase';
-      final body = jsonEncode(data);
-
-      final response = await ioClient.post(
-          Uri.parse(url),
-          headers: headers,
-          body: body
-      ).timeout(
-        Duration(seconds: 30),
-        onTimeout: () {
-          throw TimeoutException('Request timed out');
-        },
+      // All materials posted successfully
+      Get.snackbar(
+        "Success",
+        "All Material Purchases Posted Successfully",
+        colorText: Colors.white,
+        backgroundColor: Colors.green,
+        snackPosition: SnackPosition.BOTTOM,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        // Store successful purchase data locally
-        final purchaseBox = await Hive.openBox('purchasedMaterialData');
-        await purchaseBox.add({
-          'material': widget.material['material_name'],
-          'quantity': qtyController.text,
+      // Prepare arguments with all posted materials
+      final purchasedList = selectedMaterials.map((material) {
+        final materialId = material['id'] ?? material['material_name'];
+        final controllers = materialControllers[materialId]!;
+        return {
+          'material': material['material_name'],
+          'quantity': controllers['qty']!.text,
           'party_name': selectedName,
           'date': DateFormat('yyyy-MM-dd').format(selectedDate),
           'project_name': widget.projectName,
-        });
+        };
+      }).toList();
 
-        Get.snackbar(
-          "Success",
-          "Material Purchase Posted Successfully",
-          colorText: Colors.white,
-          backgroundColor: Colors.green,
-          snackPosition: SnackPosition.BOTTOM,
-        );
-
-        // Navigate with preserved project name
-        Get.off(
-              () => TabsPages(
-            projectName: widget.projectName,
-            initialTabIndex: 3, work: widget.work,
-          ),
-          arguments: {
-            'purchased': {
-              'material': widget.material['material_name'],
-              'quantity': qtyController.text,
-              'party_name': selectedName,
-              'date': DateFormat('yyyy-MM-dd').format(selectedDate),
-              'project_name': widget.projectName,
-            },
-          },
-        );
-      } else {
-        String errorMessage = 'Request failed with status: ${response.statusCode}';
-        if (response.statusCode == 417) {
-          final serverMessages = json.decode(response.body)['_server_messages'];
-          errorMessage = serverMessages ?? errorMessage;
-        }
-        _showErrorDialog(context, errorMessage);
-      }
+      // Navigate with preserved project name
+      Get.off(
+            () => TabsPages(
+          projectName: widget.projectName,
+          initialTabIndex: 3,
+          work: widget.work,
+        ),
+        arguments: {'purchased': purchasedList},
+      );
     } catch (e) {
       print('Error in material purchase: $e');
       _showErrorDialog(context, 'An error occurred: $e');
@@ -340,12 +388,34 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
     print("Project Name in Purchased: ${widget.projectName}"); // Debugging
     print("Project work  in Purchased: ${widget.work}"); // Debugging
     _initializeData();
+    // Get the materials list from arguments if available
+    if (Get.arguments != null && Get.arguments['selectedMaterials'] != null) {
+      selectedMaterials = Get.arguments['selectedMaterials'];
+    }
+    // If no list was passed but a single material was passed directly, add it to the list
+    else if (widget.material.isNotEmpty && widget.material['material_name'] != null) {
+      selectedMaterials = [widget.material];
+    }
+
   }
   @override
   void dispose() {
     additionalChargesController.dispose();
     discountController.dispose();
     super.dispose();
+  }
+
+  final Map<String, Map<String, TextEditingController>> materialControllers = {};
+
+// In initState() or when adding materials:
+  void _initializeControllersForMaterial(Map<String, dynamic> material) {
+    final String materialId = material['id'] ?? material['material_name'];
+    if (!materialControllers.containsKey(materialId)) {
+      materialControllers[materialId] = {
+        'qty': TextEditingController(),
+        'rate': TextEditingController()
+      };
+    }
   }
 
   @override
@@ -468,180 +538,336 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
                 ),
               ),
               // Only show the material name and quantity input if a material is selected
-              if (widget.material.isNotEmpty && widget.material['material_name'] != null)
-                Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(12.0),
-                      color: Colors.white,
-                    ),
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Cancel Button (Top Right)
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: IconButton(
-                            icon: Icon(Icons.cancel, color: Colors.red),
-                            onPressed: () {
+            if (selectedMaterials.isNotEmpty)
+          Column(
+      children: selectedMaterials.map<Widget>((material) {
+        // Create a controller for each material
+        final String materialId = material['id'] ?? material['material_name'];
+        _initializeControllersForMaterial(material);
+
+        final qtyController = materialControllers[materialId]!['qty']!;
+        final rateController = materialControllers[materialId]!['rate']!;
+
+    return Padding(
+      padding: EdgeInsets.all(12.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12.0),
+          color: Colors.white,
+        ),
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cancel Button (Top Right)
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: Icon(Icons.cancel, color: Colors.red),
+                onPressed: () {
+                  setState(() {
+                    selectedMaterials.remove(material);
+                  });
+                },
+              ),
+            ),
+
+            // Material Name and GST Dropdown
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left Column: Material Name and GST
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        material['material_name'] ?? 'N/A',
+                        style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            "GST: ",
+                            style: GoogleFonts.dmSans(fontSize: 14.sp, fontWeight: FontWeight.w500),
+                          ),
+                          DropdownButton<String>(
+                            value: material['selectedGST'] ?? gstValues.first,
+                            items: gstValues.map((value) {
+                              return DropdownMenuItem(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
                               setState(() {
-                                widget.material.clear(); // Clear the selected material
+                                material['selectedGST'] = value;
+                                _calculateTotal();
                               });
                             },
                           ),
-                        ),
-
-                        // Material Name and GST Dropdown
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Left Column: Material Name and GST
-                            Expanded(
-                              flex: 2,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.material['material_name'] ?? 'N/A',
-                                    style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
-                                  ),
-                                  SizedBox(height: 8.h),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        "GST: ",
-                                        style: GoogleFonts.dmSans(fontSize: 14.sp, fontWeight: FontWeight.w500),
-                                      ),
-                                      DropdownButton<String>(
-                                        value: selectedGST,
-                                        items: gstValues.map((value) {
-                                          return DropdownMenuItem(
-                                            value: value,
-                                            child: Text(value),
-                                          );
-                                        }).toList(),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            selectedGST = value;
-                                            _calculateTotal();
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Right Column: Quantity and Unit Rate
-                            Expanded(
-                              flex: 3,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  // Quantity Input
-                                  SizedBox(
-                                    width: 150.w,
-                                    child: TextFormField(
-                                      controller: qtyController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: "Quantity",
-                                        hintText: "Qty",
-                                        border: OutlineInputBorder(),
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      ),
-                                      onChanged: (value) {
-                                        _calculateTotal();
-                                      },
-                                    ),
-                                  ),
-                                  SizedBox(height: 10.h),
-
-                                  // Unit Rate Input
-                                  SizedBox(
-                                    width: 150.w,
-                                    child: TextFormField(
-                                      controller: unitRateController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: "Unit Rate",
-                                        hintText: "Rate",
-                                        border: OutlineInputBorder(),
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      ),
-                                      onChanged: (value) {
-                                        _calculateTotal();
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: 16.h),
-
-                        // Total Row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Total:",
-                              style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
-                            ),
-                            Row(
-                              children: [
-                                Icon(Icons.currency_rupee, size: 16.sp),
-                                Text(
-                                  total.toStringAsFixed(2),
-                                  style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8.h,),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Sub Total (Incl. GST):",
-                              style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
-                            ),
-                            Row(
-                              children: [
-                                Icon(Icons.currency_rupee, size: 16.sp),
-                                Text(
-                                  subTotal.toStringAsFixed(2),
-                                  style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
+
+                // Right Column: Quantity and Unit Rate
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Quantity Input
+                      SizedBox(
+                        width: 150.w,
+                        child: TextFormField(
+                          controller: qtyController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: "Quantity",
+                            hintText: "Qty",
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          ),
+                          onChanged: (value) {
+                            _calculateTotal();
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 10.h),
+
+                      // Unit Rate Input
+                      SizedBox(
+                        width: 150.w,
+                        child: TextFormField(
+                          controller: rateController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: "Unit Rate",
+                            hintText: "Rate",
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          ),
+                          onChanged: (value) {
+                            _calculateTotal();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 16.h),
+
+            // // Total Row
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     Text(
+            //       "Total:",
+            //       style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
+            //     ),
+            //     Row(
+            //       children: [
+            //         Icon(Icons.currency_rupee, size: 16.sp),
+            //         Text(
+            //           total.toStringAsFixed(2),
+            //           style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
+            //         ),
+            //       ],
+            //     ),
+            //   ],
+            // ),
+            //
+            // SizedBox(height: 8.h),
+            //
+            // // Sub Total (Including GST)
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     Text(
+            //       "Sub Total (Incl. GST):",
+            //       style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
+            //     ),
+            //     Row(
+            //       children: [
+            //         Icon(Icons.currency_rupee, size: 16.sp),
+            //         Text(
+            //           subTotal.toStringAsFixed(2),
+            //           style: GoogleFonts.dmSans(fontSize: 16.sp, fontWeight: FontWeight.bold),
+            //         ),
+            //       ],
+            //     ),
+            //   ],
+            // ),
+          ],
+        ),
+      ),
+    );
+  }).toList(),
+    ),
+              // Grand Total Summary (outside the material containers)
+              if (selectedMaterials.isNotEmpty)
+                Container(
+                  margin: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Order Summary",
+                        style: GoogleFonts.dmSans(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      // Subtotal (Including GST)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Subtotal (incl. GST):",
+                            style: GoogleFonts.dmSans(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.currency_rupee, size: 16.sp),
+                              Text(
+                                grandSubTotal.toStringAsFixed(2),
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // Additional Charges (if shown)
+                      if (showAdditionalChargesField)
+                        SizedBox(height: 8.h),
+                      if (showAdditionalChargesField)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Additional Charges:",
+                              style: GoogleFonts.dmSans(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Icon(Icons.currency_rupee, size: 16.sp),
+                                Text(
+                                  additionalCharges.toStringAsFixed(2),
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      // Discount (if shown)
+                      if (showDiscountField)
+                        SizedBox(height: 8.h),
+                      if (showDiscountField)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Discount:",
+                              style: GoogleFonts.dmSans(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Icon(Icons.currency_rupee, size: 16.sp),
+                                Text(
+                                  discount.toStringAsFixed(2),
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      SizedBox(height: 8.h),
+                      // Final Total
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total Amount:",
+                            style: GoogleFonts.dmSans(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade800,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.currency_rupee,
+                                  size: 16.sp, color: Colors.green.shade800),
+                              Text(
+                                finalTotal.toStringAsFixed(2),
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
               SizedBox(height: 15.h,),
               GestureDetector(
                 onTap: () {
                   setState(() {
                     showAdditionalChargesField = !showAdditionalChargesField;
+                    if (!showAdditionalChargesField) {
+                      additionalCharges = 0.0;
+                      additionalChargesController.clear();
+                      _calculateTotal(); // Recalculate when hidden
+                    }
                   });
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(right: 12.0),
                   child: Align(
                     alignment: Alignment.centerRight,
-                      child: MyText(text: " + Additional Charges", color: Colors.blue, weight: FontWeight.w500)),
+                    child: MyText(
+                        text: " + Additional Charges",
+                        color: Colors.blue,
+                        weight: FontWeight.w500),
+                  ),
                 ),
               ),
 // Additional Charges Field
@@ -693,13 +919,22 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
                 onTap: () {
                   setState(() {
                     showDiscountField = !showDiscountField;
+                    if (!showDiscountField) {
+                      discount = 0.0;
+                      discountController.clear();
+                      _calculateTotal(); // Recalculate when hidden
+                    }
                   });
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(right: 12.0),
                   child: Align(
-                      alignment: Alignment.centerRight,
-                      child: MyText(text: " + Add Discount", color: Colors.blue, weight: FontWeight.w500)),
+                    alignment: Alignment.centerRight,
+                    child: MyText(
+                        text: " + Add Discount",
+                        color: Colors.blue,
+                        weight: FontWeight.w500),
+                  ),
                 ),
               ),
 // Discount Field

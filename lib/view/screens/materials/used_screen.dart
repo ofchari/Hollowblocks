@@ -39,15 +39,31 @@ class _UsedScreenState extends State<UsedScreen> {
   late TextEditingController quantityController;
   Map<String, dynamic>? selectedMaterial;
   double fetchedQty = 0.0; // Default value
+  List<dynamic> selectedMaterials = [];
 
   @override
   void initState() {
     super.initState();
-    print("Project Name in Used: ${widget.projectName}"); // Debugging
-    print("Project work  in Purchased: ${widget.work}"); // Debugging
-    materialController = TextEditingController(
-        text: widget.material?['material_name'] ?? ''
-    );
+    print("Project Name in Used: ${widget.projectName}");
+    print("Project work in Purchased: ${widget.work}");
+
+    // Try to get selected materials from arguments
+    final Map<String, dynamic>? args = Get.arguments;
+    if (args != null && args.containsKey('selectedMaterials')) {
+      List<dynamic> selectedMats = args['selectedMaterials'];
+      if (selectedMats.isNotEmpty) {
+        setState(() {
+          selectedMaterial = selectedMats.first;
+          materialController.text = selectedMaterial?['material_name'] ?? '';
+        });
+      }
+    } else {
+      // Fall back to widget.material if no arguments
+      materialController = TextEditingController(
+          text: widget.material?['material_name'] ?? ''
+      );
+    }
+
     quantityController = TextEditingController();
     fetchMaterialStock();
   }
@@ -85,13 +101,9 @@ class _UsedScreenState extends State<UsedScreen> {
       setState(() {
         selectedMaterial = result;
         materialController.text = result['material_name'] ?? '';
-        print("Selected Material: $selectedMaterial");
       });
-
       print("Selected Material: $selectedMaterial");
-
-      // Fetch stock for selected material
-      fetchMaterialStock();  // Now this will only happen after selecting material
+      fetchMaterialStock(); // Fetch stock after selection
     }
   }
 

@@ -798,6 +798,7 @@ class _EmployeeState extends State<Employee> {
   }
 
 
+
   @override
   Widget build(BuildContext context) {
                 /// Define Sizes //
@@ -821,7 +822,7 @@ class _EmployeeState extends State<Employee> {
 
   Widget _smallBuildLayout() {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      // resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       // appBar: AppBar(
       //   automaticallyImplyLeading: false,
@@ -1144,11 +1145,12 @@ class _EmployeeState extends State<Employee> {
                   ),
                   child: Center(
                     child: TextField(
+                      textAlign: TextAlign.center,
                       controller: daySalaryController,
                       // readOnly: true,
                       // enabled: false, // Make it read-only
                       decoration: InputDecoration(
-                        hintText:    "                          Day Salary",
+                        hintText:    "Day Salary",
                         hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
                         border: InputBorder.none,
                       ),

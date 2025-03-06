@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
@@ -170,9 +171,7 @@ class _ReportsEmployeeState extends State<ReportsEmployee> {
         sheet.getRangeByIndex(i + 2, 2).setText(row["date"] ?? "");
         sheet.getRangeByIndex(i + 2, 3).setText(row["employee"] ?? "");
         sheet.getRangeByIndex(i + 2, 4).setText(row["shift"] ?? "");
-        sheet
-            .getRangeByIndex(i + 2, 5)
-            .setNumber(row["day_salary"] != null ? double.parse(row["day_salary"].toString()) : 0.0);
+        sheet.getRangeByIndex(i + 2, 5).setNumber(row["day_salary"] != null ? double.parse(row["day_salary"].toString()) : 0.0);
         sheet.getRangeByIndex(i + 2, 6).setText(row["in_time"] ?? "");
         sheet.getRangeByIndex(i + 2, 7).setText(row["out_time"] ?? "");
       }
@@ -181,11 +180,9 @@ class _ReportsEmployeeState extends State<ReportsEmployee> {
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
 
-      // Create directory if it doesn't exist
-      final directory = Directory('/storage/emulated/0/Download/Employee Attendance Report');
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
-      }
+      // ✅ Get app-specific directory (this works for Android 10+)
+      final Directory? directory = await getExternalStorageDirectory();
+      if (directory == null) throw Exception("Storage directory not found");
 
       final String path = '${directory.path}/EmployeeAttendanceReport.xlsx';
       final File file = File(path);

@@ -10,6 +10,7 @@ import 'package:http/http.dart'as http;
 import 'package:vetri_hollowblock/view/screens/project_forms/project_form_dropdown.dart';
 import 'package:vetri_hollowblock/view/universal_key_api/api_url.dart';
 import '../../widgets/buttons.dart';
+import '../../widgets/subhead.dart';
 
 class UpdateProjectForm extends StatefulWidget {
   const UpdateProjectForm({super.key, required this.projectName,});
@@ -20,7 +21,7 @@ class UpdateProjectForm extends StatefulWidget {
   State<UpdateProjectForm> createState() => _UpdateProjectFormState();
 }
 
-class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKeepAliveClientMixin  {
+class _UpdateProjectFormState extends State<UpdateProjectForm> with AutomaticKeepAliveClientMixin {
   late double height;
   late double width;
   bool isLoading = true;
@@ -36,7 +37,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
   String? selectedVillageName;
   String? selectedStatus;
 
-  // Text controllers for date fields
+  // Text controllers for fields
   final TextEditingController Nameoftheworkr = TextEditingController();
   TextEditingController financialYearController = TextEditingController();
   final TextEditingController cuurentstage = TextEditingController();
@@ -47,8 +48,11 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
   final TextEditingController _vsDateController = TextEditingController();
   final TextEditingController remarksController = TextEditingController();
 
+  // Edit mode flags
+  bool _isFullEditMode = false;
+  bool _isStatusEditMode = false;
 
- /// Fetch project details from the API
+  /// Fetch project details from the API
   Future<void> _fetchProjectData() async {
     try {
       print('Fetching project data for: ${widget.projectName}');
@@ -62,13 +66,11 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
 
-        // Check if the response contains data
         if (responseData.containsKey('data') && responseData['data'] != null) {
           final projectInfo = responseData['data'];
 
           setState(() {
             projectDetails = projectInfo;
-            // Safely set text controller values with null checks
             Nameoftheworkr.text = projectInfo['work']?.toString() ?? '';
             selectedWorkType = projectInfo['work_type']?.toString() ?? '';
             selectedSchema = projectInfo['scheme_name']?.toString() ?? '';
@@ -113,35 +115,8 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
       }
     }
   }
-  // Function to call API to fetch the project details
-  Future<Map<String, dynamic>> fetchProjectDetails(String projectName) async {
-    try {
-      final encodedProjectName = Uri.encodeComponent(projectName);
-      print('Encoded project name: $encodedProjectName'); // Debug: Log encoded name
-      print('API URL: $apiUrl/Project Form/$encodedProjectName'); // Debug: Log URL
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/Project Form/$encodedProjectName'),
-        headers: {
-          'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
-        },
-      );
-
-      print('Response status code: ${response.statusCode}'); // Debug: Log status code
-      print('Response body: ${response.body}'); // Debug: Log response body
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to load project details: ${response.reasonPhrase}');
-      }
-    } catch (e) {
-      print('Error in fetchProjectDetails: $e'); // Debug: Log errors
-      throw Exception('Error fetching project details: $e');
-    }
-  }
-
-  /// Post method for Project Form //
+             /// Post method for Project Form
   Future<void> MobileDocument(BuildContext context) async {
     try {
       HttpClient client = HttpClient();
@@ -177,12 +152,16 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
 
       final url = '$apiUrl/Project Form/${Uri.encodeComponent(widget.projectName)}';
       final response = await ioClient.put(
-          Uri.parse(url),
-          headers: headers,
-          body: jsonEncode(data)
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode(data),
       );
 
       if (response.statusCode == 200) {
+        setState(() {
+          _isFullEditMode = false;
+          _isStatusEditMode = false;
+        });
         if (mounted) {
           Get.snackbar(
             "Success",
@@ -191,8 +170,6 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
             backgroundColor: Colors.green,
             snackPosition: SnackPosition.BOTTOM,
           );
-          // // Navigate back to dashboard after successful update
-          // Get.off(() => const Dashboard());
         }
       } else {
         throw Exception('Failed to update project: ${response.statusCode}');
@@ -210,17 +187,10 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
     }
   }
 
-
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _fetchProjectData();
-    fetchProjectDetails;
-    print(Nameoftheworkr.text);
-    print(financialYearController.text);
-    print(cuurentstage.text);
-    print(initalamount.text);
   }
 
   @override
@@ -230,15 +200,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
     _vsDateController.dispose();
     super.dispose();
   }
-  // Toggle edit mode
-  bool _isEditMode = false;
 
-  // Toggle edit mode function
-  void _toggleEditMode() {
-    setState(() {
-      _isEditMode = !_isEditMode;
-    });
-  }
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -247,7 +209,6 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    // Define Sizes //
     var size = MediaQuery.of(context).size;
     height = size.height.h;
     width = size.width.w;
@@ -265,26 +226,37 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
     );
   }
 
-  // Your existing layout and form fields remain the same
   Widget _smallBuildLayout() {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
-      // appBar: AppBar(
-      //   automaticallyImplyLeading: false,
-      //   backgroundColor: Colors.white,
-      //   toolbarHeight: 80.h,
-      //   centerTitle: true,
-      //   title: Subhead(
-      //     text: "Update Project Form",
-      //     color: Colors.black,
-      //     weight: FontWeight.w500,
-      //   ),
-      // ),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        toolbarHeight: 80.h,
+        centerTitle: true,
+        title: Subhead(
+          text: "Update Project Form",
+          color: Colors.black,
+          weight: FontWeight.w500,
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(_isFullEditMode ? Icons.close : Icons.edit),
+            onPressed: () {
+              setState(() {
+                _isFullEditMode = !_isFullEditMode;
+                if (_isFullEditMode) {
+                  _isStatusEditMode = false; // Disable status edit mode when full edit mode is on
+                }
+              });
+            },
+          ),
+        ],
+      ),
       body: SizedBox(
         width: width.w,
         child: SingleChildScrollView(
-          // scrollDirection: Axis.vertical,
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height,
@@ -294,259 +266,483 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                 children: [
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
                       alignment: Alignment.topLeft,
-                        child: Text("  Name of the work :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      child: Text(
+                        "  Name of the work :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildTextField(
                     controller: Nameoftheworkr,
                     hintText: "   Name of the work",
                     icon: Icons.drive_file_rename_outline,
-              
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Work Type :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Work Type :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Work%20Type",
                     hintText: "   Work Type",
                     selectedValue: selectedWorkType,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedWorkType = value;
-                        print(selectedWorkType);
                       });
-              
-                    }, hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
                     onAddNewRoute: () {
-                      Get.toNamed('/worktype'); // Use GetX to navigate to the "Add Work Type" page
+                      Get.toNamed('/worktype');
                     },
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Scheme Name :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Scheme Name :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Scheme",
                     hintText: "   Scheme Name",
-              
                     selectedValue: selectedSchema,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedSchema = value;
-                        print(selectedSchema);
                       });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
                     onAddNewRoute: () {
-                      Get.toNamed('/scheme'); // Use GetX to navigate to the "Add Work Type" page
+                      Get.toNamed('/scheme');
                     },
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Scheme Group:",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Scheme Group:",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Scheme Group",
                     hintText: "   Scheme Group",
                     selectedValue: selectedSchemaGroupName,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedSchemaGroupName = value;
-                        print(selectedSchemaGroupName);
                       });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
                     onAddNewRoute: () {
-                      Get.toNamed('/schemegroup'); // Use GetX to navigate to the "Add Work Type" page
+                      Get.toNamed('/schemegroup');
                     },
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Work Group :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Work Group :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Work Group",
                     hintText: "   Work Group",
                     selectedValue: selectedWorkGroupName,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedWorkGroupName = value;
-                        print(selectedWorkGroupName);
                       });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
                     onAddNewRoute: () {
-                      Get.toNamed('/workgroup'); // Use GetX to navigate to the "Add Work Type" page
+                      Get.toNamed('/workgroup');
                     },
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Agency Name :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Agency Name :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Agency",
                     hintText: "   Agency Name",
                     selectedValue: selectedAgencyName,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedAgencyName = value;
-                        print(selectedAgencyName);
                       });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
                     onAddNewRoute: () {
-                      Get.toNamed('/agency'); // Use GetX to navigate to the "Add Work Type" page
+                      Get.toNamed('/agency');
                     },
                   ),
-                  SizedBox(height: 30.h,),
+                  SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Level :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Level :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Level",
                     hintText: "   Level Name",
                     selectedValue: selectedLevelName,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedLevelName = value;
-                        print(selectedLevelName);
                       });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                    onAddNewRoute: () async{
-                      final result = await Get.toNamed('/level'); // Use GetX to navigate to the "Add Work Type" page
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                    onAddNewRoute: () async {
+                      final result = await Get.toNamed('/level');
                       return result;
                     },
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Financial Year :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Financial Year :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
-                  _buildFinancialYearDropdown(
-                      controller: financialYearController
-                  ),
+                  SizedBox(height: 9.5.h),
+                  _buildFinancialYearDropdown(controller: financialYearController),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Districts :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Districts :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/District",
                     hintText: "   District",
                     selectedValue: selectedDistrictName,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedDistrictName = value;
-                        print(selectedDistrictName);
                       });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
                     onAddNewRoute: () {
-                      Get.toNamed('/district'); // Use GetX to navigate to the "Add Work Type" page
+                      Get.toNamed('/district');
                     },
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Block :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Block :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Block",
                     hintText: "   Block",
                     selectedValue: selectedBlockName,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedBlockName = value;
-                        print(selectedBlockName);
                       });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
                     onAddNewRoute: () {
-                      Get.toNamed('/block'); // Use GetX to navigate to the "Add Work Type" page
+                      Get.toNamed('/block');
                     },
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Village :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Village :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildDropdownField(
                     apiUrl: "$apiUrl/Village",
                     hintText: "   Village",
                     selectedValue: selectedVillageName,
-                    onChanged: (value) {
+                    onChanged: _isFullEditMode
+                        ? (value) {
                       setState(() {
                         selectedVillageName = value;
-                        print(selectedVillageName);
                       });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
+                    }
+                        : null,
+                    hintStyle: GoogleFonts.dmSans(
+                      textStyle: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
                     onAddNewRoute: () {
-                      Get.toNamed('/village'); // Use GetX to navigate to the "Add Work Type" page
+                      Get.toNamed('/village');
                     },
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Status :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Status :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
-                  _buildDropdownField(
-                    apiUrl: "$apiUrl/Construction Status",
-                    hintText: "   Status",
-                    selectedValue: selectedStatus,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedStatus = value;
-                        print(selectedStatus);
-                      });
-                    },hintStyle: GoogleFonts.dmSans(textStyle: TextStyle(fontSize: 15.sp,fontWeight: FontWeight.w500,color: Colors.black)),
-                    onAddNewRoute: () {
-                      Get.toNamed('/status'); // Use GetX to navigate to the "Add Work Type" page
-                    },
+                  SizedBox(height: 9.5.h),
+                  Stack(
+                    alignment: Alignment.centerRight,
+                    children: [
+                      _buildDropdownField(
+                        apiUrl: "$apiUrl/Construction Status",
+                        hintText: "   Status",
+                        selectedValue: selectedStatus,
+                        onChanged: ( _isStatusEditMode)
+                            ? (value) {
+                          setState(() {
+                            selectedStatus = value;
+                          });
+                        }
+                            : null,
+                        hintStyle: GoogleFonts.dmSans(
+                          textStyle: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        onAddNewRoute: () {
+                          Get.toNamed('/status');
+                        },
+                      ),
+                      Positioned(
+                        right: 10,
+                        child: IconButton(
+                          icon: Icon(
+                            _isStatusEditMode ? Icons.check : Icons.edit,
+                            color: _isStatusEditMode ? Colors.green : Colors.blue,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isStatusEditMode = !_isStatusEditMode;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Estimate Amount :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Estimate Amount :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildTextField(
                     controller: initalamount,
                     hintText: "   Estimate Amount",
@@ -554,32 +750,45 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Deposit Amount :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Deposit Amount :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildTextField(
                     controller: depositamount,
                     hintText: "   Deposit Amount",
                     icon: Icons.currency_rupee,
                   ),
-                  // SizedBox(height: 30.h),
-                  // _buildTextField(
-                  //   hintText: "   Last Visited Date",
-                  //   icon: Icons.date_range,
-                  //   controller: _lastVisitedDateController,
-                  //   isDateField: true,
-                  // ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  As Date :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  As Date :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildTextField(
                     hintText: "   As Date",
                     icon: Icons.date_range,
@@ -588,47 +797,76 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                   ),
                   SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Work Order Date :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Work Order Date :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildTextField(
-                    hintText: "   work Order Date",
+                    hintText: "   Work Order Date",
                     icon: Icons.date_range,
                     controller: _vsDateController,
                     isDateField: true,
                   ),
-                  SizedBox(height: 30.h,),
+                  SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Project Duration:",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Project Duration:",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildTextField(
                     hintText: "   Project Duration",
                     icon: Icons.date_range,
                     controller: _lastVisitedDateController,
                     isDateField: true,
                   ),
-                  SizedBox(height: 30.h,),
+                  SizedBox(height: 30.h),
                   Padding(
-                    padding:  EdgeInsets.only(left: 12.0),
+                    padding: EdgeInsets.only(left: 12.0),
                     child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("  Remarks :",style: GoogleFonts.outfit(textStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black)),)),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        "  Remarks :",
+                        style: GoogleFonts.outfit(
+                          textStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 9.5.h,),
+                  SizedBox(height: 9.5.h),
                   _buildTextField(
                     controller: remarksController,
                     hintText: "   Remarks",
                     icon: Icons.remember_me,
                   ),
                   SizedBox(height: 10.h),
-                  // Button for generating and previewing PDF
                   GestureDetector(
                     onTap: () async {
                       MobileDocument(context);
@@ -641,9 +879,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
                       text: "Submit",
                     ),
                   ),
-              
                   SizedBox(height: 20.h),
-              
                 ],
               ),
             ),
@@ -653,13 +889,7 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
     );
   }
 
-  // Form Validation Function
-  bool validateMandatoryFields() {
-    if (Nameoftheworkr.text.isEmpty) return false;
-    return true;
-
-  }
-  /// Finanaical dropdown //
+  /// Financial dropdown
   Widget _buildFinancialYearDropdown({
     required TextEditingController controller,
   }) {
@@ -677,19 +907,19 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
 
     return Focus(
       onFocusChange: (hasFocus) {
-        if (hasFocus) {
-          // Show the dropdown when the field gets focus
+        if (hasFocus && _isFullEditMode) {
           _showFinancialYearDropdown(financialYears);
         }
       },
       child: GestureDetector(
-        onTap: () {
-          // Trigger the dropdown when user taps on the field
+        onTap: _isFullEditMode
+            ? () {
           _showFinancialYearDropdown(financialYears);
-        },
+        }
+            : null,
         child: Container(
-          height: height / 15.2.h, // Adjusted for better height
-          width: width / 1.09.w, // Adjusted for better width
+          height: height / 15.2.h,
+          width: width / 1.09.w,
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
             borderRadius: BorderRadius.circular(6.r),
@@ -698,31 +928,31 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15.w), // Adjust padding for a neat look
+            padding: EdgeInsets.symmetric(horizontal: 15.w),
             child: Align(
-              alignment: Alignment.center, // Center the text vertically and horizontally
+              alignment: Alignment.center,
               child: TextFormField(
                 controller: controller,
                 focusNode: focusNode,
                 style: GoogleFonts.dmSans(
                   textStyle: TextStyle(
-                    fontSize: 16.sp, // Adjust font size for better readability
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w500,
                     color: Colors.black,
                   ),
                 ),
                 decoration: InputDecoration(
-                  contentPadding: EdgeInsets.zero, // No left padding for better alignment
-                  hintText: "   Financial Year", // Placeholder text
+                  contentPadding: EdgeInsets.zero,
+                  hintText: "   Financial Year",
                   hintStyle: GoogleFonts.sora(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w400,
                     color: Colors.black.withOpacity(0.6),
                   ),
-                  border: InputBorder.none, // Remove borders for cleaner look
-                  isDense: true, // Make the field compact
+                  border: InputBorder.none,
+                  isDense: true,
                 ),
-                readOnly: true, // Makes the field read-only, so users can only select the dropdown
+                readOnly: true,
               ),
             ),
           ),
@@ -731,7 +961,6 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
     );
   }
 
-// Function to show the financial year dropdown
   void _showFinancialYearDropdown(List<String> financialYears) async {
     String? selectedYear = await showDialog<String>(
       context: context,
@@ -739,15 +968,14 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
         return AlertDialog(
           title: Text("Select Financial Year", style: TextStyle(fontWeight: FontWeight.bold)),
           content: SizedBox(
-            width: 300, // Set a fixed width for the dropdown
-            height: 250, // Set a fixed height for the dropdown container
+            width: 300,
+            height: 250,
             child: DropdownButton<String>(
               value: financialYearController.text.isEmpty ? null : financialYearController.text,
-              isExpanded: true, // Makes the dropdown take up all available width
+              isExpanded: true,
               onChanged: (String? newValue) {
-                // Update the controller when a value is selected
                 financialYearController.text = newValue!;
-                Navigator.pop(context, newValue); // Close the dialog and return the selected value
+                Navigator.pop(context, newValue);
               },
               items: financialYears.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
@@ -770,41 +998,38 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
       },
     );
 
-    // If a financial year was selected, update the field value
     if (selectedYear != null) {
       setState(() {
-        financialYearController.text = selectedYear; // Set the selected financial year to the controller
+        financialYearController.text = selectedYear;
       });
     }
   }
 
-  /// Dropdown field //
+  /// Dropdown field
   Widget _buildDropdownField({
     required String apiUrl,
     required String hintText,
     required TextStyle hintStyle,
     required String? selectedValue,
-    required Function(String?) onChanged,
-    required Function onAddNewRoute, // Pass the onAddNewRoute callback
+    required Function(String?)? onChanged,
+    required Function onAddNewRoute,
   }) {
     return DropdownField(
       apiUrl: apiUrl,
       hintText: hintText,
       hintStyle: hintStyle,
-      onChanged: onChanged,
+      onChanged: (value) => onChanged?.call(value),
       selectedValue: selectedValue,
-      onAddNewRoute: onAddNewRoute, // Pass it to DropdownField
+      onAddNewRoute: onAddNewRoute,
     );
   }
 
-
-
-  // Updated _buildTextField method
+  /// Text field
   Widget _buildTextField({
     required String hintText,
     required IconData icon,
     TextEditingController? controller,
-    bool isDateField = false, // Boolean flag to identify date fields
+    bool isDateField = false,
   }) {
     return Container(
       height: height / 15.2.h,
@@ -816,63 +1041,46 @@ class _UpdateProjectFormState extends State<UpdateProjectForm>  with AutomaticKe
           color: Colors.grey.shade500,
         ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextFormField(
-              controller: controller,
-              readOnly: !_isEditMode,
-              style: GoogleFonts.dmSans(
-                textStyle: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w500,
-                  color: _isEditMode ? Colors.black : Colors.grey.shade700,
-                ),
-              ),
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.only(left: 20.0),
-                prefixIconConstraints: BoxConstraints(
-                    minWidth: 24,minHeight: 24
-                ),
-                prefixIcon: Icon(icon, size: 16), // Icon size adjusted to 16
-                hintText: hintText,
-                hintStyle: GoogleFonts.sora(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-                border: InputBorder.none,
-              ),
-              onTap: isDateField
-                  ? () async {
-                DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (pickedDate != null) {
-                  controller?.text = DateFormat('yyyy-MM-dd').format(pickedDate);
-                }
-              }
-              : null,
-            ),
+      child: TextFormField(
+        controller: controller,
+        readOnly: !_isFullEditMode,
+        style: GoogleFonts.dmSans(
+          textStyle: TextStyle(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w500,
+            color: _isFullEditMode ? Colors.black : Colors.grey.shade700,
           ),
-          IconButton(
-            icon: Icon(
-              _isEditMode ? Icons.check : Icons.edit,
-              color: _isEditMode ? Colors.green : Colors.blue,
-            ),
-            onPressed: _toggleEditMode,
+        ),
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.only(left: 20.0),
+          prefixIconConstraints: BoxConstraints(minWidth: 24, minHeight: 24),
+          prefixIcon: Icon(icon, size: 16),
+          hintText: hintText,
+          hintStyle: GoogleFonts.sora(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
-        ],
+          border: InputBorder.none,
+        ),
+        onTap: isDateField && _isFullEditMode
+            ? () async {
+          DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
+          );
+          if (pickedDate != null) {
+            controller?.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+          }
+        }
+            : null,
       ),
-      
     );
   }
 
   @override
-  // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
 }
 
