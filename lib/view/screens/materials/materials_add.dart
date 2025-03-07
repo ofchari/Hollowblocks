@@ -405,20 +405,7 @@ class _MaterialsAddState extends State<MaterialsAdd> {
                 ),
                 const Spacer(),
                 // Add button to confirm selection
-                ElevatedButton(
-                  onPressed: navigateWithSelectedMaterials,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                  ),
-                  child: MyText(
-                    text: "Confirm Selection",
-                    color: Colors.white,
-                    weight: FontWeight.w500,
-                  ),
-                ),
+
               ],
             ),
           ),
@@ -529,6 +516,20 @@ class _MaterialsAddState extends State<MaterialsAdd> {
                   ),
                 );
               },
+            ),
+          ),
+          ElevatedButton(
+            onPressed: navigateWithSelectedMaterials,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            child: MyText(
+              text: "Confirm Selection",
+              color: Colors.white,
+              weight: FontWeight.w500,
             ),
           ),
         ],

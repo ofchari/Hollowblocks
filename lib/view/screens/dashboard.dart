@@ -50,7 +50,7 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-  // Save new project to the API
+           ///  Save new project to the API  ///
   Future<void> _saveProjectToApi(String projectName) async {
     try {
       final response = await http.post(
@@ -75,7 +75,7 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-  // Add new method to fetch in/out amounts
+                   /// Add new method to fetch in/out amounts ///
   Future<void> _fetchProjectAmounts(String projectName) async {
     try {
       HttpClient client = HttpClient();
@@ -99,7 +99,7 @@ class _DashboardState extends State<Dashboard> {
         final responseData = json.decode(response.body);
 
         if (responseData.containsKey('message') && responseData['message'] is List && responseData['message'].isNotEmpty) {
-          // Get the first item from the array
+          // Get the first item from the array //
           final data = responseData['message'][0];
 
           if (mounted) {
@@ -140,7 +140,6 @@ class _DashboardState extends State<Dashboard> {
       }
     }
   }
-
 
   Future<void> MobileDocument(BuildContext context, String projectName) async {
     HttpClient client = HttpClient();

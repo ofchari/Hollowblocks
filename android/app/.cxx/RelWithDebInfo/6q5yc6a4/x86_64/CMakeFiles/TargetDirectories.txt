@@ -1,0 +1,2 @@
+C:/Users/Hp/vetri_hollowblock/android/app/.cxx/RelWithDebInfo/6q5yc6a4/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/Hp/vetri_hollowblock/android/app/.cxx/RelWithDebInfo/6q5yc6a4/x86_64/CMakeFiles/rebuild_cache.dir

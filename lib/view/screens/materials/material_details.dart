@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -38,10 +39,16 @@ class _MaterialScreenState extends State<MaterialScreen> {
   @override
   void initState() {
     super.initState();
-    print("Project Name in MaterialScreen: ${widget.projectName}"); // Debugging
+    if (kDebugMode) {
+      print("Project Name in MaterialScreen: ${widget.projectName}");
+    } // Debugging
     _initializeHive();
     fetchAllData();
-
+  }
+  @override
+  void dispose() {
+    /// Clean up resources
+    super.dispose();
   }
 
   Map<String, double> calculateInventory() {
@@ -56,7 +63,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
       }
     }
 
-    // Subtract used materials from inventory
+    // Subtract used materials from inventory ///
     for (var data in usedMaterialData) {
       final material = data['material'];
       final quantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0;
@@ -145,7 +152,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
         fetchReceivedData(),
       ]);
     } catch (e) {
-      print('Error fetching data: $e');
+      if (kDebugMode) {
+        print('Error fetching data: $e');
+      }
       Get.snackbar(
         'Error',
         'Failed to fetch data. Please try again.',
@@ -167,14 +176,18 @@ class _MaterialScreenState extends State<MaterialScreen> {
       final encodedProjectName = Uri.encodeComponent(widget.projectName);
       final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_purchased?name=$encodedProjectName';
 
-      print('Fetching purchased data from: $url'); // Debug log
+      if (kDebugMode) {
+        print('Fetching purchased data from: $url');
+      } // Debug log
 
       final response = await http.get(
         Uri.parse(url),
         headers: headers,
       );
 
-      print('Purchased Response: ${response.body}'); // Debug log
+      if (kDebugMode) {
+        print('Purchased Response: ${response.body}');
+      } // Debug log
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -182,11 +195,15 @@ class _MaterialScreenState extends State<MaterialScreen> {
           purchasedMaterialData = List<Map<String, dynamic>>.from(data['message'] ?? []);
         });
       } else {
-        print('Purchased Error Status: ${response.statusCode}'); // Debug log
+        if (kDebugMode) {
+          print('Purchased Error Status: ${response.statusCode}');
+        } // Debug log
         throw Exception('Failed to load purchased data');
       }
     } catch (e) {
-      print('Error fetching purchased data: $e'); // Debug log
+      if (kDebugMode) {
+        print('Error fetching purchased data: $e');
+      } // Debug log
       rethrow;
     }
   }
@@ -201,28 +218,40 @@ class _MaterialScreenState extends State<MaterialScreen> {
       final encodedProjectName = Uri.encodeComponent(widget.projectName);
       final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_used?name=$encodedProjectName';
 
-      print('Fetching used data from: $url'); // Debug log
+      if (kDebugMode) {
+        print('Fetching used data from: $url');
+      } // Debug log
 
       final response = await http.get(
         Uri.parse(url),
         headers: headers,
       );
 
-      print('Used Response: ${response.body}'); // Debug log
+      if (kDebugMode) {
+        print('Used Response: ${response.body}');
+      } // Debug log
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
           usedMaterialData = List<Map<String, dynamic>>.from(data['message'] ?? []);
         });
-        print(response.body);
-        print(response.statusCode);
+        if (kDebugMode) {
+          print(response.body);
+        }
+        if (kDebugMode) {
+          print(response.statusCode);
+        }
       } else {
-        print('Used Error Status: ${response.statusCode}'); // Debug log
+        if (kDebugMode) {
+          print('Used Error Status: ${response.statusCode}');
+        } // Debug log
         throw Exception('Failed to load used data');
       }
     } catch (e) {
-      print('Error fetching used data: $e'); // Debug log
+      if (kDebugMode) {
+        print('Error fetching used data: $e');
+      } // Debug log
       rethrow;
     }
   }
@@ -237,7 +266,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
       final encodedProjectName = Uri.encodeComponent(widget.projectName);
       final url = 'https://vetri.regenterp.com/api/method/regent.sales.client.get_mobile_material_received?name=$encodedProjectName';
 
-      print('Fetching received data from: $url'); // Debug log
+      if (kDebugMode) {
+        print('Fetching received data from: $url');
+      } // Debug log
 
       final response = await http.get(
         Uri.parse(url),
@@ -252,15 +283,19 @@ class _MaterialScreenState extends State<MaterialScreen> {
           receivedMaterialData = List<Map<String, dynamic>>.from(data['message'] ?? []);
         });
       } else {
-        print('Received Error Status: ${response.statusCode}'); // Debug log
+        if (kDebugMode) {
+          print('Received Error Status: ${response.statusCode}');
+        } // Debug log
         throw Exception('Failed to load received data');
       }
     } catch (e) {
-      print('Error fetching received data: $e'); // Debug log
+      if (kDebugMode) {
+        print('Error fetching received data: $e');
+      } // Debug log
       rethrow;
     }
   }
-               /// Update API methods ///
+                     /// Update API methods ///
   // First, add these new API methods for updating materials
   Future<void> updatePurchasedMaterial(Map<String, dynamic> data) async {
     try {
@@ -295,7 +330,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
         throw Exception('Failed to update purchased material');
       }
     } catch (e) {
-      print('Error updating purchased material: $e');
+      if (kDebugMode) {
+        print('Error updating purchased material: $e');
+      }
       Get.snackbar(
         'Error',
         'Failed to update material purchase',
@@ -304,7 +341,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
       );
     }
   }
-              /// Update Used Material ///
+                   /// Update Used Material ///
   Future<void> updateUsedMaterial(Map<String, dynamic> data) async {
     try {
       final headers = {
@@ -337,7 +374,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
         throw Exception('Failed to update used material');
       }
     } catch (e) {
-      print('Error updating used material: $e');
+      if (kDebugMode) {
+        print('Error updating used material: $e');
+      }
       Get.snackbar(
         'Error',
         'Failed to update material usage',
@@ -346,7 +385,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
       );
     }
   }
-                 /// Updae Received material //
+                 /// Update Received material //
   Future<void> updateReceivedMaterial(Map<String, dynamic> data) async {
     try {
       final headers = {
@@ -380,7 +419,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
         throw Exception('Failed to update received material');
       }
     } catch (e) {
-      print('Error updating received material: $e');
+      if (kDebugMode) {
+        print('Error updating received material: $e');
+      }
       Get.snackbar(
         'Error',
         'Failed to update material receipt',
@@ -422,7 +463,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
         throw Exception('Failed to delete purchased material');
       }
     } catch (e) {
-      print('Error deleting purchased material: $e');
+      if (kDebugMode) {
+        print('Error deleting purchased material: $e');
+      }
       Get.snackbar(
         'Error',
         'Failed to delete material purchase',
@@ -462,7 +505,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
         throw Exception('Failed to delete used material');
       }
     } catch (e) {
-      print('Error deleting used material: $e');
+      if (kDebugMode) {
+        print('Error deleting used material: $e');
+      }
       Get.snackbar(
         'Error',
         'Failed to delete material usage record',
@@ -502,7 +547,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
         throw Exception('Failed to delete received material');
       }
     } catch (e) {
-      print('Error deleting received material: $e');
+      if (kDebugMode) {
+        print('Error deleting received material: $e');
+      }
       Get.snackbar(
         'Error',
         'Failed to delete material receipt',
@@ -523,6 +570,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
     await box.deleteAt(index);
     setState(() {});
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -609,6 +657,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
     );
   }
 
+
   Widget _buildContainer(int index, String text) {
     return GestureDetector(
       onTap: () {
@@ -651,58 +700,55 @@ class _MaterialScreenState extends State<MaterialScreen> {
       );
     }
 
-    return Expanded(
-      child: ListView.builder(
-        itemCount: inventory.length,
-        itemBuilder: (context, index) {
-          final material = inventory.keys.elementAt(index);
-          final quantity = inventory[material];
-      
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      MyText(
-                        text: "Material: $material",
-                        color: Colors.black,
-                        weight: FontWeight.w600,
-                      ),
-                      MyText(
-                        text: "In Stock",
-                        color: Colors.black,
-                        weight: FontWeight.w600,
-                      ),
-                    ],
-                  ),
-                  Divider(color: Colors.grey.shade300, thickness: 1),
-                  _buildDetailsRow("Quantity", quantity?.toStringAsFixed(2)),
-                ],
-              ),
+    return ListView.builder(
+      itemCount: inventory.length,
+      itemBuilder: (context, index) {
+        final material = inventory.keys.elementAt(index);
+        final quantity = inventory[material];
+
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                ),
+              ],
             ),
-          );
-        },
-      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    MyText(
+                      text: "Material: $material",
+                      color: Colors.black,
+                      weight: FontWeight.w600,
+                    ),
+                    MyText(
+                      text: "In Stock",
+                      color: Colors.black,
+                      weight: FontWeight.w600,
+                    ),
+                  ],
+                ),
+                Divider(color: Colors.grey.shade300, thickness: 1),
+                _buildDetailsRow("Quantity", quantity?.toStringAsFixed(2)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
-
 
 
   Widget _buildReceivedDataContainer() {
@@ -717,256 +763,49 @@ class _MaterialScreenState extends State<MaterialScreen> {
         ),
       );
     }
-
-    return Expanded(
-      child: ListView.builder(
-        itemCount: receivedMaterialData.length,
-        itemBuilder: (context, index) {
-          final data = receivedMaterialData[index];
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      MyText(text: "Stock Details", color: Colors.grey, weight: FontWeight.w500),
-                      // IconButton(
-                      //   icon: Icon(Icons.edit, color: Colors.blue),
-                      //   onPressed: () async {
-                      //     final result = await Get.to(() => ReceivedScreen(
-                      //       material: data,
-                      //       projectName: widget.projectName,
-                      //       work: widget.work,
-                      //       // isEditing: true,
-                      //     ));
-                      //     if (result != null) {
-                      //       await updateReceivedMaterial(result);
-                      //     }
-                      //   },
-                      // ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.grey),
-                          onPressed: () {
-                            Get.defaultDialog(
-                              title: 'Confirm Deletion',
-                              titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              middleText: 'Are you sure you want to delete this material receipt?',
-                              middleTextStyle: TextStyle(fontSize: 16),
-                              barrierDismissible: false,
-                              radius: 8,
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Get.back(),
-                                  child: Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    Get.back(); // Close the dialog
-                                    if (data['name'] != null) {
-                                      await deleteReceivedMaterial(data['name'].toString());
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                                  ),
-                                  child: Text('Delete', style: TextStyle(color: Colors.white, fontSize: 16)),
-                                ),
-                              ],
-                            );
-                          },
-
-                      ),
-                    ],
-                  ),
-                  Divider(color: Colors.grey.shade300, thickness: 1),
-                  _buildDetailsRow("Material", data['material_name']?.toString()),
-                  _buildDetailsRow("Quantity", data['quantity']?.toString()),
-                  _buildDetailsRow("Party Name", data['party_name']?.toString()),
-              _buildDetailsRow(
-                "Date",
-                DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),
-              )
-
+    return ListView.builder(
+      itemCount: receivedMaterialData.length,
+      itemBuilder: (context, index) {
+        final data = receivedMaterialData[index];
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                ),
               ],
-              ),
             ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildUsedDataContainer() {
-    if (isLoading) {
-      return Center(child: CircularProgressIndicator());
-    }
-
-    if (usedMaterialData.isEmpty) {
-      return Center(
-        child: Text("No Used Materials",
-          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
-        ),
-      );
-    }
-
-    final inventory = calculateInventory();
-
-    return Expanded(
-      child: ListView.builder(
-        itemCount: usedMaterialData.length,
-        itemBuilder: (context, index) {
-          final data = usedMaterialData[index];
-          final material = data['material'];
-          final usedQuantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0;
-          final inventoryQuantity = inventory[material] ?? 0.0;
-          final balanceStock = inventoryQuantity;
-
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
-
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.grey),
-                          onPressed: () {
-                            Get.defaultDialog(
-                              title: 'Confirm Deletion',
-                              titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              middleText: 'Are you sure you want to delete this material receipt?',
-                              middleTextStyle: TextStyle(fontSize: 16),
-                              barrierDismissible: false,
-                              radius: 8,
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Get.back(),
-                                  child: Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    Get.back(); // Close the dialog
-                                    if (data['name'] != null) {
-                                      await deleteUsedMaterial(data['name'].toString());
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                                  ),
-                                  child: Text('Delete', style: TextStyle(color: Colors.white, fontSize: 16)),
-                                ),
-                              ],
-                            );
-                          },
-                      ),
-                    ],
-                  ),
-                  Divider(color: Colors.grey.shade300, thickness: 1),
-                  _buildDetailsRow("Material", material?.toString()),
-                  _buildDetailsRow("Quantity", usedQuantity.toStringAsFixed(2)),
-                  _buildDetailsRow("Balance Stock", balanceStock.toStringAsFixed(2)),
-                  _buildDetailsRow("Date",DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildPurchaseDataContainer() {
-    if (isLoading) {
-      return Center(child: CircularProgressIndicator());
-    }
-
-    if (purchasedMaterialData.isEmpty) {
-      return Center(
-        child: Text("No Purchased Materials",
-          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
-        ),
-      );
-    }
-
-    return Expanded(
-      child: ListView.builder(
-        itemCount: purchasedMaterialData.length,
-        itemBuilder: (context, index) {
-          final data = purchasedMaterialData[index];
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      MyText(text: "Material Purchase Details", color: Colors.grey, weight: FontWeight.w500),
-                      // IconButton(
-                      //   icon: Icon(Icons.edit, color: Colors.blue),
-                      //   onPressed: () async {
-                      //     final result = await Get.to(() => PurchasedScreen(
-                      //       material: data,
-                      //       projectName: widget.projectName,
-                      //       work: widget.work,
-                      //       // isEditing: true,
-                      //     ));
-                      //     if (result != null) {
-                      //       await updatePurchasedMaterial(result);
-                      //     }
-                      //   },
-                      // ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.grey),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    MyText(text: "Stock Details", color: Colors.grey, weight: FontWeight.w500),
+                    // IconButton(
+                    //   icon: Icon(Icons.edit, color: Colors.blue),
+                    //   onPressed: () async {
+                    //     final result = await Get.to(() => ReceivedScreen(
+                    //       material: data,
+                    //       projectName: widget.projectName,
+                    //       work: widget.work,
+                    //       // isEditing: true,
+                    //     ));
+                    //     if (result != null) {
+                    //       await updateReceivedMaterial(result);
+                    //     }
+                    //   },
+                    // ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.grey),
                         onPressed: () {
                           Get.defaultDialog(
                             title: 'Confirm Deletion',
@@ -984,7 +823,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                                 onPressed: () async {
                                   Get.back(); // Close the dialog
                                   if (data['name'] != null) {
-                                    await deletePurchasedMaterial(data['name'].toString());
+                                    await deleteReceivedMaterial(data['name'].toString());
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -996,20 +835,222 @@ class _MaterialScreenState extends State<MaterialScreen> {
                             ],
                           );
                         },
-                      ),
-                    ],
-                  ),
-                  Divider(color: Colors.grey.shade300, thickness: 1),
-                  _buildDetailsRow("Material", data['material']?.toString()),
-                  _buildDetailsRow("Quantity", data['quantity']?.toString()),
-                  _buildDetailsRow("Party Name", data['party_name']?.toString()),
-                  _buildDetailsRow("Date",DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),),
-                ],
-              ),
+
+                    ),
+                  ],
+                ),
+                Divider(color: Colors.grey.shade300, thickness: 1),
+                _buildDetailsRow("Material", data['material_name']?.toString()),
+                _buildDetailsRow("Quantity", data['quantity']?.toString()),
+                _buildDetailsRow("Party Name", data['party_name']?.toString()),
+            _buildDetailsRow(
+              "Date",
+              DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),
+            )
+
+            ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildUsedDataContainer() {
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+
+    if (usedMaterialData.isEmpty) {
+      return Center(
+        child: Text("No Used Materials",
+          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+        ),
+      );
+    }
+
+    final inventory = calculateInventory();
+
+    return ListView.builder(
+      itemCount: usedMaterialData.length,
+      itemBuilder: (context, index) {
+        final data = usedMaterialData[index];
+        final material = data['material'];
+        final usedQuantity = double.tryParse(data['quantity']?.toString() ?? '0') ?? 0.0;
+        final inventoryQuantity = inventory[material] ?? 0.0;
+        final balanceStock = inventoryQuantity;
+
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    MyText(text: "Material Used Details", color: Colors.grey, weight: FontWeight.w500),
+
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.grey),
+                        onPressed: () {
+                          Get.defaultDialog(
+                            title: 'Confirm Deletion',
+                            titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            middleText: 'Are you sure you want to delete this material receipt?',
+                            middleTextStyle: TextStyle(fontSize: 16),
+                            barrierDismissible: false,
+                            radius: 8,
+                            actions: [
+                              TextButton(
+                                onPressed: () => Get.back(),
+                                child: Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  Get.back(); // Close the dialog
+                                  if (data['name'] != null) {
+                                    await deleteUsedMaterial(data['name'].toString());
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                                ),
+                                child: Text('Delete', style: TextStyle(color: Colors.white, fontSize: 16)),
+                              ),
+                            ],
+                          );
+                        },
+                    ),
+                  ],
+                ),
+                Divider(color: Colors.grey.shade300, thickness: 1),
+                _buildDetailsRow("Material", material?.toString()),
+                _buildDetailsRow("Quantity", usedQuantity.toStringAsFixed(2)),
+                _buildDetailsRow("Balance Stock", balanceStock.toStringAsFixed(2)),
+                _buildDetailsRow("Date",DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPurchaseDataContainer() {
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+
+    if (purchasedMaterialData.isEmpty) {
+      return Center(
+        child: Text("No Purchased Materials",
+          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: purchasedMaterialData.length,
+      itemBuilder: (context, index) {
+        final data = purchasedMaterialData[index];
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    MyText(text: "Material Purchase Details", color: Colors.grey, weight: FontWeight.w500),
+                    // IconButton(
+                    //   icon: Icon(Icons.edit, color: Colors.blue),
+                    //   onPressed: () async {
+                    //     final result = await Get.to(() => PurchasedScreen(
+                    //       material: data,
+                    //       projectName: widget.projectName,
+                    //       work: widget.work,
+                    //       // isEditing: true,
+                    //     ));
+                    //     if (result != null) {
+                    //       await updatePurchasedMaterial(result);
+                    //     }
+                    //   },
+                    // ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.grey),
+                      onPressed: () {
+                        Get.defaultDialog(
+                          title: 'Confirm Deletion',
+                          titleStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          middleText: 'Are you sure you want to delete this material receipt?',
+                          middleTextStyle: TextStyle(fontSize: 16),
+                          barrierDismissible: false,
+                          radius: 8,
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(),
+                              child: Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                Get.back(); // Close the dialog
+                                if (data['name'] != null) {
+                                  await deletePurchasedMaterial(data['name'].toString());
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                              ),
+                              child: Text('Delete', style: TextStyle(color: Colors.white, fontSize: 16)),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                Divider(color: Colors.grey.shade300, thickness: 1),
+                _buildDetailsRow("Material", data['material']?.toString()),
+                _buildDetailsRow("Quantity", data['quantity']?.toString()),
+                _buildDetailsRow("Party Name", data['party_name']?.toString()),
+                _buildDetailsRow("Date",DateFormat('dd-MM-yyyy').format(DateTime.parse(data['date'] ?? '')),),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

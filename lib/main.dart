@@ -56,8 +56,7 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
           ),
-          home:
-           BottomNavigation()
+          home: BottomNavigation()
           // AnimatedSplashScreen(
           //   backgroundColor: Colors.white,
           //     splash: Image.asset("assets/KBSCo.jpg"),

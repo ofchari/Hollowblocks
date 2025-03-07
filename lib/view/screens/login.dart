@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vetri_hollowblock/view/screens/dashboard.dart';
 import 'package:vetri_hollowblock/view/widgets/buttons.dart';
 
+import '../bottom_navigation.dart';
+
 
 class SessionManager {
   static const String keyIsLoggedIn = 'isLoggedIn';
@@ -75,7 +77,7 @@ class _LoginState extends State<Login> {
       if (isLoggedIn) {
         // Defer navigation until after the first frame
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Get.off(() => const Dashboard());
+          Get.off(() => const BottomNavigation());
         });
       }
     } catch (e) {

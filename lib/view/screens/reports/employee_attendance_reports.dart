@@ -240,7 +240,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
             },
             icon: const Icon(Icons.download, color: Colors.white),
           ),
-
         ],
       ),
       body: isLoading
