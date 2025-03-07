@@ -219,7 +219,7 @@ class _DashboardState extends State<Dashboard> {
     try {
       final response = await http.get(
         Uri.parse(
-            '$apiUrl/Project Form?fields=["work","work_type","scheme_name","scheme_group","work_group","agency_name","district","block","village"]'),
+            '$apiUrl/Project Form?fields=["work","work_type","scheme_name","scheme_group","work_group","agency_name","district","block","village","current_stage"]'),
         headers: {
           'Authorization': 'Basic ${base64Encode(utf8.encode(apiKey))}',
         },
@@ -244,7 +244,7 @@ class _DashboardState extends State<Dashboard> {
             'district': {},
             'block': {},
             'village': {},
-            // 'Construction Status': {},
+            // 'current_stage': {},
           };
 
           for (var item in filterData) {
@@ -285,7 +285,7 @@ class _DashboardState extends State<Dashboard> {
 
       // Updated URL construction with proper filter format
       final url =
-          Uri.parse('$apiUrl/Project Form?fields=["name","work","scheme_name","scheme_group","work_group","agency_name","district","block","village"]$filterString');
+          Uri.parse('$apiUrl/Project Form?fields=["name","work","scheme_name","scheme_group","work_group","agency_name","district","block","village","current_stage"]$filterString');
       print('Request URL: $url'); // Debug log
 
       final response = await http.get(
@@ -298,6 +298,7 @@ class _DashboardState extends State<Dashboard> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
+        print("Status checking${response.body}");
 
         if (data.containsKey('data') && data['data'] is List) {
           final List<dynamic> projectListData = data['data'];
@@ -314,7 +315,7 @@ class _DashboardState extends State<Dashboard> {
                   "district": project['district'] ?? "",
                   "block": project['block'] ?? "",
                   "village": project['village'] ?? "",
-                  // "Construction Status": project['Construction Status'] ?? "",
+                  "current_stage": project['current_stage'] ?? "",
                 };
               }).toList();
 
@@ -696,6 +697,8 @@ class _DashboardState extends State<Dashboard> {
     final amounts = projectAmounts[project['name']] ?? {'in_amount': '0.00', 'out_amount': '0.00'};
 
     print("Building card for ${project['name']} with amounts: $amounts");
+    print("Building status ${project['current_stage']}");
+    print("Building districts ${project['district']}");
 
     // Format the amounts to include commas for thousands
     final formattedInAmount = NumberFormat('#,##,##0.00').format(double.parse(amounts['in_amount']!));
@@ -721,35 +724,73 @@ class _DashboardState extends State<Dashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
               children: [
-                Expanded(
-                  child: Text(
-                    project['work'] ?? '',
-                    style: GoogleFonts.figtree(
-                      textStyle: TextStyle(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: project['work'] ?? '',
+                                  style: GoogleFonts.figtree(
+                                    textStyle: TextStyle(
+                                      fontSize: 17.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: project['current_stage'] != null ? ' (${project['current_stage']})' : '',
+                                  style: GoogleFonts.figtree(
+                                    textStyle: TextStyle(
+                                      fontSize: 15.sp,  // Smaller font size for the stage
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.green,  // Change color to blue (you can adjust)
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          SizedBox(height: 2.h), // Spacing between work and district
+                          Text(
+                            project['district'] ?? '',
+                            style: GoogleFonts.figtree(
+                              textStyle: TextStyle(
+                                fontSize: 13.5.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ],
                       ),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.more_vert, color: Colors.grey),
-                  onPressed: () {
-                    _showBottomSheet(project);
-                  },
+                    IconButton(
+                      icon: Icon(Icons.more_vert, color: Colors.grey),
+                      onPressed: () {
+                        _showBottomSheet(project);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
             Divider(
               color: Colors.grey.shade200,
             ),
-            SizedBox(height: 4.3.h,),
+            SizedBox(height: 4.3.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -787,8 +828,7 @@ class _DashboardState extends State<Dashboard> {
                   ),
                 ),
               ],
-            )
-
+            ),
           ],
         ),
       ),
