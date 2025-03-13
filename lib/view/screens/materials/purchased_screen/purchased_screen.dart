@@ -713,139 +713,6 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
     );
   }).toList(),
     ),
-              // Grand Total Summary (outside the material containers)
-              if (selectedMaterials.isNotEmpty)
-                Container(
-                  margin: EdgeInsets.all(16.0),
-                  padding: EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12.0),
-                    border: Border.all(color: Colors.grey.shade400),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Order Summary",
-                        style: GoogleFonts.dmSans(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      // Subtotal (Including GST)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Subtotal (incl. GST):",
-                            style: GoogleFonts.dmSans(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Icon(Icons.currency_rupee, size: 16.sp),
-                              Text(
-                                grandSubTotal.toStringAsFixed(2),
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      // Additional Charges (if shown)
-                      if (showAdditionalChargesField)
-                        SizedBox(height: 8.h),
-                      if (showAdditionalChargesField)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Additional Charges:",
-                              style: GoogleFonts.dmSans(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Icon(Icons.currency_rupee, size: 16.sp),
-                                Text(
-                                  additionalCharges.toStringAsFixed(2),
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      // Discount (if shown)
-                      if (showDiscountField)
-                        SizedBox(height: 8.h),
-                      if (showDiscountField)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Discount:",
-                              style: GoogleFonts.dmSans(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Icon(Icons.currency_rupee, size: 16.sp),
-                                Text(
-                                  discount.toStringAsFixed(2),
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      SizedBox(height: 8.h),
-                      // Final Total
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Total Amount:",
-                            style: GoogleFonts.dmSans(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green.shade800,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Icon(Icons.currency_rupee,
-                                  size: 16.sp, color: Colors.green.shade800),
-                              Text(
-                                finalTotal.toStringAsFixed(2),
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade800,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
 
               SizedBox(height: 15.h,),
               GestureDetector(
@@ -978,6 +845,139 @@ class _PurchasedScreenState extends State<PurchasedScreen> {
                         },
                       ),
                     ),
+                  ),
+                ),
+              // Grand Total Summary (outside the material containers)
+              if (selectedMaterials.isNotEmpty)
+                Container(
+                  margin: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Order Summary",
+                        style: GoogleFonts.dmSans(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      // Subtotal (Including GST)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Subtotal (incl. GST):",
+                            style: GoogleFonts.dmSans(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.currency_rupee, size: 16.sp),
+                              Text(
+                                grandSubTotal.toStringAsFixed(2),
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // Additional Charges (if shown)
+                      if (showAdditionalChargesField)
+                        SizedBox(height: 8.h),
+                      if (showAdditionalChargesField)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Additional Charges:",
+                              style: GoogleFonts.dmSans(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Icon(Icons.currency_rupee, size: 16.sp),
+                                Text(
+                                  additionalCharges.toStringAsFixed(2),
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      // Discount (if shown)
+                      if (showDiscountField)
+                        SizedBox(height: 8.h),
+                      if (showDiscountField)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Discount:",
+                              style: GoogleFonts.dmSans(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Icon(Icons.currency_rupee, size: 16.sp),
+                                Text(
+                                  discount.toStringAsFixed(2),
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      SizedBox(height: 8.h),
+                      // Final Total
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total Amount:",
+                            style: GoogleFonts.dmSans(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade800,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.currency_rupee,
+                                  size: 16.sp, color: Colors.green.shade800),
+                              Text(
+                                finalTotal.toStringAsFixed(2),
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 

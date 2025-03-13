@@ -443,7 +443,7 @@ class _PaymentOutState extends State<PaymentOut> {
                     ],
                     ),
                     );
-                    }).toList(),
+                    }),
 
                   ],
                 ),

@@ -1,4 +1,3 @@
-import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,7 +14,6 @@ import 'package:vetri_hollowblock/view/screens/Form_types/status_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/village_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/work_group_screen.dart';
 import 'package:vetri_hollowblock/view/screens/Form_types/work_type_screen.dart';
-import 'package:vetri_hollowblock/view/screens/login.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter(); // Initialize Hive

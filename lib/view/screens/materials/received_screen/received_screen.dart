@@ -714,6 +714,140 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
                   }).toList(),
                 ),
               // Grand Total Summary (outside the material containers)
+              SizedBox(height: 15.h,),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    showAdditionalChargesField = !showAdditionalChargesField;
+                    if (!showAdditionalChargesField) {
+                      additionalCharges = 0.0;
+                      additionalChargesController.clear();
+                      _calculateTotal(); // Recalculate when hidden
+                    }
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: MyText(
+                        text: " + Additional Charges",
+                        color: Colors.blue,
+                        weight: FontWeight.w500),
+                  ),
+                ),
+              ),
+// Additional Charges Field
+              if (showAdditionalChargesField)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  child: SizedBox(
+                    width: 240, // Increased width for a more spacious input
+                    height: 48, // Adjusted height for a modern feel
+                    child: Padding(
+                      padding:  EdgeInsets.only(left: 100.0.w),
+                      child: TextFormField(
+                        controller: additionalChargesController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: "Additional Charges",
+                          labelStyle: GoogleFonts.outfit(
+                            textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.grey[600]),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0), // Rounded corners
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide(color: Colors.blue, width: 1.5), // Elevated border on focus
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1), // Subtle border
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100], // Light background
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10), // Adjusted padding
+                        ),
+                        style: GoogleFonts.outfit(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
+                        onChanged: (value) {
+                          setState(() {
+                            additionalCharges = double.tryParse(value) ?? 0.0;
+                            _calculateTotal();
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              SizedBox(height: 15.h,),
+              // Add Discount Button
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    showDiscountField = !showDiscountField;
+                    if (!showDiscountField) {
+                      discount = 0.0;
+                      discountController.clear();
+                      _calculateTotal(); // Recalculate when hidden
+                    }
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: MyText(
+                        text: " + Add Discount",
+                        color: Colors.blue,
+                        weight: FontWeight.w500),
+                  ),
+                ),
+              ),
+
+                /// Discount Field ///
+              if (showDiscountField)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  child: SizedBox(
+                    width: 240, // Increased width for a balanced input
+                    height: 48, // Adjusted height for uniformity
+                    child: Padding(
+                      padding:  EdgeInsets.only(left: 100.0.w),
+                      child: TextFormField(
+                        controller: discountController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: "Discount Amount",
+                          labelStyle: GoogleFonts.outfit(
+                            textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.grey[600]),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                        style: GoogleFonts.outfit(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
+                        onChanged: (value) {
+                          setState(() {
+                            discount = double.tryParse(value) ?? 0.0;
+                            _calculateTotal();
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
               if (selectedMaterials.isNotEmpty)
                 Container(
                   margin: EdgeInsets.all(16.0),
@@ -844,140 +978,6 @@ class _ReceivedScreenState extends State<ReceivedScreen> {
                         ],
                       ),
                     ],
-                  ),
-                ),
-
-              SizedBox(height: 15.h,),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    showAdditionalChargesField = !showAdditionalChargesField;
-                    if (!showAdditionalChargesField) {
-                      additionalCharges = 0.0;
-                      additionalChargesController.clear();
-                      _calculateTotal(); // Recalculate when hidden
-                    }
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: MyText(
-                        text: " + Additional Charges",
-                        color: Colors.blue,
-                        weight: FontWeight.w500),
-                  ),
-                ),
-              ),
-// Additional Charges Field
-              if (showAdditionalChargesField)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                  child: SizedBox(
-                    width: 240, // Increased width for a more spacious input
-                    height: 48, // Adjusted height for a modern feel
-                    child: Padding(
-                      padding:  EdgeInsets.only(left: 100.0.w),
-                      child: TextFormField(
-                        controller: additionalChargesController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: "Additional Charges",
-                          labelStyle: GoogleFonts.outfit(
-                            textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.grey[600]),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0), // Rounded corners
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.blue, width: 1.5), // Elevated border on focus
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1), // Subtle border
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100], // Light background
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10), // Adjusted padding
-                        ),
-                        style: GoogleFonts.outfit(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
-                        onChanged: (value) {
-                          setState(() {
-                            additionalCharges = double.tryParse(value) ?? 0.0;
-                            _calculateTotal();
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              SizedBox(height: 15.h,),
-              // Add Discount Button
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    showDiscountField = !showDiscountField;
-                    if (!showDiscountField) {
-                      discount = 0.0;
-                      discountController.clear();
-                      _calculateTotal(); // Recalculate when hidden
-                    }
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: MyText(
-                        text: " + Add Discount",
-                        color: Colors.blue,
-                        weight: FontWeight.w500),
-                  ),
-                ),
-              ),
-// Discount Field
-              if (showDiscountField)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                  child: SizedBox(
-                    width: 240, // Increased width for a balanced input
-                    height: 48, // Adjusted height for uniformity
-                    child: Padding(
-                      padding:  EdgeInsets.only(left: 100.0.w),
-                      child: TextFormField(
-                        controller: discountController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: "Discount Amount",
-                          labelStyle: GoogleFonts.outfit(
-                            textStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.grey[600]),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.blue, width: 1.5),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        ),
-                        style: GoogleFonts.outfit(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
-                        onChanged: (value) {
-                          setState(() {
-                            discount = double.tryParse(value) ?? 0.0;
-                            _calculateTotal();
-                          });
-                        },
-                      ),
-                    ),
                   ),
                 ),
 

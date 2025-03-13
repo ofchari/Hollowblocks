@@ -993,20 +993,20 @@ class _MaterialScreenState extends State<MaterialScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     MyText(text: "Material Purchase Details", color: Colors.grey, weight: FontWeight.w500),
-                    // IconButton(
-                    //   icon: Icon(Icons.edit, color: Colors.blue),
-                    //   onPressed: () async {
-                    //     final result = await Get.to(() => PurchasedScreen(
-                    //       material: data,
-                    //       projectName: widget.projectName,
-                    //       work: widget.work,
-                    //       // isEditing: true,
-                    //     ));
-                    //     if (result != null) {
-                    //       await updatePurchasedMaterial(result);
-                    //     }
-                    //   },
-                    // ),
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () async {
+                        final result = await Get.to(() => PurchasedScreen(
+                          material: data,
+                          projectName: widget.projectName,
+                          work: widget.work,
+                          // isEditing: true,
+                        ));
+                        if (result != null) {
+                          await updatePurchasedMaterial(result);
+                        }
+                      },
+                    ),
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.grey),
                       onPressed: () {
@@ -1118,6 +1118,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
       ),
     );
   }
+
 
   void _showMaterialBottomSheet(BuildContext context) {
     showModalBottomSheet(
